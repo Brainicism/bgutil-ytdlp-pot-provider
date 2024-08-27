@@ -1,7 +1,5 @@
 import { BG } from "bgutils-js";
 import { JSDOM } from "jsdom";
-import * as cp from "child_process";
-import util from "util";
 
 interface YoutubeSessionData {
   poToken: string;
