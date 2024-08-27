@@ -8,17 +8,27 @@ interface YoutubeSessionData {
 }
 
 export class SessionManager {
-    private youtubeSessionData: YoutubeSessionData | undefined;
+    private youtubeSessionData: { [visitorId: string]: YoutubeSessionData } =
+        {};
 
     // mostly copied from https://github.com/LuanRT/BgUtils/tree/main/examples/node
     async generatePoToken(visitorData: string): Promise<YoutubeSessionData> {
+        const sessionData = this.youtubeSessionData[visitorData];
+        //
         if (
-            this.youtubeSessionData &&
-            this.youtubeSessionData.generatedAt >
+            sessionData &&
+            sessionData.generatedAt >
                 new Date(new Date().getTime() - 6 * 60 * 60 * 1000)
         ) {
-            return this.youtubeSessionData;
+            console.info(
+                `POT for ${visitorData} still fresh, returning cached token`,
+            );
+            return sessionData;
         }
+
+        console.info(
+            `POT for ${visitorData} stale or not yet generated, generating...`,
+        );
 
         // hardcoded API key that has been used by youtube for years
         const requestKey = "O43z0dpjhgX20SCx4KAo";
@@ -36,7 +46,7 @@ export class SessionManager {
 
         const challenge = await BG.Challenge.create(bgConfig);
 
-        if (!challenge) throw new Error("Could not get challenge");
+        if (!challenge) throw new Error("Could not get Botguard challenge");
 
         if (challenge.script) {
             const script = challenge.script.find((sc) => sc !== null);
@@ -58,12 +68,12 @@ export class SessionManager {
             throw new Error("po_token unexpected undefined");
         }
 
-        this.youtubeSessionData = {
+        this.youtubeSessionData[visitorData] = {
             visitorData: visitorData,
             poToken: poToken,
             generatedAt: new Date(),
         };
 
-        return this.youtubeSessionData;
+        return this.youtubeSessionData[visitorData];
     }
 }
