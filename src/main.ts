@@ -8,7 +8,9 @@ httpServer.register(require("@fastify/formbody"));
 httpServer.post("/get_pot", {}, async (request, reply) => {
   const sessionManager = new SessionManager();
   const visitorData: string = (request.body as any).visitor_data;
+  console.log(`Received request for ${visitorData}`);
   const x = await sessionManager.generatePoToken(visitorData);
+  console.log(`Po token response: ${visitorData}`);
   await reply.code(200).send({ po_token: x.poToken });
 });
 
