@@ -3,11 +3,7 @@ import express from "express";
 import bodyParser from "body-parser";
 
 const httpServer = express();
-httpServer.use(
-  bodyParser.urlencoded({
-    extended: true,
-  })
-);
+httpServer.use(bodyParser.json());
 
 httpServer.listen({
   host: "0.0.0.0",
