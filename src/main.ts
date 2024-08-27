@@ -3,12 +3,16 @@ import express from "express";
 import bodyParser from "body-parser";
 
 const httpServer = express();
-httpServer.use(bodyParser);
 httpServer.use(
   bodyParser.urlencoded({
     extended: true,
   })
 );
+
+httpServer.listen({
+  host: "0.0.0.0",
+  port: 8080,
+});
 
 httpServer.post("/get_pot", async (request, response) => {
   const sessionManager = new SessionManager();
@@ -22,10 +26,3 @@ httpServer.post("/get_pot", async (request, response) => {
   console.log(`Po token response: ${visitorData}`);
   response.send({ po_token: x.poToken });
 });
-
-(async () => {
-  httpServer.listen({
-    host: "0.0.0.0",
-    port: 5858,
-  });
-})();
