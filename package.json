@@ -1,8 +1,11 @@
 {
   "dependencies": {
+    "@fastify/formbody": "^7.4.0",
     "bgutils-js": "^1.1.0",
     "fastify": "^4.28.1",
+    "i": "^0.3.7",
     "jsdom": "^25.0.0",
+    "npm": "^10.8.2",
     "typescript": "^5.5.4",
     "youtubei.js": "^10.4.0"
   },
