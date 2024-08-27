@@ -1,0 +1,19 @@
+{
+  "dependencies": {
+    "@types/express": "^4.17.21",
+    "bgutils-js": "^1.1.0",
+    "body-parser": "^1.20.2",
+    "express": "^4.19.2",
+    "i": "^0.3.7",
+    "jsdom": "^25.0.0",
+    "npm": "^10.8.2",
+    "typescript": "^5.5.4",
+    "youtubei.js": "^10.4.0"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^21.1.7",
+    "@types/node": "^22.5.0",
+    "prettier": "3.3.3",
+    "ts-node": "^10.9.2"
+  }
+}
