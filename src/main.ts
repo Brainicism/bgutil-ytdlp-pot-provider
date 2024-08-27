@@ -3,7 +3,7 @@ import fastify from "fastify";
 
 const httpServer = fastify({});
 
-httpServer.get("/get_pot", {}, async (request, reply) => {
+httpServer.post("/get_pot", {}, async (request, reply) => {
   const sessionManager = new SessionManager();
   const x = await sessionManager.generatePoToken(
     "Cgt4T0lhQVB6RnlqRSi0vrW2Bg%3D%3D"
