@@ -1,25 +1,30 @@
 import { SessionManager } from "./session_manager";
-import fastify from "fastify";
+import express from "express";
+import bodyParser from "body-parser";
 
-const httpServer = fastify({});
+const httpServer = express();
+httpServer.use(bodyParser);
+httpServer.use(
+  bodyParser.urlencoded({
+    extended: true,
+  })
+);
 
-// httpServer.register(require("@fastify/formbody"));
-
-httpServer.post("/get_pot", {}, async (request, reply) => {
+httpServer.post("/get_pot", async (request, response) => {
   const sessionManager = new SessionManager();
   console.log("Headers:", request.headers);
   console.log("Content-Type:", request.headers["content-type"]);
 
   console.log(request.body);
-  const visitorData: string = request.body as any;
+  const visitorData: string = request.body.visitor_data;
   console.log(`Received request for ${visitorData}`);
   const x = await sessionManager.generatePoToken(visitorData);
   console.log(`Po token response: ${visitorData}`);
-  await reply.code(200).send({ po_token: x.poToken });
+  response.send({ po_token: x.poToken });
 });
 
 (async () => {
-  await httpServer.listen({
+  httpServer.listen({
     host: "0.0.0.0",
     port: 5858,
   });
