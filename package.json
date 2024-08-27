@@ -13,6 +13,7 @@
   "devDependencies": {
     "@types/jsdom": "^21.1.7",
     "@types/node": "^22.5.0",
+    "prettier": "3.3.3",
     "ts-node": "^10.9.2"
   }
 }

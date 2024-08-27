@@ -8,19 +8,16 @@ const httpServer = express();
 httpServer.use(bodyParser.json());
 
 httpServer.listen({
-  host: "0.0.0.0",
-  port: PORT_NUMBER,
+    host: "0.0.0.0",
+    port: PORT_NUMBER,
 });
 
-httpServer.post("/get_pot", async (request, response) => {
-  const sessionManager = new SessionManager();
-  console.log("Headers:", request.headers);
-  console.log("Content-Type:", request.headers["content-type"]);
+console.log(`Started POT server on port ${PORT_NUMBER}`);
 
-  console.log(request.body);
-  const visitorData = request.body.visitor_data;
-  console.log(`Received request for ${visitorData}`);
-  const x = await sessionManager.generatePoToken(visitorData);
-  console.log(`Po token response: ${visitorData}`);
-  response.send({ po_token: x.poToken });
+httpServer.post("/get_pot", async (request, response) => {
+    const sessionManager = new SessionManager();
+    const visitorData = request.body.visitor_data;
+    console.log(`Received request for visitor data: '${visitorData}'`);
+    const sessionData = await sessionManager.generatePoToken(visitorData);
+    response.send({ po_token: sessionData.poToken });
 });
