@@ -16,8 +16,7 @@ httpServer.post("/get_pot", async (request, response) => {
   console.log("Content-Type:", request.headers["content-type"]);
 
   console.log(request.body);
-  const visitorData = JSON.parse(Object.keys(request.body)[0]!)
-    .visitor_data as string;
+  const visitorData = request.body.visitor_data;
   console.log(`Received request for ${visitorData}`);
   const x = await sessionManager.generatePoToken(visitorData);
   console.log(`Po token response: ${visitorData}`);
