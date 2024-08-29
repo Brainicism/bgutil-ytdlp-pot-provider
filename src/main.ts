@@ -16,8 +16,20 @@ console.log(`Started POT server on port ${PORT_NUMBER}`);
 
 httpServer.post("/get_pot", async (request, response) => {
     const sessionManager = new SessionManager();
-    const visitorData = request.body.visitor_data;
-    console.log(`Received request for visitor data: '${visitorData}'`);
-    const sessionData = await sessionManager.generatePoToken(visitorData);
+    const visitorData = request.body.visitor_data as string;
+    const dataSyncId = request.body.data_sync_id as string;
+
+    let visitorIdentifier: string;
+
+    // prioritize data sync id for authenticated requests, if passed
+    if (dataSyncId) {
+        console.log(`Received request for data sync ID: '${dataSyncId}'`);
+        visitorIdentifier = dataSyncId;
+    } else {
+        console.log(`Received request for visitor data: '${visitorData}'`);
+        visitorIdentifier = visitorData;
+    }
+
+    const sessionData = await sessionManager.generatePoToken(visitorIdentifier);
     response.send({ po_token: sessionData.poToken });
 });
