@@ -12,13 +12,14 @@ class BgUtilPotProviderRH(GetPOTProvider):
     _SUPPORTED_CLIENTS = ('web_creator', 'web', 'web_embedded', 'web_music')
 
     def _validate_get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs):
-        if data_sync_id:
-            raise UnsupportedRequest('Fetching PO Token for accounts is not supported')
+        if not data_sync_id and not visitor_data:
+            raise UnsupportedRequest('One of [data_sync_id, visitor_data] must be passed')
 
     def _get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs) -> str:
         response = ydl.urlopen(Request('http://127.0.0.1:4416/get_pot', data=json.dumps({
             'client': client,
-            'visitor_data': visitor_data
+            'visitor_data': visitor_data,
+            'data_sync_id': data_sync_id
         }).encode(), headers = {'Content-Type': 'application/json'}))
 
         response_json = json.loads(response.read().decode('utf-8'))

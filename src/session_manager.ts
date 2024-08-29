@@ -3,17 +3,20 @@ import { JSDOM } from "jsdom";
 
 interface YoutubeSessionData {
     poToken: string;
-    visitorData: string;
+    visitIdentifier: string;
     generatedAt: Date;
 }
 
 export class SessionManager {
-    private youtubeSessionData: { [visitorId: string]: YoutubeSessionData } =
-        {};
+    private youtubeSessionData: {
+        [visitIdentifier: string]: YoutubeSessionData;
+    } = {};
 
     // mostly copied from https://github.com/LuanRT/BgUtils/tree/main/examples/node
-    async generatePoToken(visitorData: string): Promise<YoutubeSessionData> {
-        const sessionData = this.youtubeSessionData[visitorData];
+    async generatePoToken(
+        visitIdentifier: string,
+    ): Promise<YoutubeSessionData> {
+        const sessionData = this.youtubeSessionData[visitIdentifier];
         //
         if (
             sessionData &&
@@ -21,13 +24,13 @@ export class SessionManager {
                 new Date(new Date().getTime() - 6 * 60 * 60 * 1000)
         ) {
             console.info(
-                `POT for ${visitorData} still fresh, returning cached token`,
+                `POT for ${visitIdentifier} still fresh, returning cached token`,
             );
             return sessionData;
         }
 
         console.info(
-            `POT for ${visitorData} stale or not yet generated, generating...`,
+            `POT for ${visitIdentifier} stale or not yet generated, generating...`,
         );
 
         // hardcoded API key that has been used by youtube for years
@@ -40,7 +43,7 @@ export class SessionManager {
         const bgConfig = {
             fetch: (url: any, options: any) => fetch(url, options),
             globalObj: globalThis,
-            identity: visitorData,
+            identity: visitIdentifier,
             requestKey,
         };
 
@@ -62,18 +65,18 @@ export class SessionManager {
         });
 
         console.info("po_token:", poToken);
-        console.info("visitor_data:", visitorData);
+        console.info("visit_identifier:", visitIdentifier);
 
         if (!poToken) {
             throw new Error("po_token unexpected undefined");
         }
 
-        this.youtubeSessionData[visitorData] = {
-            visitorData: visitorData,
+        this.youtubeSessionData[visitIdentifier] = {
+            visitIdentifier: visitIdentifier,
             poToken: poToken,
             generatedAt: new Date(),
         };
 
-        return this.youtubeSessionData[visitorData];
+        return this.youtubeSessionData[visitIdentifier];
     }
 }
