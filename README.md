@@ -15,18 +15,19 @@ Default port number is 4416. If you want to change this, be sure to change it in
 
 ### 1. Set up the provider
 
-Native:
-
-```
-yarn install --frozen-lockfile
-npx tsc
-node build/main.js
-```
-
 Docker:
 
 ```
 docker run --name bgutil-provider -d -p 4416:4416 brainicism/bgutil-ytdlp-pot-provider
+```
+
+Native:
+
+```
+cd server/
+yarn install --frozen-lockfile
+npx tsc
+node build/main.js
 ```
 
 ### 2. Install the plugin
