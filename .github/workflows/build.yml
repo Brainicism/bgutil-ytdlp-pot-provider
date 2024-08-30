@@ -25,7 +25,7 @@ jobs:
       - name: Build Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: server/Dockerfile
+          context: server/
+          file: Dockerfile
           push: false
           tags: brainicism/bgutil-ytdlp-pot-provider:ci
