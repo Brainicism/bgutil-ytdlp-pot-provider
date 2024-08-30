@@ -17,7 +17,6 @@ export class SessionManager {
         visitIdentifier: string,
     ): Promise<YoutubeSessionData> {
         const sessionData = this.youtubeSessionData[visitIdentifier];
-        //
         if (
             sessionData &&
             sessionData.generatedAt >
