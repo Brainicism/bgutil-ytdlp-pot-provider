@@ -24,7 +24,7 @@ jobs:
       id: set_variables
       shell:  bash
       run: |
-        tag="$(git for-each-ref refs/tags --sort=-taggerdate --format='%(refname:lstrip=2)' --count=1)"
+        tag=`git for-each-ref refs/tags --sort=-taggerdate --format='%(refname:lstrip=2)' --count=1`
         version=v$(hatch project metadata | jq -r .version)
         if [ -z "$tag" ]; then
           git tag ${version}
