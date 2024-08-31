@@ -12,6 +12,10 @@ export class SessionManager {
         [visitIdentifier: string]: YoutubeSessionData;
     } = {};
 
+    invalidateCaches() {
+        this.youtubeSessionData = {};
+    }
+
     // mostly copied from https://github.com/LuanRT/BgUtils/tree/main/examples/node
     async generatePoToken(
         visitIdentifier: string,
