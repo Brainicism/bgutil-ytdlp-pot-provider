@@ -22,13 +22,18 @@ jobs:
 
     - name: Set variables
       id: set_variables
+      shell:  bash
       run: |
-        tag="$(git describe --tags --abbrev=0)"
+        tag="$(git for-each-ref refs/tags --sort=-taggerdate --format='%(refname:lstrip=2)' --count=1)"
+        version=v$(hatch project metadata | jq -r .version)
+        if [ -z "$tag" ]; then
+          git tag ${version}
+        fi
         cd plugin/
         echo "::group::Variables"
         cat << EOF | tee -a "$GITHUB_OUTPUT"
         tag=${tag}
-        version=v$(hatch project metadata | jq -r .version)
+        version=${version}
         EOF
         echo "::endgroup::"
     - name: Bundle and create release
@@ -96,8 +101,6 @@ jobs:
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         verbose: true
-        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        repository-url: https://test.pypi.org/legacy/
         packages-dir: plugin/dist
   release_docker:
     # if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
@@ -106,12 +109,13 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
+    - run: env|sort  # debugging
 
     - name: Docker meta
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: name/app
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
 
     - name: Login to DockerHub
       if: github.event_name != 'pull_request'
