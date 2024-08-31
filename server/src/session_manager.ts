@@ -16,11 +16,17 @@ export class SessionManager {
     async generatePoToken(
         visitIdentifier: string,
     ): Promise<YoutubeSessionData> {
+        const TOKEN_TTL_HOURS = process.env.TOKEN_TTL
+            ? parseInt(process.env.TOKEN_TTL)
+            : 6;
+
         const sessionData = this.youtubeSessionData[visitIdentifier];
         if (
             sessionData &&
             sessionData.generatedAt >
-                new Date(new Date().getTime() - 6 * 60 * 60 * 1000)
+                new Date(
+                    new Date().getTime() - TOKEN_TTL_HOURS * 60 * 60 * 1000,
+                )
         ) {
             console.info(
                 `POT for ${visitIdentifier} still fresh, returning cached token`,
