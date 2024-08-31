@@ -1,4 +1,4 @@
-name: gci-e2e
+name: build
 
 on:
   workflow_dispatch:
@@ -17,11 +17,6 @@ jobs:
     steps:
       - name: Checkout bgutil-ytdlp-pot-provider
         uses: actions/checkout@v4
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
       - name: Build Docker image
         uses: docker/build-push-action@v6
         with:
