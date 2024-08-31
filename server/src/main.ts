@@ -33,3 +33,8 @@ httpServer.post("/get_pot", async (request, response) => {
     const sessionData = await sessionManager.generatePoToken(visitorIdentifier);
     response.send({ po_token: sessionData.poToken });
 });
+
+httpServer.post("/invalidate_caches", async (request, response) => {
+    sessionManager.invalidateCaches();
+    response.send();
+});
