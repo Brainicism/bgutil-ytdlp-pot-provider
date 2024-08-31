@@ -14,8 +14,8 @@ httpServer.listen({
 
 console.log(`Started POT server on port ${PORT_NUMBER}`);
 
+const sessionManager = new SessionManager();
 httpServer.post("/get_pot", async (request, response) => {
-    const sessionManager = new SessionManager();
     const visitorData = request.body.visitor_data as string;
     const dataSyncId = request.body.data_sync_id as string;
 
