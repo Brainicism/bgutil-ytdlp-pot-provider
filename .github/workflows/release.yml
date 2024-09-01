@@ -25,12 +25,10 @@ jobs:
       shell:  bash
       run: |
         tag=$(git for-each-ref refs/tags --sort=-taggerdate --format='%(refname:strip=2)' --count=1)
+        cp README.md plugin/
         cd plugin/
         echo "$(hatch project metadata)"
-        cp README.md plugin/
         version=v$(hatch project metadata | jq -r .version)
-        cd ..
-        cd plugin/
         echo "::group::Variables"
         cat << EOF | tee -a "$GITHUB_OUTPUT"
         tag=${tag}
