@@ -47,7 +47,7 @@ jobs:
         find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete
         zip -9 --recurse-paths "${project_name}" *
         printf "## What's Changed\n\n" >> CHANGELOG.md
-        git log '--pretty=* %h(by %an\<%ae\>) %s%n```md%n%b%n```' --reverse ${tag}...HEAD >> CHANGELOG.md
+        git log '--pretty=* %h(by %an\<%ae\>)%n```md%n%B%n```' --reverse ${tag}...HEAD >> CHANGELOG.md
         printf "\n**Full Changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/${tag}...${version}\n" >> CHANGELOG.md
         gh release create "${version}" --latest \
           --title "${project_name} ${version}" \
