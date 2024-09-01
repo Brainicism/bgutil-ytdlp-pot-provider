@@ -26,7 +26,8 @@ jobs:
       run: |
         tag=$(git for-each-ref refs/tags --sort=-taggerdate --format='%(refname:strip=2)' --count=1)
         cd plugin/
-        echo "[debug] $(hatch project metadata)"
+        echo "$(hatch project metadata)"
+        cp README.md plugin/
         version=v$(hatch project metadata | jq -r .version)
         cd ..
         cd plugin/
