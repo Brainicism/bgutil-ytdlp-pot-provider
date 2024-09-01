@@ -59,7 +59,7 @@ jobs:
         done <<<"${sources}"
         cd bundle/
         printf "## What's Changed\n\n" >> CHANGELOG.md
-        git log ${tag} '--pretty=* %s by %an in %h' >> CHANGELOG.md
+        git log '--pretty=* %h(by %an<%ae>) %B' --reverse ${tag}...HEAD >> CHANGELOG.md
         printf "\n**Full Changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/${tag}...${version}\n" >> CHANGELOG.md
         find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete
         zip -9 --recurse-paths "${project_name}" *
