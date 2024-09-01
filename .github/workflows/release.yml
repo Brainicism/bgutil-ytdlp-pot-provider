@@ -41,6 +41,7 @@ jobs:
         env.tag != env.version
       run: |
         cd plugin/
+        pip install .
         project_name="$(hatch project metadata | jq -r .name)"
         sources="$(\
           hatch run default:pip list --verbose --format json \
