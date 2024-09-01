@@ -5,16 +5,14 @@ build-backend = "hatchling.build"
 [project]
 # name = "bgutil-ytdlp-pot-provider"
 name = "definitely_not_bgutil-ytdlp-pot-provider_to_distinguish_from_it"
-version = "0.2.12"
+version = "0.2.13"
 readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.8"
 keywords = ["yt-dlp", "yt-dlp-plugin"]
 authors = [
   { name = "Brainicism", email = "brainicism@gmail.com" },
 ]
-dependencies = [
-  "yt-dlp-get-pot>=0.0.2",
-]
+dependencies = []
 
 [tool.hatch.env.default]
 installer = "uv"

@@ -41,7 +41,6 @@ jobs:
         env.tag != env.version
       run: |
         cd plugin/
-        pip install .
         project_name="$(hatch project metadata | jq -r .name)"
         sources="$(\
           hatch run default:pip list --verbose --format json \
@@ -63,6 +62,7 @@ jobs:
         git log '--pretty=* %h(by %an<%ae>) %B' --reverse ${tag}...HEAD >> CHANGELOG.md
         printf "\n**Full Changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/${tag}...${version}\n" >> CHANGELOG.md
         find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete
+        ls -al  # debugging
         zip -9 --recurse-paths "${project_name}" *
         gh release create "${version}" --latest \
           --title "${project_name} ${version}" \
