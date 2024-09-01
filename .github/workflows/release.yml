@@ -21,7 +21,7 @@ jobs:
     - name: Set variables
       id: set_variables
       run: |
-        tag=$(git for-each-ref refs/tags --sort=-taggerdate --format='%(refname:strip=2)' --count=1)
+        tag=$(git for-each-ref refs/tags --sort=-creatordate --format='%(refname:strip=2)' --count=1)
         cp README.md plugin/
         cd plugin/
         echo "::group::Variables"
@@ -60,13 +60,14 @@ jobs:
         zip -9 --recurse-paths "${project_name}" *
         gh release create "${version}" --latest \
           --title "${project_name} ${version}" \
+          --notes $'**Full Changelog**: [`${tag}...${version}`](https://github.com/Brainicism/bgutil-ytdlp-pot-provider/compare/${tag}...${version})\n'\
           "${project_name}.zip"
 
   release_pypi:
+    needs: release
     runs-on: ubuntu-latest
     permissions:
       id-token: write  # mandatory for trusted publishing
-
     steps:
     - uses: actions/checkout@v4
       with:
@@ -98,6 +99,7 @@ jobs:
         packages-dir: plugin/dist
 
   release_docker:
+    needs: release
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -125,8 +127,8 @@ jobs:
       if: github.event_name != 'pull_request'
       uses: docker/login-action@v3
       with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}  # set the secret
-        password: ${{ secrets.DOCKERHUB_TOKEN }}  # set the secret
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: Build and push
       uses: docker/build-push-action@v6
