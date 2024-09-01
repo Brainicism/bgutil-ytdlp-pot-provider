@@ -62,7 +62,7 @@ jobs:
         zip -9 --recurse-paths "${project_name}" *
         gh release create "${version}" --latest \
           --title "${project_name} ${version}" \
-          --notes "**Full Changelog**: [\`\`]\(${{ github.server_url }}/${{ github.repository }}/compare/${tag}...${version}\)"\
+          --notes "**Full Changelog**: [\`${tag}...${version}\`]\(${{ github.server_url }}/${{ github.repository }}/compare/${tag}...${version})"\
           "${project_name}.zip"
 
   release_pypi:
@@ -105,6 +105,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       packages: write
+    env:
+      repository: ${{ github.repository }}  # like `brainicism/bgutil-ytdlp-pot-provider`
     steps:
     - uses: actions/checkout@v4
       with:
@@ -118,15 +120,12 @@ jobs:
       uses: docker/metadata-action@v5
       with:
         context: git
-        images: ${{ github.repository }}  # like `brainicism/bgutil-ytdlp-pot-provider`
+        images: ${{ env.repository }}
         tags: |
           type=raw,value=latest,enable={{is_default_branch}}
-          type=semver,pattern={{version}}
           type=sha
           type=raw,value=ci
           type=raw,value=${{ needs.release.outputs.version }}
-
-    - run: echo ${{ needs.release.outputs.version }}
 
     - name: Login to DockerHub
       if: github.event_name != 'pull_request'
@@ -144,3 +143,13 @@ jobs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         annotations: ${{ steps.meta.outputs.annotations }}
+
+    - name: Update repo description
+      uses: peter-evans/dockerhub-description@v4
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        repository: ${{ env.repository }}
+        short-description: |
+          [short description placeholder]
+        readme-filepath: README.md
