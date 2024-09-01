@@ -26,12 +26,9 @@ jobs:
       run: |
         tag=$(git for-each-ref refs/tags --sort=-taggerdate --format='%(refname:strip=2)' --count=1)
         cd plugin/
+        echo "[debug] $(hatch project metadata)"
         version=v$(hatch project metadata | jq -r .version)
         cd ..
-        # if [ -z "${tag}" ]; then
-        #   git tag ${version}
-        #   tag=${version}
-        # fi
         cd plugin/
         echo "::group::Variables"
         cat << EOF | tee -a "$GITHUB_OUTPUT"
