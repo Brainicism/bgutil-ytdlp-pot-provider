@@ -64,7 +64,7 @@ jobs:
           --title "${project_name} ${version}" \
           --notes \
           "## What's Changed"$'\n\n' \
-          "$(git log ${tag}...${version} '--pretty=* %s by %an in %h')" \
+          "$(git log ${tag} '--pretty=* %s by %an in %h')" \
           "**Full Changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/${tag}...${version}" \
           "${project_name}.zip"
 
