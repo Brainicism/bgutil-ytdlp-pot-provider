@@ -41,9 +41,6 @@ jobs:
         env.tag != env.version
       run: |
         cd plugin/
-        printf "## What's Changed\n\n" >> CHANGELOG.md
-        git log ${tag} '--pretty=* %s by %an in %h' >> CHANGELOG.md
-        printf "\n**Full Changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/${tag}...${version}\n" >> CHANGELOG.md
         project_name="$(hatch project metadata | jq -r .name)"
         sources="$(\
           hatch run default:pip list --verbose --format json \
@@ -61,6 +58,9 @@ jobs:
           fi
         done <<<"${sources}"
         cd bundle/
+        printf "## What's Changed\n\n" >> CHANGELOG.md
+        git log ${tag} '--pretty=* %s by %an in %h' >> CHANGELOG.md
+        printf "\n**Full Changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/${tag}...${version}\n" >> CHANGELOG.md
         find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete
         zip -9 --recurse-paths "${project_name}" *
         gh release create "${version}" --latest \
