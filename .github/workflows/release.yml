@@ -37,33 +37,18 @@ jobs:
         GH_TOKEN: ${{ github.token }}
         tag: ${{ steps.set_variables.outputs.tag }}
         version: ${{ steps.set_variables.outputs.version }}
-      if: |
-        env.tag != env.version
+      if: env.tag != env.version
       run: |
         cd plugin/
         project_name="$(hatch project metadata | jq -r .name)"
-        # sources="$(\
-        #   hatch run default:pip list --verbose --format json \
-        #   | jq -r '.[] | select(.editable_project_location == null) | "\(.name);\(.location)"' \
-        # )"
-        # echo "::group::Dependencies"
-        # printf '%s\n' "${sources}"
-        # echo "::endgroup::"
         mkdir bundle/
         cp -r yt_dlp_plugins bundle/
-        # while IFS=';' read -r name path; do
-        #   if [[ ! "${name}" =~ ^(pip|setuptools|wheel|yt-dlp)$ ]]; then
-        #     package_name="$(tr '[:upper:]' '[:lower:]' <<<"${name}" | sed 's/-/_/g')"
-        #     cp -r "${path}/${package_name}" bundle/
-        #   fi
-        # done <<<"${sources}"
         cd bundle/
-        printf "## What's Changed\n\n" >> CHANGELOG.md
-        git log '--pretty=* %h(by %an\<%ae\>) %B' --reverse ${tag}...HEAD >> CHANGELOG.md
-        printf "\n**Full Changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/${tag}...${version}\n" >> CHANGELOG.md
         find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete
-        ls -al  # debugging
         zip -9 --recurse-paths "${project_name}" *
+        printf "## What's Changed\n\n" >> CHANGELOG.md
+        git log '--pretty=* %h(by %an\<%ae\>) %s%n```md%n%b%n```' --reverse ${tag}...HEAD >> CHANGELOG.md
+        printf "\n**Full Changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/${tag}...${version}\n" >> CHANGELOG.md
         gh release create "${version}" --latest \
           --title "${project_name} ${version}" \
           --notes-file CHANGELOG.md \
