@@ -98,8 +98,6 @@ jobs:
         packages-dir: plugin/dist
 
   release_docker:
-    if: 0
-    # temporarily disabled: necessary secrets not set
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -107,7 +105,9 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    - run: env|sort  # debugging
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
     - name: Docker meta
       id: meta
