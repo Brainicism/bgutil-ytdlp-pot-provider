@@ -62,11 +62,10 @@ jobs:
         zip -9 --recurse-paths "${project_name}" *
         gh release create "${version}" --latest \
           --title "${project_name} ${version}" \
-          --notes "**Full Changelog**: [\`${tag}...${version}\`]\(${{ github.server_url }}/${{ github.repository }}/compare/${tag}...${version})"\
+          --notes "**Full Changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/${tag}...${version}"\
           "${project_name}.zip"
 
   release_pypi:
-    needs: release
     runs-on: ubuntu-latest
     permissions:
       id-token: write  # mandatory for trusted publishing
@@ -86,12 +85,11 @@ jobs:
 
     - name: Build
       run: |
-        cp README.md plugin/
         cd plugin/
         rm -rf dist/**
         printf '%s\n\n' \
           "Official repository: <${{ github.server_url }}/${{ github.repository }}>" > ./README.md.new
-        cat ./README.md >> ./README.md.new && mv -f ./README.md.new ./README.md
+        cat ../README.md >> ./README.md.new && mv -f ./README.md.new ./README.md
         python -m build --no-isolation .
 
     - name: Publish to PyPI
@@ -101,7 +99,7 @@ jobs:
         packages-dir: plugin/dist
 
   release_docker:
-    needs: release
+    needs: release  
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -123,6 +121,7 @@ jobs:
         images: ${{ env.repository }}
         tags: |
           type=raw,value=latest,enable={{is_default_branch}}
+          # mark as latest only if built on default branch of repository
           type=sha
           type=raw,value=ci
           type=raw,value=${{ needs.release.outputs.version }}
@@ -144,12 +143,22 @@ jobs:
         labels: ${{ steps.meta.outputs.labels }}
         annotations: ${{ steps.meta.outputs.annotations }}
 
+    - name: Add official repository link to README.md
+      run: |
+        printf '%s\n\n' \
+          "Official repository: <${{ github.server_url }}/${{ github.repository }}>" > ./README.md.new
+        cat ./README.md >> ./README.md.new && mv -f ./README.md.new ./README.md
+
+    - name: Get project description
+      id: get_desc
+      run: |
+        echo 'description=$(curl -Gso- "https://api.github.com/repos/${{ github.repository }}" |jq -r ".description")' | tee -a "$GITHUB_OUTPUT"
+
     - name: Update repo description
       uses: peter-evans/dockerhub-description@v4
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
         repository: ${{ env.repository }}
-        short-description: |
-          [short description placeholder]
+        short-description: ${{ steps.get_desc.outputs.description }}
         readme-filepath: README.md
