@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 # name = "bgutil-ytdlp-pot-provider"
 name = "definitely_not_bgutil-ytdlp-pot-provider_to_distinguish_from_it"
-version = "0.2.5"
+version = "0.2.6"
 readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.8"
 keywords = ["yt-dlp", "yt-dlp-plugin"]
