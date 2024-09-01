@@ -62,7 +62,10 @@ jobs:
         zip -9 --recurse-paths "${project_name}" *
         gh release create "${version}" --latest \
           --title "${project_name} ${version}" \
-          --notes "**Full Changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/${tag}...${version}"\
+          --notes \
+          $'## What's Changed\n\n' \
+          "$(git log ${tag}...${version} '--pretty=* %s by %an in %h')" \
+          "**Full Changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/${tag}...${version}" \
           "${project_name}.zip"
 
   release_pypi:
@@ -149,16 +152,11 @@ jobs:
           "Official repository: <${{ github.server_url }}/${{ github.repository }}>" > ./README.md.new
         cat ./README.md >> ./README.md.new && mv -f ./README.md.new ./README.md
 
-    - name: Get project description
-      id: get_desc
-      run: |
-        echo 'description=$(curl -Gso- "https://api.github.com/repos/${{ github.repository }}" |jq -r ".description")' | tee -a "$GITHUB_OUTPUT"
-
     - name: Update repo description
       uses: peter-evans/dockerhub-description@v4
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
         repository: ${{ env.repository }}
-        short-description: ${{ steps.get_desc.outputs.description }}
+        short-description: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.description'] }}
         readme-filepath: README.md
