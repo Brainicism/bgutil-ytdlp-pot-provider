@@ -6,6 +6,8 @@ jobs:
     permissions:
       contents: write
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set_variables.outputs.version }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -60,7 +62,7 @@ jobs:
         zip -9 --recurse-paths "${project_name}" *
         gh release create "${version}" --latest \
           --title "${project_name} ${version}" \
-          --notes $'**Full Changelog**: [`${tag}...${version}`](https://github.com/Brainicism/bgutil-ytdlp-pot-provider/compare/${tag}...${version})\n'\
+          --notes "**Full Changelog**: [\`\`]\(${{ github.server_url }}/${{ github.repository }}/compare/${tag}...${version}\)"\
           "${project_name}.zip"
 
   release_pypi:
@@ -122,6 +124,9 @@ jobs:
           type=semver,pattern={{version}}
           type=sha
           type=raw,value=ci
+          type=raw,value=${{ needs.release.outputs.version }}
+
+    - run: echo ${{ needs.release.outputs.version }}
 
     - name: Login to DockerHub
       if: github.event_name != 'pull_request'
