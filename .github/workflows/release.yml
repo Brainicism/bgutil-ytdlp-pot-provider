@@ -1,6 +1,7 @@
 name: Create release
 on: 
   workflow_dispatch:
+  push:
 
 jobs:
   release:
@@ -27,12 +28,10 @@ jobs:
         tag=$(git for-each-ref refs/tags --sort=-taggerdate --format='%(refname:strip=2)' --count=1)
         cp README.md plugin/
         cd plugin/
-        echo "$(hatch project metadata)"
-        version=v$(hatch project metadata | jq -r .version)
         echo "::group::Variables"
         cat << EOF | tee -a "$GITHUB_OUTPUT"
         tag=${tag}
-        version=${version}
+        version=v$(hatch project metadata | jq -r .version)
         EOF
         echo "::endgroup::"
     - name: Bundle and create release
@@ -67,7 +66,7 @@ jobs:
           --title "${project_name} ${version}" \
           "${project_name}.zip"
   release_pypi:
-    # if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    if: 0
     runs-on: ubuntu-latest
     permissions:
       id-token: write  # mandatory for trusted publishing
@@ -102,7 +101,7 @@ jobs:
         verbose: true
         packages-dir: plugin/dist
   release_docker:
-    # if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    if: 0
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4

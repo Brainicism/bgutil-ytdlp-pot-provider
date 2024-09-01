@@ -11,9 +11,7 @@ keywords = ["yt-dlp", "yt-dlp-plugin"]
 authors = [
   { name = "Brainicism", email = "brainicism@gmail.com" },
 ]
-dependencies = [
-    'yt-dlp-get-pot>=0.0.2',
-]
+dependencies = []
 
 [tool.hatch.env.default]
 installer = "uv"
