@@ -3,6 +3,10 @@ on:
   workflow_dispatch:
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   release:
     name: Release to Github
@@ -99,7 +103,7 @@ jobs:
         packages-dir: plugin/dist
 
   release_docker:
-    name: Release to Docker Hub
+    name: Build Docker Image
     needs: release
     runs-on: ubuntu-latest
     permissions:
