@@ -1,8 +1,13 @@
 name: Create release
-on: [workflow_dispatch]
+on: 
+  workflow_dispatch:
+  pull_request:
 
 jobs:
   release:
+    name: Release to Github
+    if: ${{ github.event_name != 'pull_request' && format('refs/heads/{0}', github.event.repository.default_branch) == github.ref }}
+    # only release on default branch
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -47,17 +52,10 @@ jobs:
         find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete
         zip -9 --recurse-paths "${project_name}" *
         printf "## What's Changed\n\n" >> CHANGELOG.md
-        # git log '--pretty=* %h(by %an\<%ae\>)%n```md%n%B%n```' --reverse ${tag}...HEAD >> CHANGELOG.md
-        # gh pr list --json author,number,title,mergedAt --state merged -R ${{ github.repository }} \
-        # | jq -r --arg creatortime "$(git for-each-ref --format '%(creatordate)' refs/tags/${tag})" \
-        # '.[]|select((.mergedAt|strptime("%Y-%m-%dT%H:%M:%SZ")|mktime)>($creatortime|strptime("%a %b %d %H:%M:%S %Y %z")|mktime))| "* \(.title) by @\(.author.login) in #\(.number|tostring)"' \
-        # >> CHANGELOG.md
-
-        gh pr list --json author,number,title,mergedAt --state merged -R grqz/bgutil-ytdlp-pot-provider \
+        gh pr list --json author,number,title,mergedAt --state merged -R ${{ github.repository }} \
         | jq -r --arg authortime "$(git log --format='%at' -n1 ${tag})" \
         '.[]|select((.mergedAt|strptime("%Y-%m-%dT%H:%M:%SZ")|mktime)>($authortime|tonumber))| "* \(.title) by @\(.author.login) in #\(.number|tostring)"' \
         >> CHANGELOG.md
-
         printf "\n**Full Changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/${tag}...${version}\n" >> CHANGELOG.md
         gh release create "${version}" --latest \
           --title "${project_name} ${version}" \
@@ -65,6 +63,9 @@ jobs:
           "${project_name}.zip"
 
   release_pypi:
+    name: Release to PyPI
+    if: ${{ github.event_name != 'pull_request' && format('refs/heads/{0}', github.event.repository.default_branch) == github.ref }}
+    # only release on default branch
     runs-on: ubuntu-latest
     permissions:
       id-token: write  # mandatory for trusted publishing
@@ -98,7 +99,8 @@ jobs:
         packages-dir: plugin/dist
 
   release_docker:
-    needs: release  
+    name: Release to Docker Hub
+    needs: release
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -143,12 +145,14 @@ jobs:
         annotations: ${{ steps.meta.outputs.annotations }}
 
     - name: Add official repository link to README.md
+      if: ${{ github.event_name != 'pull_request' }}
       run: |
         printf '%s\n\n' \
           "Official repository: <${{ github.server_url }}/${{ github.repository }}>" > ./README.md.new
         cat ./README.md >> ./README.md.new && mv -f ./README.md.new ./README.md
 
     - name: Update repo description
+      if: ${{ github.event_name != 'pull_request' }}
       uses: peter-evans/dockerhub-description@v4
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
