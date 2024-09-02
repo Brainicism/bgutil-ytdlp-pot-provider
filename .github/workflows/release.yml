@@ -49,6 +49,7 @@ jobs:
         tag: ${{ steps.set_variables.outputs.tag }}
         version: ${{ steps.set_variables.outputs.version }}
         project_name: ${{ steps.set_variables.outputs.project_name }}
+      shell: bash
       run: |
         cd plugin/
         mkdir bundle/
@@ -62,7 +63,11 @@ jobs:
         '.[]|select((.mergedAt|strptime("%Y-%m-%dT%H:%M:%SZ")|mktime)>($authortime|tonumber))| "* \(.title) by @\(.author.login) in #\(.number|tostring)"' \
         >> CHANGELOG.md
         printf "\n**Full Changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/${tag}...${version}\n" >> CHANGELOG.md
-        echo "changelog=$(cat CHANGELOG.md)" | tee -a "$GITHUB_OUTPUT"
+        r=$(cat CHANGELOG.md)                           # <--- Read release Notes
+        r="${r//'%'/'%25'}"                             # Multiline escape sequences for %
+        r="${r//$'\n'/'%0A'}"                           # Multiline escape sequences for '\n'
+        r="${r//$'\r'/'%0D'}"                           # Multiline escape sequences for '\r'
+        echo "RELEASE_BODY=$r" | tee -a $GITHUB_OUTPUT  # <--- Set environment variable
         # gh release create "${version}" --latest \
         #   --title "${project_name} ${version}" \
         #   --notes-file CHANGELOG.md \
@@ -76,7 +81,7 @@ jobs:
         tag: ${{ steps.set_variables.outputs.version }}
         release_name: |
           ${{ steps.set_variables.outputs.project_name }} ${{ steps.set_variables.outputs.version }}
-        body: ${{ steps.bundle.outputs.changelog }}
+        body: ${{ steps.bundle.outputs.RELEASE_BODY }}
         file: plugin/bundle/${{ steps.set_variables.outputs.project_name }}.zip
         asset_name: ${{ steps.set_variables.outputs.project_name }}.zip
         overwrite: true
