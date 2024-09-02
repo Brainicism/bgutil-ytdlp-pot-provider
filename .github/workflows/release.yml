@@ -27,12 +27,11 @@ jobs:
     - name: Set variables
       id: set_variables
       run: |
-        tag=$(git for-each-ref refs/tags --sort=-creatordate --format='%(refname:strip=2)' --count=1)
         cp README.md plugin/
         cd plugin/
         echo "::group::Variables"
         cat << EOF | tee -a "$GITHUB_OUTPUT"
-        tag=${tag}
+        tag=$(git for-each-ref refs/tags --sort=-creatordate --format='%(refname:strip=2)' --count=1)
         version=$(hatch project metadata | jq -r .version)
         EOF
         echo "::endgroup::"
