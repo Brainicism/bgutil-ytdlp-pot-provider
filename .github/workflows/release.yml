@@ -41,7 +41,7 @@ jobs:
         EOF
         echo "::endgroup::"
     - name: Bundle
-      if: github.event_name != 'pull_request' && format('refs/heads/{0}', github.event.repository.default_branch) == github.ref && env.tag != env.version
+      if: github.event_name != 'pull_request' && format('refs/heads/{0}', github.event.repository.default_branch) == github.ref
       # only release on default branch
       id: bundle
       env:
@@ -69,6 +69,8 @@ jobs:
         #   "${project_name}.zip"
 
     - name: Create Release on Github
+      if: github.event_name != 'pull_request' && format('refs/heads/{0}', github.event.repository.default_branch) == github.ref
+      # only release on default branch
       uses: svenstaro/upload-release-action@v2
       with:
         tag: ${{ steps.set_variables.outputs.version }}
