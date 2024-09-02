@@ -37,12 +37,11 @@ jobs:
         EOF
         echo "::endgroup::"
     - name: Bundle and create release
+      if: github.event_name != 'pull_request' && format('refs/heads/{0}', github.event.repository.default_branch) == github.ref && env.tag != env.version
       env:
         GH_TOKEN: ${{ github.token }}
         tag: ${{ steps.set_variables.outputs.tag }}
         version: ${{ steps.set_variables.outputs.version }}
-      if: |
-        ${{ github.event_name != 'pull_request' && format('refs/heads/{0}', github.event.repository.default_branch) == github.ref && env.tag != env.version }}
       run: |
         cd plugin/
         project_name="$(hatch project metadata | jq -r .name)"
