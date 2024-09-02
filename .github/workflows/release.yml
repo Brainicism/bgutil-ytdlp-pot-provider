@@ -6,7 +6,6 @@ on:
 jobs:
   release:
     name: Release to Github
-    # only release on default branch
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -29,21 +28,24 @@ jobs:
       run: |
         cp README.md plugin/
         cd plugin/
+        metadata=$(hatch project metadata)
         echo "::group::Variables"
         cat << EOF | tee -a "$GITHUB_OUTPUT"
         tag=$(git for-each-ref refs/tags --sort=-creatordate --format='%(refname:strip=2)' --count=1)
-        version=$(hatch project metadata | jq -r .version)
+        version=$(echo ${metadata} | jq -r .version)
+        project_name=$(echo ${metadata} | jq -r .name)
         EOF
         echo "::endgroup::"
     - name: Bundle and create release
       if: github.event_name != 'pull_request' && format('refs/heads/{0}', github.event.repository.default_branch) == github.ref && env.tag != env.version
+      # only release on default branch
       env:
         GH_TOKEN: ${{ github.token }}
         tag: ${{ steps.set_variables.outputs.tag }}
         version: ${{ steps.set_variables.outputs.version }}
+        project_name: ${{ steps.set_variables.outputs.project_name }}
       run: |
         cd plugin/
-        project_name="$(hatch project metadata | jq -r .name)"
         mkdir bundle/
         cp -r yt_dlp_plugins bundle/
         cd bundle/
