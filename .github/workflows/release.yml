@@ -50,7 +50,7 @@ jobs:
         # git log '--pretty=* %h(by %an\<%ae\>)%n```md%n%B%n```' --reverse ${tag}...HEAD >> CHANGELOG.md
         gh pr list --json author,number,title,mergedAt --state merged -R ${{ github.repository }} \
         | jq -r --arg creatortime "$(git for-each-ref --format '%(creatordate)' refs/tags/${tag})" \
-        '.[]|select(.mergedAt>($creatortime|strptime("%a %b %d %H:%M:%S %Y %z")|mktime))| "* \(.title) by @\(.author.login) #\(.number|tostring)"' \
+        '.[]|select((.mergedAt|strptime("%a %b %d %H:%M:%S %Y %z")|mktime)>($creatortime|strptime("%a %b %d %H:%M:%S %Y %z")|mktime))| "* \(.title) by @\(.author.login) in #\(.number|tostring)"' \
         >> CHANGELOG.md
         printf "\n**Full Changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/${tag}...${version}\n" >> CHANGELOG.md
         gh release create "${version}" --latest \
