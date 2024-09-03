@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bgutil-ytdlp-pot-provider"
+version = "0.2.1"
+readme = {file = "README.md", content-type = "text/markdown"}
+requires-python = ">=3.8"
+keywords = ["yt-dlp", "yt-dlp-plugin", "yt-dlp-plugins-get-pot"]
+authors = [
+  { name = "Brainicism", email = "brainicism@gmail.com" },
+]
+dependencies = [
+  "yt-dlp-get-pot>=0.0.2",
+]
+
+[tool.hatch.env.default]
+installer = "uv"
+path = ".venv"
+
+[tool.hatch.build.targets.wheel]
+packages = ["yt_dlp_plugins"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
