@@ -17,13 +17,13 @@ Default port number is 4416. If you want to change this, be sure to change it in
 
 Docker:
 
-```
+```shell
 docker run --name bgutil-provider -d -p 4416:4416 brainicism/bgutil-ytdlp-pot-provider
 ```
 
 Native:
 
-```
+```shell
 cd server/
 yarn install --frozen-lockfile
 npx tsc
@@ -32,6 +32,15 @@ node build/main.js
 
 ### 2. Install the plugin
 
-Make sure you have [coletdjnz's POT plugin framework](https://github.com/coletdjnz/yt-dlp-get-pot) installed already.
+PyPI:
 
-Download the latest release zip from [releases](https://github.com/Brainicism/bgutil-ytdlp-pot-provider/releases). Install it by placing the zip into one of the [plugin folders](https://github.com/yt-dlp/yt-dlp#installing-plugins).
+```shell
+pip install bgutil-ytdlp-pot-provider
+```
+
+Github:
+
+1. Make sure you have [coletdjnz's POT plugin framework](https://github.com/coletdjnz/yt-dlp-get-pot) installed already (must be at least version 0.0.2 or newer).
+2. Download the latest release zip from [releases](https://github.com/Brainicism/bgutil-ytdlp-pot-provider/releases). Install it by placing the zip into one of the [plugin folders](https://github.com/yt-dlp/yt-dlp#installing-plugins).
+
+This will automatically install [coletdjnz's POT plugin framework](https://github.com/coletdjnz/yt-dlp-get-pot) if haven't installed it yet.
