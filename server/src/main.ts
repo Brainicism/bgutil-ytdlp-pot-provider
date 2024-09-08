@@ -25,13 +25,30 @@ httpServer.post("/get_pot", async (request, response) => {
     if (dataSyncId) {
         console.log(`Received request for data sync ID: '${dataSyncId}'`);
         visitorIdentifier = dataSyncId;
-    } else {
+    } else if (visitorData) {
         console.log(`Received request for visitor data: '${visitorData}'`);
         visitorIdentifier = visitorData;
+    } else {
+        console.log(
+            `Received request for visitor data, grabbing from Innertube`,
+        );
+
+        const generatedVisitorData = await sessionManager.generateVisitorData();
+        if (!generatedVisitorData) {
+            response.status(500);
+            response.send("Error generating visitor data");
+            return;
+        }
+
+        console.log(`Generated visitor data: ${generatedVisitorData}`);
+        visitorIdentifier = generatedVisitorData;
     }
 
     const sessionData = await sessionManager.generatePoToken(visitorIdentifier);
-    response.send({ po_token: sessionData.poToken });
+    response.send({
+        po_token: sessionData.poToken,
+        visit_identifier: sessionData.visitIdentifier,
+    });
 });
 
 httpServer.post("/invalidate_caches", async (request, response) => {

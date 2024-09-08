@@ -18,6 +18,7 @@ The provider comes in two parts:
 Default port number is 4416. If you want to change this, be sure to change it in both the provider and plugin code.
 
 ### 1. Set up the provider
+
 The provider is a Node.js HTTP server. You have two options of running it: as a prebuilt docker image, or manually as a node application.
 
 #### Docker:
@@ -51,9 +52,12 @@ This will automatically install [coletdjnz's POT plugin framework](https://githu
 2. Download the latest release zip from [releases](https://github.com/Brainicism/bgutil-ytdlp-pot-provider/releases). Install it by placing the zip into one of the [plugin folders](https://github.com/yt-dlp/yt-dlp#installing-plugins).
 
 ## Usage
+
 ### Environment Variables
+
 - **TOKEN_TTL**: The time in hours for a PO token to be considered valid. While there are no definitive answers on how long a token is valid, it has been observed to be valid for atleast a couple of days. Default: 6
 
 ### Endpoints
-- **POST /get_pot**: Accepts either a `visitor_data` (unauthenticated) or `data_sync_id` (authenticated) in the request body, returns a respective `po_token`
+
+- **POST /get_pot**: Accepts a `visitor_data` (unauthenticated), `data_sync_id` (authenticated) or an empty body in the request body. If no identifier is passed, a new unauthenticated `visitor_data` will be generated. Returns `po_token` and the associated identifier `visit_identifier`.
 - **POST /invalidate_caches**: Resets the PO token cache, forcing new tokens to be generated on next fetch

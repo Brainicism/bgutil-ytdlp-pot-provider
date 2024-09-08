@@ -1,5 +1,6 @@
 import { BG } from "bgutils-js";
 import { JSDOM } from "jsdom";
+import { Innertube } from "youtubei.js";
 
 interface YoutubeSessionData {
     poToken: string;
@@ -14,6 +15,17 @@ export class SessionManager {
 
     invalidateCaches() {
         this.youtubeSessionData = {};
+    }
+
+    async generateVisitorData(): Promise<string | null> {
+        let innertube = await Innertube.create({ retrieve_player: false });
+        const visitorData = innertube.session.context.client.visitorData;
+        if (!visitorData) {
+            console.error("Unable to generate visitor data via Innertube");
+            return null;
+        }
+
+        return visitorData;
     }
 
     // mostly copied from https://github.com/LuanRT/BgUtils/tree/main/examples/node
