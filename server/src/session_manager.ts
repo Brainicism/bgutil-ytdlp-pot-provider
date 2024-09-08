@@ -9,12 +9,24 @@ interface YoutubeSessionData {
 }
 
 export class SessionManager {
+    shouldLog: boolean;
+
     private youtubeSessionData: {
         [visitIdentifier: string]: YoutubeSessionData;
     } = {};
 
+    constructor(shouldLog = true) {
+        this.shouldLog = shouldLog;
+    }
+
     invalidateCaches() {
         this.youtubeSessionData = {};
+    }
+
+    log(msg: string) {
+        if (this.shouldLog) {
+            console.log(msg);
+        }
     }
 
     async generateVisitorData(): Promise<string | null> {
@@ -44,13 +56,13 @@ export class SessionManager {
                     new Date().getTime() - TOKEN_TTL_HOURS * 60 * 60 * 1000,
                 )
         ) {
-            console.info(
+            this.log(
                 `POT for ${visitIdentifier} still fresh, returning cached token`,
             );
             return sessionData;
         }
 
-        console.info(
+        this.log(
             `POT for ${visitIdentifier} stale or not yet generated, generating...`,
         );
 
@@ -76,7 +88,7 @@ export class SessionManager {
             const script = challenge.script.find((sc) => sc !== null);
             if (script) new Function(script)();
         } else {
-            console.warn("Unable to load Botguard.");
+            this.log("Unable to load Botguard.");
         }
 
         const poToken = await BG.PoToken.generate({
@@ -85,8 +97,8 @@ export class SessionManager {
             bgConfig,
         });
 
-        console.info("po_token:", poToken);
-        console.info("visit_identifier:", visitIdentifier);
+        this.log(`po_token: ${poToken}`);
+        this.log(`visit_identifier: ${visitIdentifier}`);
 
         if (!poToken) {
             throw new Error("po_token unexpected undefined");

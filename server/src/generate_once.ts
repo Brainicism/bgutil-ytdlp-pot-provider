@@ -3,35 +3,48 @@ import { Command } from "@commander-js/extra-typings";
 
 const program = new Command()
     .option("-v, --visitor-data <visitordata>")
-    .option("-d, --data-sync-id <data-sync-id>");
+    .option("-d, --data-sync-id <data-sync-id>")
+    .option("--verbose");
 
 program.parse();
 const options = program.opts();
 
-const sessionManager = new SessionManager();
 (async () => {
     const dataSyncId = options.dataSyncId;
     const visitorData = options.visitorData;
+    const verbose = options.verbose || false;
     let visitorIdentifier: string;
+    const sessionManager = new SessionManager(verbose);
 
     if (dataSyncId) {
-        console.log(`Received request for data sync ID: '${dataSyncId}'`);
+        if (verbose) {
+            console.log(`Received request for data sync ID: '${dataSyncId}'`);
+        }
         visitorIdentifier = dataSyncId;
     } else if (visitorData) {
-        console.log(`Received request for visitor data: '${visitorData}'`);
+        if (verbose) {
+            console.log(`Received request for visitor data: '${visitorData}'`);
+        }
         visitorIdentifier = visitorData;
     } else {
-        console.log(
-            `Received request for visitor data, grabbing from Innertube`,
-        );
-
+        if (verbose) {
+            console.log(
+                `Received request for visitor data, grabbing from Innertube`,
+            );
+        }
         const generatedVisitorData = await sessionManager.generateVisitorData();
         if (!generatedVisitorData) {
             console.error("Error generating visitor data");
             process.exit(1);
         }
 
-        console.log(`Generated visitor data: ${generatedVisitorData}`);
+        if (verbose) {
+            console.log(
+                `Received request for visitor data, grabbing from Innertube`,
+            );
+            console.log(`Generated visitor data: ${generatedVisitorData}`);
+        }
+
         visitorIdentifier = generatedVisitorData;
     }
 
