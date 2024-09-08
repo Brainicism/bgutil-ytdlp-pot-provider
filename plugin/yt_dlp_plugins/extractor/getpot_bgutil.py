@@ -59,7 +59,7 @@ class BgUtilPotProviderRH(GetPOTProvider):
         if result.stderr or result.returncode != 0:
             raise RequestError(f"_get_pot_via_script failed with return code {result.returncode}. stderr = {result.stderr}")
         
+        # the JSON response is always the last line
         script_data_resp = result.stdout.splitlines()[-1]
         self._logger.debug(f"_get_pot_via_script response = {script_data_resp}")
-        response = json.loads(script_data_resp)
-        return response['poToken']
+        return json.loads(script_data_resp)['poToken']
