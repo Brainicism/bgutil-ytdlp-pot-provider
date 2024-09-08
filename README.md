@@ -10,7 +10,9 @@ This is used to bypass the 'Sign in to confirm you're not a bot' message when in
 
 The provider comes in two parts:
 
-1. **Provider**: An HTTP server that generates the POT, and has interfaces for the plugin to retrieve data from
+1. **Provider**: Two options -
+   - An HTTP server that generates the POT, and has interfaces for the plugin to retrieve data from (easy setup + docker image provided)
+   - A POT generation script supplied via extractor arguments
 2. **Provider plugin**: uses POT plugin framework to retrieve data from the provider, allowing yt-dlp to simulate having passed the 'bot check'
 
 ## Installation
@@ -21,17 +23,27 @@ The provider comes in two parts:
 
 Default port number is 4416. If you want to change this, be sure to change it in both the provider and plugin code.
 
+### Base Requirements
+
+If using Docker image for option (a) for the provider, the Docker runtime is required.
+
+Otherwise, Node.js and Yarn are required. You will also need to clone the repository.
+
 ### 1. Set up the provider
+
+There are two options for the provider, an always running POT generation HTTP server, and a POT generation script invoked when needed. The HTTP server option is simpler, and comes with a prebuilt Docker image. **You only need to choose one option.**
+
+#### (a) HTTP Server Option
 
 The provider is a Node.js HTTP server. You have two options of running it: as a prebuilt docker image, or manually as a node application.
 
-#### Docker:
+**Docker:**
 
 ```shell
 docker run --name bgutil-provider -d -p 4416:4416 brainicism/bgutil-ytdlp-pot-provider
 ```
 
-#### Native:
+**Native:**
 
 ```shell
 cd server/
@@ -39,6 +51,31 @@ yarn install --frozen-lockfile
 npx tsc
 node build/main.js
 ```
+
+<details>
+  <summary>Server Endpoints/Environment Variables</summary>
+
+**Environment Variables**
+
+- **TOKEN_TTL**: The time in hours for a PO token to be considered valid. While there are no definitive answers on how long a token is valid, it has been observed to be valid for atleast a couple of days. Default: 6
+
+**Endpoints**
+
+- **POST /get_pot**: Accepts a `visitor_data` (unauthenticated), `data_sync_id` (authenticated) or an empty body in the request body. If no identifier is passed, a new unauthenticated `visitor_data` will be generated. Returns `po_token` and the associated identifier `visit_identifier`.
+- **POST /invalidate_caches**: Resets the PO token cache, forcing new tokens to be generated on next fetch
+</details>
+
+#### (b) Generation Script Option
+
+The generation script needs to be transpiled to Javascript before it can be used by the plugin.
+
+```shell
+cd server/
+yarn install --frozen-lockfile
+npx tsc
+```
+
+Make sure `node` is available in your `PATH`.
 
 ### 2. Install the plugin
 
@@ -57,28 +94,10 @@ This will automatically install [coletdjnz's POT plugin framework](https://githu
 
 ## Usage
 
-### Environment Variables
+If using option (a) HTTP Server for the provider, use yt-dlp like normal 🙂.
 
-- **TOKEN_TTL**: The time in hours for a PO token to be considered valid. While there are no definitive answers on how long a token is valid, it has been observed to be valid for atleast a couple of days. Default: 6
-
-### Endpoints
-
-- **POST /get_pot**: Accepts a `visitor_data` (unauthenticated), `data_sync_id` (authenticated) or an empty body in the request body. If no identifier is passed, a new unauthenticated `visitor_data` will be generated. Returns `po_token` and the associated identifier `visit_identifier`.
-- **POST /invalidate_caches**: Resets the PO token cache, forcing new tokens to be generated on next fetch
-
-### Server-less
-
-If you don't need to programatically generate POTs, you can use the `generate_once` script to generate a POT.
+If using option (b) script for the provider, you need to pass extractor arguments including the path to the generation script for each yt-dlp call. Make sure to point to the transpiled version, `server/build/generate_once.js`
 
 ```shell
-cd server/
-yarn install --frozen-lockfile
-npx tsc
-node build/generate_once.js ## can pass "-v [visitor_data]" or "-d [data_sync_id]" if needed as well
-```
-
-Output:
-
-```
-{"visitIdentifier":"C*****************************************%3D%3D","poToken":"M******************************************************************************************************************************************************************=","generatedAt":"2024-09-08T02:57:52.283Z"}
+./yt-dlp --extractor-args "youtube:getpot_bgutil_script=/home/user/bgutil-test/bgutil-ytdlp-pot-provider/server/build/generate_once.js"
 ```
