@@ -63,3 +63,20 @@ This will automatically install [coletdjnz's POT plugin framework](https://githu
 
 - **POST /get_pot**: Accepts a `visitor_data` (unauthenticated), `data_sync_id` (authenticated) or an empty body in the request body. If no identifier is passed, a new unauthenticated `visitor_data` will be generated. Returns `po_token` and the associated identifier `visit_identifier`.
 - **POST /invalidate_caches**: Resets the PO token cache, forcing new tokens to be generated on next fetch
+
+### Server-less
+
+If you don't need to programatically generate POTs, you can use the `generate_once` script to generate a POT.
+
+```shell
+cd server/
+yarn install --frozen-lockfile
+npx tsc
+node build/generate_once.js ## can pass "-v [visitor_data]" or "-d [data_sync_id]" if needed as well
+```
+
+Output:
+
+```
+{"visitIdentifier":"C*****************************************%3D%3D","poToken":"M******************************************************************************************************************************************************************=","generatedAt":"2024-09-08T02:57:52.283Z"}
+```
