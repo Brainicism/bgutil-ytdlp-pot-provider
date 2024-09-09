@@ -2,6 +2,7 @@ import json
 import subprocess
 import os.path
 import shutil
+from os.path import expanduser
 from yt_dlp import YoutubeDL
 
 from yt_dlp.networking.common import Request
@@ -22,10 +23,10 @@ class BgUtilPotProviderRH(GetPOTProvider):
     def _get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs) -> str:
         generate_pot_script_path = ydl.get_info_extractor('Youtube')._configuration_arg('getpot_bgutil_script', [None], casesense=True)[0]
         http_base_url = ydl.get_info_extractor('Youtube')._configuration_arg('getpot_bgutil_baseurl', ['http://127.0.0.1:4416'], casesense=True)[0]
-        if generate_pot_script_path:
-            self._logger.info(f'Generating POT via script: {generate_pot_script_path}')
-            po_token = self._get_pot_via_script(generate_pot_script_path, visitor_data, data_sync_id)
-        else:
+        self._logger.info(f'Generating POT via script: {generate_pot_script_path}')
+        po_token = self._get_pot_via_script(generate_pot_script_path, visitor_data, data_sync_id)
+        
+        if not po_token:
             self._logger.info('Generating POT via HTTP server')
             po_token = self._get_pot_via_http(ydl, client, visitor_data, data_sync_id, http_base_url)
 
@@ -54,12 +55,18 @@ class BgUtilPotProviderRH(GetPOTProvider):
         return response_json['po_token']
 
     def _get_pot_via_script(self, script_path, visitor_data, data_sync_id):
+        if not script_path:
+            script_path = os.path.join(expanduser("~"), "bgutils-ytdlp-pot-provider/server/build/generate_once.js")
+            self._logger.debug(f"Script path was not provided, trying default: {script_path}")
         if not os.path.isfile(script_path):
-            raise RequestError(f"Script path doesn't exist: {script_path}")
+            self._logger.warn(f"Script path doesn't exist: {script_path}")
+            return None
         if os.path.basename(script_path) != 'generate_once.js':
-            raise RequestError('Incorrect script passed to extractor args. Path to generate_once.js required')
+            self._logger.warn(f'Incorrect script passed to extractor args. Path to generate_once.js required')
+            return None
         if shutil.which('node') is None:
-            raise RequestError('node is not in PATH')
+            self._logger.warn(f'node is not in PATH')
+            return None
 
         # possibly vulnerable to shell injection here? but risk is low
         command_args = ['node', script_path]
@@ -68,19 +75,22 @@ class BgUtilPotProviderRH(GetPOTProvider):
         elif visitor_data:
             command_args.extend(['-v', visitor_data])
         else:
-            raise RequestError('Unexpected missing visitorData/dataSyncId in _get_pot_via_script')
+            self._logger.warn('Unexpected missing visitorData/dataSyncId in _get_pot_via_script')
+            return None
+
         self._logger.debug(f'Executing command to get POT via script: {" ".join(command_args)}')
 
         try:
             stdout, stderr, returncode = Popen.run(
                 command_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         except Exception as e:
-            raise RequestError('_get_pot_via_script failed: Unable to run script', cause=e)
+            self._logger.warn(f'_get_pot_via_script failed: Unable to run script. cause = {str(e)}')
+            return None
 
         self._logger.debug(f'stdout = {stdout}')
         if returncode:
-            raise RequestError(
-                f'_get_pot_via_script failed with returncode {returncode}:\n{stderr.strip()}')
+            self._logger.warn(f'_get_pot_via_script failed with returncode {returncode}:\n{stderr.strip()}')
+            return None
 
         # the JSON response is always the last line
         script_data_resp = stdout.splitlines()[-1]
@@ -88,4 +98,4 @@ class BgUtilPotProviderRH(GetPOTProvider):
         try:
             return json.loads(script_data_resp)['poToken']
         except (json.JSONDecodeError, TypeError, KeyError) as e:
-            raise RequestError('Error parsing JSON response from _get_pot_via_script', cause=e)
+            self._logger.warn(f'Error parsing JSON response from _get_pot_via_script. cause = {str(e)}')
