@@ -6,6 +6,9 @@ build-backend = "hatchling.build"
 name = "bgutil-ytdlp-pot-provider"
 version = "0.4.0"
 readme = {file = "README.md", content-type = "text/markdown"}
+classifiers = [
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)"
+]
 requires-python = ">=3.8"
 keywords = ["yt-dlp", "yt-dlp-plugin", "yt-dlp-plugins-get-pot"]
 authors = [
