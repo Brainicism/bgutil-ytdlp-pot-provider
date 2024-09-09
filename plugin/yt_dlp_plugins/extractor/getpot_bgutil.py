@@ -1,5 +1,7 @@
 import json
 import subprocess
+import os.path
+import shutil
 from yt_dlp import YoutubeDL
 
 from yt_dlp.networking.common import Request
@@ -27,22 +29,35 @@ class BgUtilPotProviderRH(GetPOTProvider):
             po_token = self._get_pot_via_http(ydl, client, visitor_data, data_sync_id)
 
         return po_token
-    
+
     def _get_pot_via_http(self, ydl, client, visitor_data, data_sync_id):
-        response = ydl.urlopen(Request('http://127.0.0.1:4416/get_pot', data=json.dumps({
-            'client': client,
-            'visitor_data': visitor_data,
-            'data_sync_id': data_sync_id
-        }).encode(), headers = {'Content-Type': 'application/json'}))
-
-        response_json = json.loads(response.read().decode('utf-8'))
-
+        try:
+            response = ydl.urlopen(Request('http://127.0.0.1:4416/get_pot', data=json.dumps({
+                'client': client,
+                'visitor_data': visitor_data,
+                'data_sync_id': data_sync_id
+            }).encode(), headers = {'Content-Type': 'application/json'}))
+        except Exception as e:
+            raise RequestError(f"Error reaching POST /get_pot: {str(e)}")
+            
+        try:
+            response_json = json.loads(response.read().decode('utf-8'))
+        except Exception as e:
+            raise RequestError(f"Error parsing response JSON: {str(e)}. response = {response.read().decode('utf-8')}")
+        
         if 'po_token' not in response_json:
             raise RequestError('Server did not respond with a po_token')
 
         return response_json["po_token"]
 
     def _get_pot_via_script(self, script_path, visitor_data, data_sync_id):
+        if not os.path.isfile(script_path):
+            raise RequestError(f"Script path doesn't exist: {script_path}")
+        if os.path.basename(script_path) != 'generate_once.js':
+            raise RequestError(f"Incorrect script passed to extractor args. Path to generate_once.js required")
+        if shutil.which('node') is None:
+            raise RequestError(f"node is not in PATH")
+
         # possibly vulnerable to shell injection here? but risk is low
         command_args = ['node', script_path]
         if data_sync_id:
@@ -62,4 +77,8 @@ class BgUtilPotProviderRH(GetPOTProvider):
         # the JSON response is always the last line
         script_data_resp = result.stdout.splitlines()[-1]
         self._logger.debug(f"_get_pot_via_script response = {script_data_resp}")
-        return json.loads(script_data_resp)['poToken']
+        try:
+            return json.loads(script_data_resp)['poToken']
+        except:
+            raise RequestError("Error parsing JSON response from _get_pot_via_script")
+

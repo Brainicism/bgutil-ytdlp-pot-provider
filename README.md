@@ -99,5 +99,5 @@ If using option (a) HTTP Server for the provider, use yt-dlp like normal 🙂.
 If using option (b) script for the provider, you need to pass extractor arguments including the path to the generation script for each yt-dlp call. Make sure to point to the transpiled version, `server/build/generate_once.js`
 
 ```shell
-./yt-dlp --extractor-args "youtube:getpot_bgutil_script=/home/user/bgutil-test/bgutil-ytdlp-pot-provider/server/build/generate_once.js"
+./yt-dlp --extractor-args "youtube:getpot_bgutil_script=/home/user/bgutil-ytdlp-pot-provider/server/build/generate_once.js"
 ```
