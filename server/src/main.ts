@@ -1,8 +1,16 @@
 import { SessionManager } from "./session_manager";
+import { Command } from "@commander-js/extra-typings";
 import express from "express";
 import bodyParser from "body-parser";
 
-const PORT_NUMBER = 4416;
+const program = new Command()
+    .option("-p, --port <PORT>")
+    .option("--verbose");
+
+program.parse();
+const options = program.opts();
+
+const PORT_NUMBER = options.port || 4416;
 
 const httpServer = express();
 httpServer.use(bodyParser.json());
@@ -14,7 +22,7 @@ httpServer.listen({
 
 console.log(`Started POT server on port ${PORT_NUMBER}`);
 
-const sessionManager = new SessionManager();
+const sessionManager = new SessionManager(options.verbose || false);
 httpServer.post("/get_pot", async (request, response) => {
     const visitorData = request.body.visitor_data as string;
     const dataSyncId = request.body.data_sync_id as string;
@@ -36,7 +44,7 @@ httpServer.post("/get_pot", async (request, response) => {
         const generatedVisitorData = await sessionManager.generateVisitorData();
         if (!generatedVisitorData) {
             response.status(500);
-            response.send("Error generating visitor data");
+            response.send({error: "Error generating visitor data"});
             return;
         }
 

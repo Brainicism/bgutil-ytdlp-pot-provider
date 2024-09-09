@@ -39,9 +39,6 @@ const options = program.opts();
         }
 
         if (verbose) {
-            console.log(
-                `Received request for visitor data, grabbing from Innertube`,
-            );
             console.log(`Generated visitor data: ${generatedVisitorData}`);
         }
 
