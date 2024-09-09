@@ -97,7 +97,3 @@ This will automatically install [coletdjnz's POT plugin framework](https://githu
 If using option (a) HTTP Server for the provider, use yt-dlp like normal 🙂.
 
 If using option (b) script for the provider, you need to pass the extractor argument `getpot_bgutil_script` to `youtube` for each yt-dlp call. The argument should include the path to the transpiled generation script (`server/build/generate_once.js`). E.g. `--extractor-args "youtube:getpot_bgutil_script=$WORKSPACE/bgutil-ytdlp-pot-provider/server/build/generate_once.js"`
-
-```shell
-./yt-dlp --extractor-args "youtube:getpot_bgutil_script=/home/user/bgutil-ytdlp-pot-provider/server/build/generate_once.js"
-```
