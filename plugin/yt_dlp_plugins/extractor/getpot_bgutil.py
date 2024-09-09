@@ -33,7 +33,7 @@ class BgUtilPotProviderRH(GetPOTProvider):
 
     def _get_pot_via_http(self, ydl, client, visitor_data, data_sync_id, base_url):
         try:
-            response = ydl.urlopen(Request('http://127.0.0.1:4416/get_pot', data=json.dumps({
+            response = ydl.urlopen(Request(f'{base_url}/get_pot', data=json.dumps({
                 'client': client,
                 'visitor_data': visitor_data,
                 'data_sync_id': data_sync_id
