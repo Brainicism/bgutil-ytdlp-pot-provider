@@ -11,8 +11,8 @@ This is used to bypass the 'Sign in to confirm you're not a bot' message when in
 The provider comes in two parts:
 
 1. **Provider**: Two options -
-   - An HTTP server that generates the POT, and has interfaces for the plugin to retrieve data from (easy setup + docker image provided)
-   - A POT generation script supplied via extractor arguments
+   - (a) An HTTP server that generates the POT, and has interfaces for the plugin to retrieve data from (easy setup + docker image provided)
+   - (b) A POT generation script supplied via extractor arguments
 2. **Provider plugin**: uses POT plugin framework to retrieve data from the provider, allowing yt-dlp to simulate having passed the 'bot check'
 
 ## Installation
