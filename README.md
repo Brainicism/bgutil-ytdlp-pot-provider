@@ -103,7 +103,7 @@ node build/main.js --port 8080
 If changing the port or IP used for the provider server, pass it to yt-dlp via `getpot_bgutil_baseurl`
 
 ```shell
---extractor-args youtube:getpot_bgutil_baseurl=127.0.0.1:8080
+--extractor-args "youtube:getpot_bgutil_baseurl=127.0.0.1:8080"
 ```
 
 ---
