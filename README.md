@@ -21,8 +21,6 @@ The provider comes in two parts:
 > This plugin is not ready for general use and is awaiting changes to be merged in yt-dlp for it to be functional.
 > Follow https://github.com/yt-dlp/yt-dlp/pull/10648 for updates.
 
-Default port number is 4416. If you want to change this, be sure to change it in both the provider and plugin code.
-
 ### Base Requirements
 
 If using Docker image for option (a) for the provider, the Docker runtime is required.
@@ -96,4 +94,22 @@ This will automatically install [coletdjnz's POT plugin framework](https://githu
 
 If using option (a) HTTP Server for the provider, use yt-dlp like normal 🙂.
 
-If using option (b) script for the provider, you need to pass the extractor argument `getpot_bgutil_script` to `youtube` for each yt-dlp call. The argument should include the path to the transpiled generation script (`server/build/generate_once.js`). E.g. `--extractor-args "youtube:getpot_bgutil_script=$WORKSPACE/bgutil-ytdlp-pot-provider/server/build/generate_once.js"`
+If you want to change the port number used by the provider server, use the `--port` option.
+
+```shell
+node build/main.js --port 8080
+```
+
+If changing the port or IP used for the provider server, pass it to yt-dlp via `getpot_bgutil_baseurl`
+
+```shell
+--extractor-args youtube:getpot_bgutil_baseurl=127.0.0.1:8080
+```
+
+---
+
+If using option (b) script for the provider, you need to pass the extractor argument `getpot_bgutil_script` to `youtube` for each yt-dlp call. The argument should include the path to the transpiled generation script (`server/build/generate_once.js`).
+
+```shell
+--extractor-args "youtube:getpot_bgutil_script=$WORKSPACE/bgutil-ytdlp-pot-provider/server/build/generate_once.js"
+```
