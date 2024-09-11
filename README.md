@@ -60,12 +60,12 @@ node build/main.js
 **Endpoints**
 
 - **POST /get_pot**: Accepts a `visitor_data` (unauthenticated), `data_sync_id` (authenticated) or an empty body in the request body. If no identifier is passed, a new unauthenticated `visitor_data` will be generated. Returns `po_token` and the associated identifier `visit_identifier`.
-- **POST /invalidate_caches**: Resets the PO token cache, forcing new tokens to be generated on next fetch
+- **POST /invalidate_caches**: Resets the PO token cache, forcing new tokens to be generated on next fetch.
 </details>
 
 #### (b) Generation Script Option
 
-The generation script needs to be transpiled to Javascript before it can be used by the plugin.
+1. Transpile the generation script to Javascript:
 
 ```shell
 cd server/
@@ -73,7 +73,9 @@ yarn install --frozen-lockfile
 npx tsc
 ```
 
-Make sure `node` is available in your `PATH`.
+2. Move the `server` directory with transpiled Javascript to `~/bgutil-ytdlp-pot-provider/` if you're using Linux or MacOS.
+Use `%USERPROFILE%\bgutil-ytdlp-pot-provider\` instead if you're using Windows.
+3. Make sure `node` is available in your `PATH`.
 
 ### 2. Install the plugin
 
@@ -108,7 +110,8 @@ If changing the port or IP used for the provider server, pass it to yt-dlp via `
 
 ---
 
-If using option (b) script for the provider, you need to pass the extractor argument `getpot_bgutil_script` to `youtube` for each yt-dlp call. The argument should include the path to the transpiled generation script (`server/build/generate_once.js`).
+If using option (b) script for the provider.
+When using option (b) script for the provider, if you want to use a custom path to the transpiled generation script (`server/build/generate_once.js`), pass it as the extractor argument `getpot_bgutil_script` to `youtube` for each yt-dlp call.
 
 ```shell
 --extractor-args "youtube:getpot_bgutil_script=$WORKSPACE/bgutil-ytdlp-pot-provider/server/build/generate_once.js"
