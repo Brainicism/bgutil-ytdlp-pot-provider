@@ -45,7 +45,6 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
             raise RequestError(error_msg)
         if 'po_token' not in response_json:
             raise RequestError('Server did not respond with a po_token')
-            # Should we return None here?
 
         return response_json['po_token']
 
