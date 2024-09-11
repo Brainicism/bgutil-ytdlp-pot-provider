@@ -5,7 +5,7 @@ import shutil
 from yt_dlp import YoutubeDL
 
 from yt_dlp.networking.exceptions import RequestError, UnsupportedRequest
-from yt_dlp.utils import Popen
+from yt_dlp.utils import Popen, classproperty
 from yt_dlp_plugins.extractor.getpot import GetPOTProvider, register_provider, register_preference
 from yt_dlp_plugins.extractor.getpot_bgutil import __version__
 
@@ -16,10 +16,15 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
     _SUPPORTED_CLIENTS = ('web_creator', 'web', 'web_embedded', 'web_music')
     VERSION = __version__
 
+    @classproperty(cache=True)
+    def _default_script_path(self):
+        home = os.path.expanduser("~")
+        return os.path.join(
+            home, 'bgutil-ytdlp-pot-provider', 'server', 'build', 'generate_once.js')
+
     def _validate_get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs):
         script_path = ydl.get_info_extractor('Youtube')._configuration_arg(
-            'getpot_bgutil_script', [None], casesense=True)[0]
-        # TODO: Add default script path
+            'getpot_bgutil_script', [self._default_script_path], casesense=True)[0]
         if not data_sync_id and not visitor_data:
             raise UnsupportedRequest(
                 'One of [data_sync_id, visitor_data] must be passed')
