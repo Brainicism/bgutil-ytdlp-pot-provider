@@ -50,5 +50,5 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
         return response_json['po_token']
 
 @register_preference(BgUtilHTTPPotProviderRH)
-def bgutil_HTTP_getpot_peference(rh, request):
+def bgutil_HTTP_getpot_preference(rh, request):
     return 0

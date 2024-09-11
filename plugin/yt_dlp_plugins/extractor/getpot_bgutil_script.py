@@ -71,5 +71,5 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
                 f'Error parsing JSON response from _get_pot_via_script (caused by {str(e)})')
 
 @register_preference(BgUtilScriptPotProviderRH)
-def bgutil_script_getpot_peference(rh, request):
+def bgutil_script_getpot_preference(rh, request):
     return 100
