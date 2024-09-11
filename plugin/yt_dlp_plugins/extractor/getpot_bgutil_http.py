@@ -3,7 +3,6 @@ from yt_dlp import YoutubeDL
 
 from yt_dlp.networking.common import Request
 from yt_dlp.networking.exceptions import RequestError, UnsupportedRequest
-from yt_dlp.utils import Popen
 from yt_dlp_plugins.extractor.getpot import GetPOTProvider, register_provider, register_preference
 from yt_dlp_plugins.extractor.getpot_bgutil import __version__
 
@@ -33,13 +32,14 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
                 'data_sync_id': data_sync_id,
             }).encode(), headers={'Content-Type': 'application/json'}))
         except Exception as e:
-            raise RequestError(f'Error reaching POST /get_pot: {str(e)}')
+            raise RequestError(
+                f'Error reaching POST /get_pot: {str(e)}') from e
 
         try:
             response_json = json.load(response)
         except Exception as e:
             raise RequestError(
-                f'Error parsing response JSON (caused by {str(e)}). response = {response.read().decode()}')
+                f'Error parsing response JSON (caused by {str(e)}). response = {response.read().decode()}') from e
 
         if error_msg := response_json.get('error'):
             raise RequestError(error_msg)
@@ -48,6 +48,7 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
             # Should we return None here?
 
         return response_json['po_token']
+
 
 @register_preference(BgUtilHTTPPotProviderRH)
 def bgutil_HTTP_getpot_preference(rh, request):

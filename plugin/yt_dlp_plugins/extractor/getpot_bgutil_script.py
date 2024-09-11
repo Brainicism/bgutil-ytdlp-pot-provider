@@ -52,7 +52,7 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
                 command_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         except Exception as e:
             raise RequestError(
-                f'_get_pot_via_script failed: Unable to run script (caused by {str(e)})')
+                f'_get_pot_via_script failed: Unable to run script (caused by {str(e)})') from e
 
         self._logger.debug(f'stdout = {stdout}')
         if returncode:
@@ -67,7 +67,8 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
             return json.loads(script_data_resp)['poToken']
         except (json.JSONDecodeError, TypeError, KeyError) as e:
             raise RequestError(
-                f'Error parsing JSON response from _get_pot_via_script (caused by {str(e)})')
+                f'Error parsing JSON response from _get_pot_via_script (caused by {str(e)})') from e
+
 
 @register_preference(BgUtilScriptPotProviderRH)
 def bgutil_script_getpot_preference(rh, request):
