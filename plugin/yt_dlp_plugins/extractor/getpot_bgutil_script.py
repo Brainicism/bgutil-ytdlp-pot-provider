@@ -18,7 +18,7 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
 
     @classproperty(cache=True)
     def _default_script_path(self):
-        home = os.path.expanduser("~")
+        home = os.path.expanduser('~')
         return os.path.join(
             home, 'bgutil-ytdlp-pot-provider', 'server', 'build', 'generate_once.js')
 

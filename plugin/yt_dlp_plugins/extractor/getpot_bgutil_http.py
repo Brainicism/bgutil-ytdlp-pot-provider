@@ -33,7 +33,7 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
             }).encode(), headers={'Content-Type': 'application/json'}))
         except Exception as e:
             raise RequestError(
-                f'Error reaching POST /get_pot: {str(e)}') from e
+                f'Error reaching POST /get_pot (caused by {str(e)})') from e
 
         try:
             response_json = json.load(response)
