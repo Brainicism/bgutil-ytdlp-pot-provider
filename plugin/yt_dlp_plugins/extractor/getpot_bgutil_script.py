@@ -7,9 +7,7 @@ from yt_dlp import YoutubeDL
 from yt_dlp.networking.exceptions import RequestError, UnsupportedRequest
 from yt_dlp.utils import Popen
 from yt_dlp_plugins.extractor.getpot import GetPOTProvider, register_provider, register_preference
-
-
-__version__ = '0.4.0'
+from yt_dlp_plugins.extractor.getpot_bgutil import __version__
 
 
 @register_provider
