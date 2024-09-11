@@ -29,12 +29,13 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
             raise UnsupportedRequest(
                 'One of [data_sync_id, visitor_data] must be passed')
         if not os.path.isfile(script_path):
-            raise RequestError(f"Script path doesn't exist: {script_path}")
+            raise UnsupportedRequest(
+                f"Script path doesn't exist: {script_path}")
         if os.path.basename(script_path) != 'generate_once.js':
-            raise RequestError(
+            raise UnsupportedRequest(
                 'Incorrect script passed to extractor args. Path to generate_once.js required')
         if shutil.which('node') is None:
-            raise RequestError('node is not in PATH')
+            raise UnsupportedRequest('node is not in PATH')
         self.script_path = script_path
 
     def _get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs) -> str:
