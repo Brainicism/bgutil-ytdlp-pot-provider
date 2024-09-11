@@ -11,6 +11,7 @@ program.parse();
 const options = program.opts();
 
 const PORT_NUMBER = options.port || 4416;
+const VERSION = '0.4.0';
 
 const httpServer = express();
 httpServer.use(bodyParser.json());
@@ -62,4 +63,13 @@ httpServer.post("/get_pot", async (request, response) => {
 httpServer.post("/invalidate_caches", async (request, response) => {
     sessionManager.invalidateCaches();
     response.send();
+});
+
+httpServer.get("/ping", async (request, response) => {
+    response.send({
+        logging: options.verbose ? "verbose" : "normal",
+        token_ttl_hours: process.env.TOKEN_TTL,
+        server_uptime: process.uptime(),
+        version: VERSION,
+    });
 });
