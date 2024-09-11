@@ -10,7 +10,7 @@ from yt_dlp_plugins.extractor.getpot_bgutil import __version__
 @register_provider
 class BgUtilHTTPPotProviderRH(GetPOTProvider):
     _PROVIDER_NAME = 'BgUtilHTTPPot'
-    _SUPPORTED_CLIENTS = ('web_creator', 'web', 'web_embedded', 'web_music')
+    _SUPPORTED_CLIENTS = ('web', 'web_safari', 'web_embedded', 'web_music', 'web_creator')
     VERSION = __version__
 
     def _validate_get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs):
