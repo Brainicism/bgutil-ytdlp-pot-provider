@@ -44,7 +44,8 @@ docker run --name bgutil-provider -d -p 4416:4416 brainicism/bgutil-ytdlp-pot-pr
 **Native:**
 
 ```shell
-cd server/
+# download and extract latest source code from https://github.com/Brainicism/bgutil-ytdlp-pot-provider/releases
+cd bgutils-ytdlp-pot-provider/server/
 yarn install --frozen-lockfile
 npx tsc
 node build/main.js
@@ -65,17 +66,19 @@ node build/main.js
 
 #### (b) Generation Script Option
 
-1. Transpile the generation script to Javascript:
+1. Download the latest source code (.zip/.tar.gz) from https://github.com/Brainicism/bgutil-ytdlp-pot-provider/releases. Extract the contents into your home directory (`~/` on Unix-based systems, `%USERPROFILE%` for Windows) if you want to use this method without needing to specify `getpot_bgutil_script` extractor argument on each yt-dlp invocation.
+
+2. Rename the folder to `bgutils-ytdlp-pot-provider`
+
+3. Transpile the generation script to Javascript:
 
 ```shell
-cd server/
+cd bgutils-ytdlp-pot-provider/server/
 yarn install --frozen-lockfile
 npx tsc
 ```
 
-2. Move the `server` directory with transpiled Javascript to `~/bgutil-ytdlp-pot-provider/` if you're using Linux or MacOS.
-Use `%USERPROFILE%\bgutil-ytdlp-pot-provider\` instead if you're using Windows.
-3. Make sure `node` is available in your `PATH`.
+4. Make sure `node` is available in your `PATH`.
 
 ### 2. Install the plugin
 
@@ -94,7 +97,7 @@ This will automatically install [coletdjnz's POT plugin framework](https://githu
 
 ## Usage
 
-If using option (a) HTTP Server for the provider, use yt-dlp like normal 🙂.
+If using option (a) HTTP Server for the provider, and the default IP/port number, you can use yt-dlp like normal 🙂.
 
 If you want to change the port number used by the provider server, use the `--port` option.
 
@@ -110,9 +113,14 @@ If changing the port or IP used for the provider server, pass it to yt-dlp via `
 
 ---
 
-If using option (b) script for the provider.
-When using option (b) script for the provider, if you want to use a custom path to the transpiled generation script (`server/build/generate_once.js`), pass it as the extractor argument `getpot_bgutil_script` to `youtube` for each yt-dlp call.
+If using option (b) script for the provider, with the default script location in your home directory (i.e: `~/bgutil-ytdlp-pot-provider`), you can also use yt-dlp like normal.
+
+If you installed the script in a different location, pass it as the extractor argument `getpot_bgutil_script` to `youtube` for each yt-dlp call.
 
 ```shell
 --extractor-args "youtube:getpot_bgutil_script=$WORKSPACE/bgutil-ytdlp-pot-provider/server/build/generate_once.js"
 ```
+
+---
+
+If both methods are available for use, the option (b) script will be prioritized.
