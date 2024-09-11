@@ -1,0 +1,27 @@
+server/build/
+server/node_modules/
+server/tsconfig.tsbuildinfo
+
+plugin/dist/
+plugin/__pycache__/
+plugin/README.md
+plugin/CHANGELOG.md
+plugin/**.pyc
+plugin/**.pyo
+
+**/yt-dlp
+**/yt-dlp.exe
+**/yt-dlp_macos
+**/yt-dlp_x86.exe
+**/yt-dlp_min.exe
+**/yt-dlp_linux
+**/yt-dlp_linux_armv7l
+**/yt-dlp_linux_aarch64
+**/yt-dlp_win.zip
+**/yt-dlp_macos.zip
+**/yt-dlp_macos_legacy
+# yt-dlp binaries
+**/yt-dlp/
+# yt-dlp source code
+
+**/tmp/

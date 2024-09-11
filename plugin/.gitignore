@@ -1,6 +1,0 @@
-dist/**
-README.md
-CHANGELOG.md
-*.pyc
-*.pyo
-__pycache__/
