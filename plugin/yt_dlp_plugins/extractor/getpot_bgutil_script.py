@@ -44,7 +44,6 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
         else:
             raise RequestError(
                 'Unexpected missing visitorData and dataSyncId in _get_pot_via_script')
-            # After invoking _validate_get_pot, do we still need this?
         self._logger.debug(
             f'Executing command to get POT via script: {" ".join(command_args)}')
 
