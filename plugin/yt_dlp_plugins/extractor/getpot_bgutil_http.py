@@ -24,12 +24,12 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
         try:
             response = ydl.urlopen(Request(f'{self.base_url}/ping'))
         except Exception as e:
-            raise UnsupportedRequest(f'Error reaching GET /ping (caused by {str(e)})') from e
+            raise UnsupportedRequest(f'Error reaching GET /ping (caused by {e!s})') from e
         try:
             response = json.load(response)
         except json.JSONDecodeError as e:
             raise UnsupportedRequest(
-                f'Error parsing response JSON (caused by {str(e)})'
+                f'Error parsing response JSON (caused by {e!s})'
                 f', response: {response.read()}') from e
         if not response.get('version'):
             self._logger.warning(
