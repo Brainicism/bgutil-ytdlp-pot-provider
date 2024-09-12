@@ -22,7 +22,7 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
             raise UnsupportedRequest(
                 'One of [data_sync_id, visitor_data] must be passed')
         try:
-            response = ydl.urlopen(Request(f'{self.base_url}/ping'))
+            response = ydl.urlopen(Request(f'{base_url}/ping'))
         except Exception as e:
             raise UnsupportedRequest(f'Error reaching GET /ping (caused by {e!s})') from e
         try:
