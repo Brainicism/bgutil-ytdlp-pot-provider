@@ -68,7 +68,7 @@ httpServer.post("/invalidate_caches", async (request, response) => {
 httpServer.get("/ping", async (request, response) => {
     response.send({
         logging: options.verbose ? "verbose" : "normal",
-        token_ttl_hours: process.env.TOKEN_TTL,
+        token_ttl_hours: process.env.TOKEN_TTL || 6,
         server_uptime: process.uptime(),
         version: VERSION,
     });
