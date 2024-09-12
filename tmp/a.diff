@@ -1,0 +1,27 @@
+diff --git a/plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py b/plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py
+--- plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py
++++ plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py
+@@ -18,9 +18,22 @@
+             'getpot_bgutil_baseurl', ['http://127.0.0.1:4416'], casesense=True)[0]
+         if not data_sync_id and not visitor_data:
+             raise UnsupportedRequest(
+                 'One of [data_sync_id, visitor_data] must be passed')
+-        # TODO: Ping the server
++        try:
++            response = ydl.urlopen(Request(f'{self.base_url}/ping'))
++        except Exception as e:
++            raise UnsupportedRequest(f'Error reaching GET /ping (caused by {str(e)})') from e
++        try:
++            response = json.load(response)
++        except json.JSONDecodeError as e:
++            raise UnsupportedRequest(
++                f'Error parsing response JSON (caused by {str(e)})'
++                f', response: {response.read()}') from e
++        if response.get('version') != self.VERSION:
++            self._logger.warning(
++                'The provider plugin and the http server aren\'t on the same version, '
++                'this may cause compatibility issues.', once=True)
+         self.base_url = base_url
+ 
+     def _get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs) -> str:
+         self._logger.info('Generating POT via HTTP server')

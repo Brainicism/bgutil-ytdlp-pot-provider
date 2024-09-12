@@ -31,19 +31,12 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
             raise UnsupportedRequest(
                 f'Error parsing response JSON (caused by {e!s})'
                 f', response: {response.read()}') from e
-        if not response.get('version'):
-            self._logger.warning(
-                f'"version" field not present in server response, '
-                f'you may be using a old version of the HTTP server, '
-                f'this may cause compatibility issues. '
-                f'Please ensure they are on the same version. '
-                f'(plugin: {self.VERSION}, server: unknown)', once=True)
         elif response.get('version') != self.VERSION:
             self._logger.warning(
                 f'The provider plugin and the HTTP server are on different versions, '
                 f'this may cause compatibility issues. '
                 f'Please ensure they are on the same version. '
-                f'(plugin: {self.VERSION}, server: {response["version"]})', once=True)
+                f'(plugin: {self.VERSION}, server: {response["version"] or "unknown"})', once=True)
         self.base_url = base_url
 
     def _get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs) -> str:
