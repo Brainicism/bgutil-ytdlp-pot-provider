@@ -19,7 +19,23 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
         if not data_sync_id and not visitor_data:
             raise UnsupportedRequest(
                 'One of [data_sync_id, visitor_data] must be passed')
-        # TODO: Ping the server
+        try:
+            response = ydl.urlopen(Request(f'{self.base_url}/ping'))
+        except Exception as e:
+            raise UnsupportedRequest(f'Error reaching GET /ping (caused by {str(e)})') from e
+        try:
+            response = json.load(response)
+        except json.JSONDecodeError as e:
+            raise UnsupportedRequest(
+                f'Error parsing response JSON (caused by {str(e)})'
+                f', response: {response.read()}') from e
+        if not response.get('version'):
+            self._logger.warning('"version" field not present in server response')
+        elif response.get('version') != self.VERSION:
+            self._logger.warning(
+                f'The provider plugin version and the HTTP server version don\'t match, '
+                f'this may cause compatibility issues. '
+                f'(plugin: {self.VERSION}; server: {response["version"]})', once=True)
         self.base_url = base_url
 
     def _get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs) -> str:
