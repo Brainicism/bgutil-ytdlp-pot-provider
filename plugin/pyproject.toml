@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "bgutil-ytdlp-pot-provider"
-version = "0.4.0"
+dynamic = ["version"]
 readme = {file = "README.md", content-type = "text/markdown"}
 classifiers = [
   "License :: OSI Approved :: GNU General Public License v3 (GPLv3)"
@@ -27,3 +27,6 @@ packages = ["yt_dlp_plugins"]
 
 [tool.hatch.metadata]
 allow-direct-references = true
+
+[tool.hatch.version]
+path = "yt_dlp_plugins/extractor/getpot_bgutil.py"
