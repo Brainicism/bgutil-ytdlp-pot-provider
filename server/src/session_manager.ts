@@ -30,7 +30,7 @@ export class SessionManager {
     }
 
     async generateVisitorData(): Promise<string | null> {
-        let innertube = await Innertube.create({ retrieve_player: false });
+        const innertube = await Innertube.create({ retrieve_player: false });
         const visitorData = innertube.session.context.client.visitorData;
         if (!visitorData) {
             console.error("Unable to generate visitor data via Innertube");
