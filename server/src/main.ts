@@ -3,9 +3,7 @@ import { Command } from "@commander-js/extra-typings";
 import express from "express";
 import bodyParser from "body-parser";
 
-const program = new Command()
-    .option("-p, --port <PORT>")
-    .option("--verbose");
+const program = new Command().option("-p, --port <PORT>").option("--verbose");
 
 program.parse();
 const options = program.opts();
@@ -45,7 +43,7 @@ httpServer.post("/get_pot", async (request, response) => {
         const generatedVisitorData = await sessionManager.generateVisitorData();
         if (!generatedVisitorData) {
             response.status(500);
-            response.send({error: "Error generating visitor data"});
+            response.send({ error: "Error generating visitor data" });
             return;
         }
 

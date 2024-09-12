@@ -1,12 +1,13 @@
 import json
-import subprocess
 import os.path
 import shutil
-from yt_dlp import YoutubeDL
+import subprocess
 
+from yt_dlp import YoutubeDL
 from yt_dlp.networking.exceptions import RequestError, UnsupportedRequest
 from yt_dlp.utils import Popen, classproperty
-from yt_dlp_plugins.extractor.getpot import GetPOTProvider, register_provider, register_preference
+
+from yt_dlp_plugins.extractor.getpot import GetPOTProvider, register_preference, register_provider
 from yt_dlp_plugins.extractor.getpot_bgutil import __version__
 
 
@@ -58,7 +59,7 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
                 command_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         except Exception as e:
             raise RequestError(
-                f'_get_pot_via_script failed: Unable to run script (caused by {str(e)})') from e
+                f'_get_pot_via_script failed: Unable to run script (caused by {e!s})') from e
 
         self._logger.debug(f'stdout = {stdout}')
         if returncode:
@@ -73,7 +74,7 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
             return json.loads(script_data_resp)['poToken']
         except (json.JSONDecodeError, TypeError, KeyError) as e:
             raise RequestError(
-                f'Error parsing JSON response from _get_pot_via_script (caused by {str(e)})') from e
+                f'Error parsing JSON response from _get_pot_via_script (caused by {e!s})') from e
 
 
 @register_preference(BgUtilScriptPotProviderRH)
