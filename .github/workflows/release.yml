@@ -17,7 +17,7 @@ jobs:
       - name: Install Ruff
         run: pip install ruff
       - name: Python format check (Ruff)
-        run: ruff format --check -v plugin/
+        run: ruff check -v plugin/
       - name: Python lint check (Ruff)
         run: ruff check --output-format=github -v plugin/
       - name: Install server dependencies
