@@ -7,14 +7,14 @@ from yt_dlp import YoutubeDL
 from yt_dlp.networking.exceptions import RequestError, UnsupportedRequest
 from yt_dlp.utils import Popen, classproperty
 
-from yt_dlp_plugins.extractor.getpot_bgutil import __version__
 from yt_dlp_plugins.extractor.getpot import GetPOTProvider, register_preference, register_provider
+from yt_dlp_plugins.extractor.getpot_bgutil import __version__
 
 
 @register_provider
 class BgUtilScriptPotProviderRH(GetPOTProvider):
     _PROVIDER_NAME = 'BgUtilScriptPot'
-    _SUPPORTED_CLIENTS = ('web',        'web_safari', 'web_embedded', 'web_music', 'web_creator')
+    _SUPPORTED_CLIENTS = ('web', 'web_safari', 'web_embedded', 'web_music', 'web_creator')
     VERSION = __version__
 
     @classproperty(cache=True)
