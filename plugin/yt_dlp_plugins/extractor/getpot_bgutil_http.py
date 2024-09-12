@@ -1,12 +1,13 @@
 import json
-from yt_dlp import YoutubeDL
 
+from yt_dlp import YoutubeDL
 from yt_dlp.networking.common import Request
 from yt_dlp.networking.exceptions import RequestError, UnsupportedRequest
+
 from yt_dlp_plugins.extractor.getpot import (
     GetPOTProvider,
-    register_provider,
     register_preference,
+    register_provider,
 )
 from yt_dlp_plugins.extractor.getpot_bgutil import __version__
 
@@ -36,9 +37,7 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
             'getpot_bgutil_baseurl', ['http://127.0.0.1:4416'], casesense=True
         )[0]
         if not data_sync_id and not visitor_data:
-            raise UnsupportedRequest(
-                'One of [data_sync_id, visitor_data] must be passed'
-            )
+            raise UnsupportedRequest('One of [data_sync_id, visitor_data] must be passed')
         # TODO: Ping the server
         self.base_url = base_url
 
@@ -68,9 +67,7 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
                 )
             )
         except Exception as e:
-            raise RequestError(
-                f'Error reaching POST /get_pot (caused by {str(e)})'
-            ) from e
+            raise RequestError(f'Error reaching POST /get_pot (caused by {str(e)})') from e
 
         try:
             response_json = json.load(response)

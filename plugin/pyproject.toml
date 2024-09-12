@@ -33,3 +33,20 @@ path = "yt_dlp_plugins/extractor/getpot_bgutil.py"
 
 [tool.ruff.format]
 quote-style = "single"
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+ignore = [
+    "E402",  # module level import not at top of file
+    "E501",  # line too long
+    "E731",  # do not assign a lambda expression, use a def
+    "E741",  # ambiguous variable name
+]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # import order
+]
