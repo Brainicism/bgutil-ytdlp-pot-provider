@@ -1,3 +1,4 @@
+
 import json
 
 from yt_dlp import YoutubeDL
@@ -11,8 +12,7 @@ from yt_dlp_plugins.extractor.getpot_bgutil import __version__
 @register_provider
 class BgUtilHTTPPotProviderRH(GetPOTProvider):
     _PROVIDER_NAME = 'BgUtilHTTPPot'
-    _SUPPORTED_CLIENTS = ('web', 'web_safari',
-                          'web_embedded', 'web_music', 'web_creator')
+    _SUPPORTED_CLIENTS = ('web', 'web_safari', 'web_embedded', 'web_music', 'web_creator')
     VERSION = __version__
 
     def _validate_get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs):
@@ -35,13 +35,13 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
             }).encode(), headers={'Content-Type': 'application/json'}))
         except Exception as e:
             raise RequestError(
-                f'Error reaching POST /get_pot (caused by {str(e)})') from e
+                f'Error reaching POST /get_pot (caused by {e!s})') from e
 
         try:
             response_json = json.load(response)
         except Exception as e:
             raise RequestError(
-                f'Error parsing response JSON (caused by {str(e)}). response = {response.read().decode()}') from e
+                f'Error parsing response JSON (caused by {e!s}). response = {response.read().decode()}') from e
 
         if error_msg := response_json.get('error'):
             raise RequestError(error_msg)

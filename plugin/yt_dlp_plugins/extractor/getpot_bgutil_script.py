@@ -14,8 +14,7 @@ from yt_dlp_plugins.extractor.getpot_bgutil import __version__
 @register_provider
 class BgUtilScriptPotProviderRH(GetPOTProvider):
     _PROVIDER_NAME = 'BgUtilScriptPot'
-    _SUPPORTED_CLIENTS = ('web', 'web_safari',
-                          'web_embedded', 'web_music', 'web_creator')
+    _SUPPORTED_CLIENTS = ('web', 'web_safari', 'web_embedded', 'web_music', 'web_creator')
     VERSION = __version__
 
     @classproperty(cache=True)
@@ -60,7 +59,7 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
                 command_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         except Exception as e:
             raise RequestError(
-                f'_get_pot_via_script failed: Unable to run script (caused by {str(e)})') from e
+                f'_get_pot_via_script failed: Unable to run script (caused by {e!s})') from e
 
         self._logger.debug(f'stdout = {stdout}')
         if returncode:
@@ -75,7 +74,7 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
             return json.loads(script_data_resp)['poToken']
         except (json.JSONDecodeError, TypeError, KeyError) as e:
             raise RequestError(
-                f'Error parsing JSON response from _get_pot_via_script (caused by {str(e)})') from e
+                f'Error parsing JSON response from _get_pot_via_script (caused by {e!s})') from e
 
 
 @register_preference(BgUtilScriptPotProviderRH)
