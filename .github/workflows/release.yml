@@ -11,6 +11,7 @@ jobs:
   lint-format:
     name: Lint and format check
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
       - name: Install Ruff
