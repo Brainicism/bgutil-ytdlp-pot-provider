@@ -30,3 +30,6 @@ allow-direct-references = true
 
 [tool.hatch.version]
 path = "yt_dlp_plugins/extractor/getpot_bgutil.py"
+
+[tool.ruff.format]
+quote-style = "single"

@@ -8,6 +8,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lint-format:
+    name: Lint and format check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Ruff
+        run: pip install ruff
+      - name: Python format check (Ruff)
+        run: ruff format --check -v plugin/
+      - name: Python lint check (Ruff)
+        run: ruff check --output-format=github -v plugin/
+      - name: Install server dependencies
+        run: cd server && yarn install
+      - name: Server lint check (ESlint)
+        run: cd server && npx eslint --max-warnings=0 src/
+      - name: Server format check (Prettier)
+        run: cd server && npx prettier --check 'src/**/*.{js,ts}'
+
   release:
     name: Release to Github
     permissions:
