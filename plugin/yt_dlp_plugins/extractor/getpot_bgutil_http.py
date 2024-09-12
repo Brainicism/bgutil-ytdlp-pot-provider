@@ -35,7 +35,7 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
             self._logger.warning(
                 f'"version" field not present in server response, '
                 f'you may be using a old version of the HTTP server, '
-                f'this may cause compatibility issues.'
+                f'this may cause compatibility issues. '
                 f'Please ensure they are on the same version. '
                 f'(plugin: {self.VERSION}, server: unknown)', once=True)
         elif response.get('version') != self.VERSION:
