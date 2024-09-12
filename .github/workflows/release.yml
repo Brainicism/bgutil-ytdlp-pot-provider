@@ -58,7 +58,7 @@ jobs:
           find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete
           zip -9 --recurse-paths "${project_name}" *
           printf "## What's Changed\n\n" >> CHANGELOG.md
-          gh pr list --json author,number,title,mergedAt --state merged -R ${{ github.repository }} \
+          gh pr list --json author,number,title,mergedAt --base "${{ github.event.repository.default_branch }}" --state merged -R ${{ github.repository }} \
           | jq -r --arg authortime "$(git log --format='%at' -n1 ${tag})" \
           '.[]|select((.mergedAt|strptime("%Y-%m-%dT%H:%M:%SZ")|mktime)>($authortime|tonumber))| "* \(.title) by @\(.author.login) in #\(.number|tostring)"' \
           >> CHANGELOG.md

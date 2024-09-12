@@ -1,4 +1,7 @@
 {
+    "name": "bgutils-ytdlp-pot-provider",
+    "description": "Proof-of-origin token provider and plugin for yt-dlp, using bgutils",
+    "license": "GPL-3.0-only",
     "dependencies": {
         "bgutils-js": "^1.1.0",
         "body-parser": "^1.20.2",
