@@ -36,7 +36,8 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
                 f'The provider plugin and the HTTP server are on different versions, '
                 f'this may cause compatibility issues. '
                 f'Please ensure they are on the same version. '
-                f'(plugin: {self.VERSION}, server: {response["version"] or "unknown"})', once=True)
+                f'(plugin: {self.VERSION}, server: {response.get("version", "unknown")})',
+                once=True)
         self.base_url = base_url
 
     def _get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs) -> str:
@@ -47,7 +48,8 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
                 'client': client,
                 'visitor_data': visitor_data,
                 'data_sync_id': data_sync_id,
-            }).encode(), headers={'Content-Type': 'application/json'}))
+            }).encode(),
+                headers={'Content-Type': 'application/json'}, extensions={'timeout': 5.0}))
         except Exception as e:
             raise RequestError(
                 f'Error reaching POST /get_pot (caused by {e!s})') from e
