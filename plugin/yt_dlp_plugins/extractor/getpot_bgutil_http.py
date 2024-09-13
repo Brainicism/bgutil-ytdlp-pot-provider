@@ -50,7 +50,7 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
                     'visitor_data': visitor_data,
                     'data_sync_id': data_sync_id,
                 }).encode(), headers={'Content-Type': 'application/json'},
-                extensions={'timeout': 5.0}))
+                extensions={'timeout': 12.5}))
         except Exception as e:
             raise RequestError(
                 f'Error reaching POST /get_pot (caused by {e!s})') from e
