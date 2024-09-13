@@ -1,4 +1,5 @@
 import { SessionManager } from "./session_manager";
+import { VERSION } from "./version";
 import { Command } from "@commander-js/extra-typings";
 import express from "express";
 import bodyParser from "body-parser";
@@ -9,7 +10,6 @@ program.parse();
 const options = program.opts();
 
 const PORT_NUMBER = options.port || 4416;
-const VERSION = "0.5.0";
 
 const httpServer = express();
 httpServer.use(bodyParser.json());
