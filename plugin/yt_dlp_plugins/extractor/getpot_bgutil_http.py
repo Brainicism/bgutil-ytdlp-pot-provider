@@ -31,7 +31,7 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
             raise UnsupportedRequest(
                 f'Error parsing response JSON (caused by {e!s})'
                 f', response: {response.read()}') from e
-        elif response.get('version') != self.VERSION:
+        if response.get('version') != self.VERSION:
             self._logger.warning(
                 f'The provider plugin and the HTTP server are on different versions, '
                 f'this may cause compatibility issues. '
