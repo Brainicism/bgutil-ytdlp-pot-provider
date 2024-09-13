@@ -15,7 +15,7 @@ authors = [
   { name = "Brainicism", email = "brainicism@gmail.com" },
 ]
 dependencies = [
-  "yt-dlp-get-pot>=0.0.2",
+  "yt-dlp-get-pot>=0.1.1",
 ]
 
 [tool.hatch.env.default]

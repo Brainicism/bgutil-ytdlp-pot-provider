@@ -21,18 +21,36 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
         if not data_sync_id and not visitor_data:
             raise UnsupportedRequest(
                 'One of [data_sync_id, visitor_data] must be passed')
-        # TODO: Ping the server
+        try:
+            response = ydl.urlopen(Request(f'{base_url}/ping', extensions={'timeout': 5.0}))
+        except Exception as e:
+            raise UnsupportedRequest(f'Error reaching GET /ping (caused by {e!s})') from e
+        try:
+            response = json.load(response)
+        except json.JSONDecodeError as e:
+            raise UnsupportedRequest(
+                f'Error parsing response JSON (caused by {e!s})'
+                f', response: {response.read()}') from e
+        if response.get('version') != self.VERSION:
+            self._logger.warning(
+                f'The provider plugin and the HTTP server are on different versions, '
+                f'this may cause compatibility issues. '
+                f'Please ensure they are on the same version. '
+                f'(plugin: {self.VERSION}, server: {response.get("version", "unknown")})',
+                once=True)
         self.base_url = base_url
 
     def _get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs) -> str:
         self._logger.info('Generating POT via HTTP server')
 
         try:
-            response = ydl.urlopen(Request(f'{self.base_url}/get_pot', data=json.dumps({
-                'client': client,
-                'visitor_data': visitor_data,
-                'data_sync_id': data_sync_id,
-            }).encode(), headers={'Content-Type': 'application/json'}))
+            response = ydl.urlopen(Request(
+                f'{self.base_url}/get_pot', data=json.dumps({
+                    'client': client,
+                    'visitor_data': visitor_data,
+                    'data_sync_id': data_sync_id,
+                }).encode(), headers={'Content-Type': 'application/json'},
+                extensions={'timeout': 12.5}))
         except Exception as e:
             raise RequestError(
                 f'Error reaching POST /get_pot (caused by {e!s})') from e
