@@ -19,8 +19,9 @@ The provider comes in two parts:
 
 ### Base Requirements
 
-If using Docker image for option (a) for the provider, the Docker runtime is required.
+1. **Requires yt-dlp `MASTER 2024.09.13.105220` or above.**
 
+2. If using Docker image for option (a) for the provider, the Docker runtime is required.  
 Otherwise, Node.js and Yarn are required. You will also need to clone the repository.
 
 ### 1. Set up the provider
