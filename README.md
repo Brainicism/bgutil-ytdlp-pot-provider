@@ -17,10 +17,6 @@ The provider comes in two parts:
 
 ## Installation
 
-> [!CAUTION]
-> This plugin is not ready for general use and is awaiting changes to be merged in yt-dlp for it to be functional.
-> Follow https://github.com/yt-dlp/yt-dlp/pull/10648 for updates.
-
 ### Base Requirements
 
 If using Docker image for option (a) for the provider, the Docker runtime is required.
