@@ -44,12 +44,13 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
         self._logger.info('Generating POT via HTTP server')
 
         try:
-            response = ydl.urlopen(Request(f'{self.base_url}/get_pot', data=json.dumps({
-                'client': client,
-                'visitor_data': visitor_data,
-                'data_sync_id': data_sync_id,
-            }).encode(), headers={'Content-Type': 'application/json'},
-            extensions={'timeout': 5.0}))
+            response = ydl.urlopen(Request(
+                f'{self.base_url}/get_pot', data=json.dumps({
+                    'client': client,
+                    'visitor_data': visitor_data,
+                    'data_sync_id': data_sync_id,
+                }).encode(), headers={'Content-Type': 'application/json'},
+                extensions={'timeout': 5.0}))
         except Exception as e:
             raise RequestError(
                 f'Error reaching POST /get_pot (caused by {e!s})') from e
