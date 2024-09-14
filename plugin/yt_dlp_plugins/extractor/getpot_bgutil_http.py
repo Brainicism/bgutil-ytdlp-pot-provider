@@ -1,11 +1,19 @@
 
 import json
+import typing
 
-from yt_dlp import YoutubeDL
+if typing.TYPE_CHECKING:
+    from yt_dlp import YoutubeDL
+
 from yt_dlp.networking.common import Request
 from yt_dlp.networking.exceptions import RequestError, UnsupportedRequest
 
-from yt_dlp_plugins.extractor.getpot import GetPOTProvider, register_preference, register_provider
+try:
+    from yt_dlp_plugins.extractor.getpot import GetPOTProvider, register_preference, register_provider
+except ImportError as e:
+    e.msg += '\nyt-dlp-get-pot is missing! See https://github.com/coletdjnz/yt-dlp-get-pot?tab=readme-ov-file#installing.'
+    raise e
+
 from yt_dlp_plugins.extractor.getpot_bgutil import __version__
 
 
