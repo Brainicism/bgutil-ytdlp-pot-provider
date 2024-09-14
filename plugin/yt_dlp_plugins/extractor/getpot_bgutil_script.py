@@ -13,7 +13,7 @@ try:
     from yt_dlp_plugins.extractor.getpot import GetPOTProvider, register_preference, register_provider
 except ImportError as e:
     e.msg += '\nyt-dlp-get-pot is missing! See https://github.com/coletdjnz/yt-dlp-get-pot?tab=readme-ov-file#installing.'
-    raise e from e
+    raise e
 
 from yt_dlp_plugins.extractor.getpot_bgutil import __version__
 
