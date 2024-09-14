@@ -1,6 +1,7 @@
 ### Coding conventions
 Since the provider comes in two parts(the **Provider**(coded in typescript) and the **Provider plugin**(coded in python)), we have different code formatting standards for them.  
 Please format your code by running this script below before you push a commit to your pull request:
+
 ```shell
 # Make sure you have ruff, autopep8 and prettier installed already
 ruff check --fix plugin/
