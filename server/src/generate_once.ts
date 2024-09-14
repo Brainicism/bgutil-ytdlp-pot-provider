@@ -25,7 +25,7 @@ const options = program.opts();
         for (const visitIdentifier in parsedCaches) {
             if (parsedCaches[visitIdentifier]) {
                 const parsedDate = parsedCaches[visitIdentifier]
-                    .generatedAt as string;
+                    .generatedAt as unknown as string;
                 parsedCaches[visitIdentifier].generatedAt = new Date(
                     parsedDate,
                 );
