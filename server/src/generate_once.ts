@@ -3,7 +3,6 @@ import { Command } from "@commander-js/extra-typings";
 import * as fs from "fs";
 import * as path from "path";
 
-const CACHE_PATH = path.resolve(process.cwd(), "cache.json");
 const program = new Command()
     .option("-v, --visitor-data <visitordata>")
     .option("-d, --data-sync-id <data-sync-id>")
@@ -13,6 +12,7 @@ program.parse();
 const options = program.opts();
 
 (async () => {
+    const CACHE_PATH = path.resolve(__dirname, "cache.json");
     const dataSyncId = options.dataSyncId;
     const visitorData = options.visitorData;
     const verbose = options.verbose || false;
