@@ -1,6 +1,9 @@
-import { SessionManager } from "./session_manager";
+import { SessionManager, YoutubeSessionDataCaches } from "./session_manager";
 import { Command } from "@commander-js/extra-typings";
+import * as fs from "fs";
+import * as path from "path";
 
+const CACHE_PATH = path.resolve(process.cwd(), "cache.json");
 const program = new Command()
     .option("-v, --visitor-data <visitordata>")
     .option("-d, --data-sync-id <data-sync-id>")
@@ -14,37 +17,59 @@ const options = program.opts();
     const visitorData = options.visitorData;
     const verbose = options.verbose || false;
     let visitorIdentifier: string;
-    const sessionManager = new SessionManager(verbose);
+    let cache: YoutubeSessionDataCaches;
+    try {
+        const parsedCaches: YoutubeSessionDataCaches = JSON.parse(
+            fs.readFileSync(CACHE_PATH, "utf8"),
+        );
+        for (const visitIdentifier in parsedCaches) {
+            if (
+                parsedCaches[visitIdentifier] &&
+                typeof parsedCaches[visitIdentifier].generatedAt === "string"
+            ) {
+                const parsedDate = parsedCaches[visitIdentifier].generatedAt;
+                parsedCaches[visitIdentifier].generatedAt = new Date(
+                    parsedDate,
+                );
+            }
+        }
+        cache = parsedCaches;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_error) {
+        cache = {};
+    }
+
+    const sessionManager = new SessionManager(verbose, cache);
+    function log(msg: string) {
+        sessionManager.log(msg);
+    }
 
     if (dataSyncId) {
-        if (verbose) {
-            console.log(`Received request for data sync ID: '${dataSyncId}'`);
-        }
+        log(`Received request for data sync ID: '${dataSyncId}'`);
         visitorIdentifier = dataSyncId;
     } else if (visitorData) {
-        if (verbose) {
-            console.log(`Received request for visitor data: '${visitorData}'`);
-        }
+        log(`Received request for visitor data: '${visitorData}'`);
         visitorIdentifier = visitorData;
     } else {
-        if (verbose) {
-            console.log(
-                `Received request for visitor data, grabbing from Innertube`,
-            );
-        }
+        log(`Received request for visitor data, grabbing from Innertube`);
         const generatedVisitorData = await sessionManager.generateVisitorData();
         if (!generatedVisitorData) {
+            // Should we remove this console.error? There's one already in sessionManager.generateVisitorData().
             console.error("Error generating visitor data");
             process.exit(1);
         }
-
-        if (verbose) {
-            console.log(`Generated visitor data: ${generatedVisitorData}`);
-        }
-
+        log(`Generated visitor data: ${generatedVisitorData}`);
         visitorIdentifier = generatedVisitorData;
     }
 
     const sessionData = await sessionManager.generatePoToken(visitorIdentifier);
-    console.log(JSON.stringify(sessionData));
+    try {
+        fs.writeFileSync(
+            CACHE_PATH,
+            JSON.stringify(sessionManager.getYoutubeSessionDataCaches(true)),
+            "utf8",
+        );
+    } finally {
+        console.log(JSON.stringify(sessionData));
+    }
 })();
