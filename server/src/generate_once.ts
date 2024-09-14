@@ -3,6 +3,7 @@ import { Command } from "@commander-js/extra-typings";
 import * as fs from "fs";
 import * as path from "path";
 
+const CACHE_PATH = path.resolve(__dirname, "cache.json");
 const program = new Command()
     .option("-v, --visitor-data <visitordata>")
     .option("-d, --data-sync-id <data-sync-id>")
@@ -12,29 +13,31 @@ program.parse();
 const options = program.opts();
 
 (async () => {
-    const CACHE_PATH = path.resolve(__dirname, "cache.json");
     const dataSyncId = options.dataSyncId;
     const visitorData = options.visitorData;
     const verbose = options.verbose || false;
     let visitorIdentifier: string;
-    let cache: YoutubeSessionDataCaches;
-    try {
-        const parsedCaches: YoutubeSessionDataCaches = JSON.parse(
-            fs.readFileSync(CACHE_PATH, "utf8"),
-        );
-        for (const visitIdentifier in parsedCaches) {
-            if (parsedCaches[visitIdentifier]) {
-                const parsedDate = parsedCaches[visitIdentifier]
-                    .generatedAt as unknown as string;
-                parsedCaches[visitIdentifier].generatedAt = new Date(
-                    parsedDate,
-                );
+    let cache: YoutubeSessionDataCaches = {};
+    if (fs.existsSync(CACHE_PATH)) {
+        try {
+            const parsedCaches = JSON.parse(
+                fs.readFileSync(CACHE_PATH, "utf8"),
+            );
+            for (const visitIdentifier in parsedCaches) {
+                const parsedCache = parsedCaches[visitIdentifier];
+                if (parsedCache) {
+                    cache[visitIdentifier] = {
+                        poToken: parsedCache.poToken,
+                        generatedAt: new Date(parsedCache.generatedAt),
+                        visitIdentifier,
+                    };
+                }
             }
+            cache = parsedCaches;
+        } catch (e) {
+            log(`Error parsing cache. e = ${e}`);
+            cache = {};
         }
-        cache = parsedCaches;
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_error) {
-        cache = {};
     }
 
     const sessionManager = new SessionManager(verbose, cache);
