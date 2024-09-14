@@ -6,7 +6,7 @@
 
 A proof-of-origin token (POT) provider to be used alongside [coletdjnz's POT plugin framework](https://github.com/coletdjnz/yt-dlp-get-pot). We use [LuanRT's Botguard interfacing library](https://github.com/LuanRT/BgUtils) to generate the token.
 
-This is used to bypass the 'Sign in to confirm you're not a bot' message when invoking yt-dlp from an IP address flagged by YouTube. See https://github.com/yt-dlp/yt-dlp-wiki/pull/40/files for more details.
+This is used to bypass the 'Sign in to confirm you're not a bot' message when invoking yt-dlp from an IP address flagged by YouTube. See _[What is a PO Token?](https://github.com/yt-dlp/yt-dlp/wiki/Extractors#po-token-guide)_ for more details.
 
 The provider comes in two parts:
 
@@ -17,14 +17,11 @@ The provider comes in two parts:
 
 ## Installation
 
-> [!CAUTION]
-> This plugin is not ready for general use and is awaiting changes to be merged in yt-dlp for it to be functional.
-> Follow https://github.com/yt-dlp/yt-dlp/pull/10648 for updates.
-
 ### Base Requirements
 
-If using Docker image for option (a) for the provider, the Docker runtime is required.
+1. **Requires yt-dlp `NIGHTLY 2024.09.13.232912` or above.**
 
+2. If using Docker image for option (a) for the provider, the Docker runtime is required.  
 Otherwise, Node.js and Yarn are required. You will also need to clone the repository.
 
 ### 1. Set up the provider
