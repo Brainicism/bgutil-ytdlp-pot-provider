@@ -2,6 +2,15 @@
     "name": "bgutils-ytdlp-pot-provider",
     "description": "Proof-of-origin token provider and plugin for yt-dlp, using bgutils",
     "license": "GPL-3.0-only",
+    "contributors": [
+        {
+            "name": "Brainicism",
+            "email": "brainicism@gmail.com"
+        },
+        {
+            "name": "grqz"
+        }
+    ],
     "version": "0.5.0",
     "scripts": {
         "lint": "npx eslint --max-warnings=0 src/",
