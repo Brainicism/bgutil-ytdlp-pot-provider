@@ -23,11 +23,9 @@ const options = program.opts();
             fs.readFileSync(CACHE_PATH, "utf8"),
         );
         for (const visitIdentifier in parsedCaches) {
-            if (
-                parsedCaches[visitIdentifier] &&
-                typeof parsedCaches[visitIdentifier].generatedAt === "string"
-            ) {
-                const parsedDate = parsedCaches[visitIdentifier].generatedAt;
+            if (parsedCaches[visitIdentifier]) {
+                const parsedDate = parsedCaches[visitIdentifier]
+                    .generatedAt as string;
                 parsedCaches[visitIdentifier].generatedAt = new Date(
                     parsedDate,
                 );
@@ -53,11 +51,7 @@ const options = program.opts();
     } else {
         log(`Received request for visitor data, grabbing from Innertube`);
         const generatedVisitorData = await sessionManager.generateVisitorData();
-        if (!generatedVisitorData) {
-            // Should we remove this console.error? There's one already in sessionManager.generateVisitorData().
-            console.error("Error generating visitor data");
-            process.exit(1);
-        }
+        if (!generatedVisitorData) process.exit(1);
         log(`Generated visitor data: ${generatedVisitorData}`);
         visitorIdentifier = generatedVisitorData;
     }
