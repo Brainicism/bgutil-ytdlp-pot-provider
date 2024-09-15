@@ -36,7 +36,6 @@ const options = program.opts();
             cache = parsedCaches;
         } catch (e) {
             log(`Error parsing cache. e = ${e}`);
-            cache = {};
         }
     }
 
