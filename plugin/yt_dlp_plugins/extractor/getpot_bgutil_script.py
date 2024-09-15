@@ -70,10 +70,10 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
             raise RequestError(
                 f'_get_pot_via_script failed: Unable to run script (caused by {e!s})') from e
 
-        self._logger.debug(f'stdout = {stdout}')
+        self._logger.debug(f'stdout:\n{stdout}\nstderr:\n{stderr}')
         if returncode:
             raise RequestError(
-                f'_get_pot_via_script failed with returncode {returncode}:\n{stderr.strip()}')
+                f'_get_pot_via_script failed with returncode {returncode}')
 
         # The JSON response is always the last line
         script_data_resp = stdout.splitlines()[-1]

@@ -16,9 +16,6 @@ const options = program.opts();
     const dataSyncId = options.dataSyncId;
     const visitorData = options.visitorData;
     const verbose = options.verbose || false;
-    function log(msg: string) {
-        if (verbose) console.log(msg);
-    }
     let visitIdentifier: string;
     const cache: YoutubeSessionDataCaches = {};
     if (fs.existsSync(CACHE_PATH)) {
@@ -37,11 +34,14 @@ const options = program.opts();
                 }
             }
         } catch (e) {
-            log(`Error parsing cache. e = ${e}`);
+            console.warn(`Error parsing cache. e = ${e}`);
         }
     }
 
     const sessionManager = new SessionManager(verbose, cache);
+    function log(msg: string) {
+        if (verbose) console.log(msg);
+    }
 
     if (dataSyncId) {
         log(`Received request for data sync ID: '${dataSyncId}'`);
@@ -65,7 +65,7 @@ const options = program.opts();
             "utf8",
         );
     } catch (e) {
-        log(`Error writing cache. e = ${e}`);
+        console.warn(`Error writing cache. e = ${e}`);
     } finally {
         console.log(JSON.stringify(sessionData));
     }
