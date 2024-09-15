@@ -47,12 +47,14 @@ jobs:
       - name: Test script method
         shell: bash
         run: |
-          script_response=$(./yt-dlp -vF --print-traffic BaW_jenozKc --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" 2>&1) || echo "::error title=Failed to run yt-dlp when testing script::yt-dlp returned $? exit status"
+          script_response=$(./yt-dlp -vF --print-traffic BaW_jenozKc --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" 2>&1) || \
+            echo "::error title=Failed to run yt-dlp when testing script::"\
+            "yt-dlp returned $? exit status"
           echo "::group::Logs from yt-dlp"
           printf "%s\n" "$script_response"
           echo "::endgroup::"
           if [[ "$script_response" != *"BgUtilScriptPot: Generating POT via script: "* ]]; then
-            echo "::error title=BgUtilScriptPot was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::" \
+            echo "::error title=BgUtilScriptPot was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::"\
               "BgUtilScriptPot was not invoked"
             exit 1
           fi
