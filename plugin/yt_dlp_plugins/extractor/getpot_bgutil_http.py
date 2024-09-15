@@ -47,7 +47,6 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
                 f'Please ensure they are on the same version. '
                 f'(plugin: {self.VERSION}, server: {response.get("version", "unknown")})',
                 once=True)
-        raise UnsupportedRequest
         self.base_url = base_url
 
     def _get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs) -> str:
