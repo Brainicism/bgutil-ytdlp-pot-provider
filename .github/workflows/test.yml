@@ -14,12 +14,9 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
-        if: always()
       - name: Install Ruff and autopep8
-        if: always()
         run: pip install ruff autopep8
       - name: Python lint check (Ruff)
-        if: always()
         run: ruff check --output-format=github -v plugin/
       - name: Python lint check (autopep8)
         if: always()
@@ -54,7 +51,7 @@ jobs:
           echo "::group::Logs from yt-dlp"
           printf "%s\n" "$script_response"
           echo "::endgroup::"
-          if [[ "$script_response" != *"BgUtilScriptPot: Generating POT via script"* ]]; then
+          if [[ "$script_response" != *"BgUtilScriptPot: Generating POT via script: "* ]]; then
             echo "::error title=BgUtilScriptPot was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::BgUtilScriptPot was not invoked"
             exit 1
           fi
