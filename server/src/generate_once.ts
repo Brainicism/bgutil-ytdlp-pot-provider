@@ -17,7 +17,7 @@ const options = program.opts();
     const visitorData = options.visitorData;
     const verbose = options.verbose || false;
     let visitIdentifier: string;
-    let cache: YoutubeSessionDataCaches = {};
+    const cache: YoutubeSessionDataCaches = {};
     if (fs.existsSync(CACHE_PATH)) {
         try {
             const parsedCaches = JSON.parse(
