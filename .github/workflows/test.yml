@@ -32,7 +32,7 @@ jobs:
         run: cd server && npx prettier --check 'src/**/*.{js,ts}'
 
   script-method:
-    name: Test plugin
+    name: Test plugin (script method)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -59,6 +59,18 @@ jobs:
           BgUtilScriptPot was not invoked"
             exit 1
           fi
+
+  server-method:
+    name: Test plugin (server method)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download yt-dlp
+        run: curl -L https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp -o yt-dlp && chmod +x ./yt-dlp
+      - name: Install plugin
+        run: |
+          mkdir ~/yt-dlp-plugins && curl -L "https://github.com/coletdjnz/yt-dlp-get-pot/releases/download/v0.1.1/yt-dlp-get-pot.zip" -o ~/yt-dlp-plugins/yt-dlp-get-pot.zip
+          cp -aT plugin/ ~/yt-dlp-plugins/bgutil-ytdlp-pot-provider/
       - name: Build Docker image
         uses: docker/build-push-action@v6
         with:
