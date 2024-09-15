@@ -3,7 +3,7 @@ import { Command } from "@commander-js/extra-typings";
 import * as fs from "fs";
 import * as path from "path";
 
-const CACHE_PATH = path.resolve(__dirname, "cache.json");
+const CACHE_PATH = path.resolve(__dirname, "..", "cache.json");
 const program = new Command()
     .option("-v, --visitor-data <visitordata>")
     .option("-d, --data-sync-id <data-sync-id>")
@@ -35,7 +35,6 @@ const options = program.opts();
             }
         } catch (e) {
             log(`Error parsing cache. e = ${e}`);
-            cache = {};
         }
     }
 
