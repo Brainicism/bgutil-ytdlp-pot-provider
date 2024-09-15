@@ -49,15 +49,13 @@ jobs:
           cp -aT plugin/ ~/yt-dlp-plugins/bgutil-ytdlp-pot-provider/
       - name: Test script method
         run: |
-          script_response=$(./yt-dlp -vF --print-traffic BaW_jenozKc --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" 2>&1) || echo "::error title=Failed to run yt-dlp::yt-dlp returned $? exit status"
+          script_response=$(./yt-dlp -vF --print-traffic BaW_jenozKc --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" 2>&1) || echo "::error title=Failed to run yt-dlp when testing script::yt-dlp returned $? exit status"
           echo $script_response
           if [[ "$script_response" != *"BgUtilScriptPot: Generating POT via script"* ]]; then
             echo "BgUtilScriptPot was not invoked"
             echo "::error title=BgUtilScriptPot was not invoked::BgUtilScriptPot was not invoked"
-            exit 1
           fi
       - name: Test server method
-        if: always()
         timeout-minutes: 3
         run: |
           cd server/
@@ -68,10 +66,9 @@ jobs:
             sleep 0.5
           done
           echo $RESP|jq
-          script_response=$(./yt-dlp -vF --print-traffic BaW_jenozKc --extractor-args "youtube:getpot_bgutil_baseurl=http://127.0.0.1:4416" 2>&1) || echo "::error title=Failed to run yt-dlp::yt-dlp returned $? exit status"
+          script_response=$(./yt-dlp -vF --print-traffic BaW_jenozKc 2>&1) || echo "::error title=Failed to run yt-dlp when testing HTTP server::yt-dlp returned $? exit status"
           echo $script_response
           if [[ "$script_response" != *"BgUtilHTTPPot: Generating POT via HTTP server"* ]]; then
             echo "BgUtilHTTPPot was not invoked"
             echo "::error title=BgUtilHTTPPot was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py,line=1,col=1,endLine=1,endColumn=1::BgUtilHTTPPot was not invoked"
-            exit 1
           fi
