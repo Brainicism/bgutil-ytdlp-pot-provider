@@ -46,7 +46,6 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
                 'Incorrect script passed to extractor args. Path to generate_once.js required')
         if shutil.which('node') is None:
             raise UnsupportedRequest('node is not in PATH')
-        raise UnsupportedRequest
         self.script_path = script_path
 
     def _get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs) -> str:
