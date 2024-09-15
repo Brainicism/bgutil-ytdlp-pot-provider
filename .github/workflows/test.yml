@@ -89,7 +89,6 @@ jobs:
           echo "$PING_RESP" | jq
           echo "::endgroup::"
 
-          cd ..
           script_response=$(./yt-dlp -vF --print-traffic --no-simulate -f "b*" -S "filesize:10M" --exec "rm -f" dQw4w9WgXcQ 2>&1) || \
             echo "::error title=Failed to run yt-dlp when testing HTTP server::\
           yt-dlp returned $? exit status"
