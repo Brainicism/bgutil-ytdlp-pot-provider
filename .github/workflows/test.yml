@@ -72,7 +72,7 @@ jobs:
 
           PING_RESP_PATH=$(mktemp)
           ping() {
-            until $(curl -o "$PING_RESP_PATH" --silent --fail http://127.0.0.1:4416/ping 2>&1); do
+            until $(curl -o- --silent --fail http://127.0.0.1:4416/ping 2>&1 | tee "$PING_RESP_PATH"); do
               sleep ${1:-0.5}
             done
           }
