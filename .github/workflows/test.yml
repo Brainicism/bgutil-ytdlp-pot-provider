@@ -77,8 +77,8 @@ jobs:
           }
           export -f ping
           timeout 7.5 bash -c "ping 0.5" || \
-            echo "::error title=Timeout reached,file=server/src/main.ts::\
-          Timeout reached before the server is up."
+            (echo "::error title=Timeout reached,file=server/src/main.ts::\
+          Timeout reached before the server is up." && exit 1)
 
           echo "::group::Response from HTTP server"
           echo $RESP | jq
