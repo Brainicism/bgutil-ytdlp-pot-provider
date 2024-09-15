@@ -83,7 +83,6 @@ jobs:
         shell: bash
         run: |
           docker run --name bgutil-provider -d -p 4416:4416 brainicism/bgutil-ytdlp-pot-provider:ci
-          NODE_PID=$!
           echo "Waiting for server to be up..."
 
           ping() {
@@ -104,9 +103,7 @@ jobs:
             echo "::error title=Failed to run yt-dlp when testing HTTP server::\
           yt-dlp returned $? exit status"
 
-          if ps -p $NODE_PID > /dev/null; then
-            kill $NODE_PID
-          fi
+          docker stop bgutil-provider
 
           echo "::group::Logs from HTTP server"
           docker logs bgutil-provider
