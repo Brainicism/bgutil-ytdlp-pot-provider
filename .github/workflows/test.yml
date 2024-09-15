@@ -58,6 +58,7 @@ jobs:
           fi
       - name: Test server method
         timeout-minutes: 3
+        if: always()
         run: |
           cd server/
           node build/main.js&
