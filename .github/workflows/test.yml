@@ -76,7 +76,7 @@ jobs:
         with:
           context: server/
           file: server/Dockerfile
-          push: false
+          load: true
           tags: brainicism/bgutil-ytdlp-pot-provider:ci
       - name: Test server method
         timeout-minutes: 3
