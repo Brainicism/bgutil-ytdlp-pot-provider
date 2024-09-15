@@ -34,6 +34,10 @@ jobs:
           cd server/
           node build/main.js&
           cd ..
+          until curl --silent --fail http://127.0.0.1:4416/ping; do
+            echo "Waiting for server to be up..."
+            sleep 5
+          done
           script_response=$(./yt-dlp -vF --print-traffic BaW_jenozKc --extractor-args "youtube:getpot_bgutil_baseurl=http://127.0.0.1:4416 2>&1")
           echo $script_response
           if [[ "$script_response" != *"BgUtilHTTPPot: Generating POT via HTTP server"* ]]; then
