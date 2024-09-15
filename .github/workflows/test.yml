@@ -42,10 +42,7 @@ jobs:
       - name: Download yt-dlp
         run: curl -L https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp -o yt-dlp && chmod +x ./yt-dlp
       - name: Install and build server dependencies
-        run: |
-          cd server/ && yarn install --frozen-lockfile && npx tsc
-          mkdir -p $HOME/bgutil-ytdlp-pot-provider/server/
-          cp -aT ./ $HOME/bgutil-ytdlp-pot-provider/server/
+        run: cd server/ && yarn install --frozen-lockfile && npx tsc
       - name: Install plugin
         run: |
           mkdir ~/yt-dlp-plugins && curl -L "https://github.com/coletdjnz/yt-dlp-get-pot/releases/download/v0.1.1/yt-dlp-get-pot.zip" -o ~/yt-dlp-plugins/yt-dlp-get-pot.zip
@@ -53,7 +50,7 @@ jobs:
       - name: Test script method
         shell: bash
         run: |
-          script_response=$(./yt-dlp -vF --print-traffic BaW_jenozKc 2>&1) || echo "::error title=Failed to run yt-dlp when testing script::yt-dlp returned $? exit status"
+          script_response=$(./yt-dlp -vF --print-traffic BaW_jenozKc --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" 2>&1) || echo "::error title=Failed to run yt-dlp when testing script::yt-dlp returned $? exit status"
           echo "::group::Logs from yt-dlp"
           printf "%s\n" "$script_response"
           echo "::endgroup::"
