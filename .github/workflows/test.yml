@@ -59,14 +59,19 @@ jobs:
           BgUtilScriptPot was not invoked"
             exit 1
           fi
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: server/
+          file: server/Dockerfile
+          push: false
+          tags: brainicism/bgutil-ytdlp-pot-provider:ci
       - name: Test server method
         timeout-minutes: 3
         if: always()
         shell: bash
         run: |
-          cd server/
-          SERVER_LOG_PATH=$(mktemp)
-          node build/main.js >$SERVER_LOG_PATH 2>&1 &
+          docker run --name bgutil-provider -d -p 4416:4416 brainicism/bgutil-ytdlp-pot-provider:ci
           NODE_PID=$!
           echo "Waiting for server to be up..."
 
@@ -94,9 +99,8 @@ jobs:
           fi
 
           echo "::group::Logs from HTTP server"
-          cat "$SERVER_LOG_PATH"
+          docker logs bgutil-provider
           echo "::endgroup::"
-          rm -f $SERVER_LOG_PATH
 
           echo "::group::Logs from yt-dlp"
           printf "%s\n" "$script_response"
