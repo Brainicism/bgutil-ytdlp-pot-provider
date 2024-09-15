@@ -59,7 +59,7 @@ jobs:
           BgUtilScriptPot was not invoked"
             exit 1
           fi
-      - name: Build and push
+      - name: Build Docker image
         uses: docker/build-push-action@v6
         with:
           context: server/
