@@ -70,21 +70,19 @@ jobs:
           NODE_PID=$!
           echo "Waiting for server to be up..."
 
-          PING_RESP_PATH=$(mktemp)
           ping() {
-            until $(curl -o- --silent --fail http://127.0.0.1:4416/ping 2>&1 | tee "$PING_RESP_PATH"); do
+            until curl -o- --silent --fail http://127.0.0.1:4416/ping 2>&1; do
               sleep ${1:-0.5}
             done
           }
           export -f ping
-          timeout 7.5 bash -c "PING_RESP_PATH=$PING_RESP_PATH ping 0.5" || \
+          PING_RESP=$(timeout 7.5 bash -c "ping 0.5") || \
             (echo "::error title=Timeout reached,file=server/src/main.ts::\
           Timeout reached before the server is up." && exit 1)
 
           echo "::group::Response from HTTP server"
-          cat $PING_RESP_PATH
+          cat $PING_RESP | jq
           echo "::endgroup::"
-          rm -f $PING_RESP_PATH
 
           cd ..
           script_response=$(./yt-dlp -vF --print-traffic --no-simulate BaW_jenozKc 2>&1) || \
