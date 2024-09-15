@@ -55,8 +55,8 @@ jobs:
           printf "%s\n" "$script_response"
           echo "::endgroup::"
           if [[ "$script_response" != *"BgUtilScriptPot: Generating POT via script: "* ]]; then
-            echo "::error title=BgUtilScriptPot was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::" \
-            "BgUtilScriptPot was not invoked"
+            echo "::error title=BgUtilScriptPot was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::\
+          BgUtilScriptPot was not invoked"
             exit 1
           fi
       - name: Test server method
@@ -77,8 +77,8 @@ jobs:
           }
           export -f ping
           timeout 7.5 bash -c "ping 0.5" || \
-            echo "::error title=Timeout reached,file=server/src/main.ts::" \
-              "Timeout reached before the server is up."
+            echo "::error title=Timeout reached,file=server/src/main.ts::\
+          Timeout reached before the server is up."
 
           echo "::group::Response from HTTP server"
           echo $RESP | jq
@@ -86,8 +86,8 @@ jobs:
 
           cd ..
           script_response=$(./yt-dlp -vF --print-traffic BaW_jenozKc 2>&1) || \
-            echo "::error title=Failed to run yt-dlp when testing HTTP server::" \
-              "yt-dlp returned $? exit status"
+            echo "::error title=Failed to run yt-dlp when testing HTTP server::\
+          yt-dlp returned $? exit status"
 
           kill $NODE_PID
 
@@ -101,7 +101,7 @@ jobs:
           echo "::endgroup::"
 
           if [[ "$script_response" != *"BgUtilHTTPPot: Generating POT via HTTP server"* ]]; then
-            echo "::error title=BgUtilHTTPPot was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py::" \
-              "BgUtilHTTPPot was not invoked"
+            echo "::error title=BgUtilHTTPPot was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py::\
+          BgUtilHTTPPot was not invoked"
             exit 1
           fi
