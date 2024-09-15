@@ -70,20 +70,26 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
             raise RequestError(
                 f'_get_pot_via_script failed: Unable to run script (caused by {e!s})') from e
 
-        self._logger.debug(f'stdout:\n{stdout}\nstderr:\n{stderr}')
+        msg = f'stdout:\n{stdout.strip()}'
+        if stderr.strip():  # Empty strings are falsy
+            msg += f'\nstderr:\n{stderr.strip()}'
+        self._logger.debug(msg)
         if returncode:
-            raise RequestError(
-                f'_get_pot_via_script failed with returncode {returncode}')
+            raise RequestError(f'_get_pot_via_script failed with returncode {returncode}')
 
-        # The JSON response is always the last line
-        script_data_resp = stdout.splitlines()[-1]
-        self._logger.debug(
-            f'_get_pot_via_script response = {script_data_resp}')
         try:
-            return json.loads(script_data_resp)['poToken']
-        except (json.JSONDecodeError, TypeError, KeyError) as e:
+            # The JSON response is always the last line
+            script_data_resp = json.loads(stdout.splitlines()[-1])
+        except json.JSONDecodeError as e:
             raise RequestError(
                 f'Error parsing JSON response from _get_pot_via_script (caused by {e!s})') from e
+        else:
+            self._logger.debug(
+                f'_get_pot_via_script response = {script_data_resp}')
+        if potoken := script_data_resp.get('poToken'):
+            return potoken
+        else:
+            raise RequestError('The script did not respond with a po_token')
 
 
 @register_preference(BgUtilScriptPotProviderRH)
