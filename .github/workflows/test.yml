@@ -89,7 +89,7 @@ jobs:
             echo "::error title=Failed to run yt-dlp when testing HTTP server::\
           yt-dlp returned $? exit status"
 
-          if ps -p $PID > /dev/null; then
+          if ps -p $NODE_PID > /dev/null; then
             kill $NODE_PID
           fi
 
