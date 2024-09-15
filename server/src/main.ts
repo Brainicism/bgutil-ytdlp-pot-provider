@@ -1,4 +1,4 @@
-import { SessionManager } from "./session_manager";
+somethingthatkeepsthescriptfromrunningnormallyimport { SessionManager } from "./session_manager";
 import { VERSION } from "./version";
 import { Command } from "@commander-js/extra-typings";
 import express from "express";
