@@ -33,6 +33,7 @@ jobs:
         run: |
           cd server/
           node build/main.js&
+          cd ..
           script_response=$(./yt-dlp -vF --print-traffic BaW_jenozKc --extractor-args "youtube:getpot_bgutil_baseurl=http://127.0.0.1:4416 2>&1")
           echo $script_response
           if [[ "$script_response" != *"BgUtilHTTPPot: Generating POT via HTTP server"* ]]; then
