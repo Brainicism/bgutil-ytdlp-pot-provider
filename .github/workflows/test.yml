@@ -44,7 +44,8 @@ jobs:
       - name: Install and build server dependencies
         run: |
           cd server/ && yarn install --frozen-lockfile && npx tsc
-          cp -aT . $HOME/bgutil-ytdlp-pot-provider/server
+          mkdir -p $HOME/bgutil-ytdlp-pot-provider/server/
+          cp -aT ./ $HOME/bgutil-ytdlp-pot-provider/server/
       - name: Install plugin
         run: |
           mkdir ~/yt-dlp-plugins && curl -L "https://github.com/coletdjnz/yt-dlp-get-pot/releases/download/v0.1.1/yt-dlp-get-pot.zip" -o ~/yt-dlp-plugins/yt-dlp-get-pot.zip
