@@ -52,21 +52,23 @@ jobs:
           script_response=$(./yt-dlp -vF --print-traffic BaW_jenozKc --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" 2>&1)
           echo $script_response
           if [[ "$script_response" != *"BgUtilScriptPot: Generating POT via script"* ]]; then
-            echo "BgUtilScriptPot was not invoked"
+            echo "::error file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::BgUtilScriptPot was not invoked"
             exit 1
           fi
       - name: Test server method
+        if: always()
+        timeout-minutes: 3
         run: |
           cd server/
           node build/main.js&
           cd ..
+          echo "Waiting for server to be up..."
           until curl --silent --fail http://127.0.0.1:4416/ping; do
-            echo "Waiting for server to be up..."
-            sleep 5
+            sleep 0.5
           done
           script_response=$(./yt-dlp -vF --print-traffic BaW_jenozKc --extractor-args "youtube:getpot_bgutil_baseurl=http://127.0.0.1:4416" 2>&1)
           echo $script_response
           if [[ "$script_response" != *"BgUtilHTTPPot: Generating POT via HTTP server"* ]]; then
-            echo "BgUtilHTTPPot was not invoked"
+            echo "::error file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py::BgUtilHTTPPot was not invoked"
             exit 1
           fi
