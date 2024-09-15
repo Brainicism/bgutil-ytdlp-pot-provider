@@ -76,7 +76,7 @@ jobs:
             done
           }
           export -f ping
-          PING_RESP=$(timeout 7.5 bash -c "ping 0.5") || \
+          PING_RESP=$(timeout 7.5 bash -c ping) || \
             (echo "::error title=Timeout reached,file=server/src/main.ts::\
           Timeout reached before the server is up." && exit 1)
 
