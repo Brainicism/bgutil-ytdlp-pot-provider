@@ -8,6 +8,32 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lint-format:
+    name: Lint and format check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        if: always()
+      - name: Install Ruff and autopep8
+        if: always()
+        run: pip install ruff autopep8
+      - name: Python lint check (Ruff)
+        if: always()
+        run: ruff check --output-format=github -v plugin/
+      - name: Python lint check (autopep8)
+        if: always()
+        run: autopep8 --diff plugin/
+      - name: Install server dependencies
+        if: always()
+        run: cd server && yarn install
+      - name: Server lint check (ESlint)
+        if: always()
+        run: cd server && npx eslint --max-warnings=0 src/
+      - name: Server format check (Prettier)
+        if: always()
+        run: cd server && npx prettier --check 'src/**/*.{js,ts}'
+
   script-method:
     name: Test plugin
     runs-on: ubuntu-latest
