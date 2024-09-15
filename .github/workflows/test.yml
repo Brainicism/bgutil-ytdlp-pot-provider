@@ -51,7 +51,7 @@ jobs:
         run: |
           script_response=$(./yt-dlp -vF --print-traffic BaW_jenozKc --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" 2>&1)
           echo $script_response
-          if [[ "$script_response" != *"BgUtilScriptPot: _get_pot_via_script response"* ]]; then
+          if [[ "$script_response" != *"BgUtilScriptPot: Generating POT via script"* ]]; then
             echo "BgUtilScriptPot was not invoked"
             exit 1
           fi
