@@ -64,22 +64,33 @@ jobs:
         shell: bash
         run: |
           cd server/
-          node build/main.js&
+          SERVER_LOG_PATH=$(mktemp)
+          node build/main.js >$SERVER_LOG_PATH 2>&1 &
           NODE_PID=$!
           echo "Waiting for server to be up..."
           until RESP=$(curl -o- --silent --fail http://127.0.0.1:4416/ping 2>&1); do
             sleep 0.5
-            # TODO: add timeout (is timeout-minutes enough or should we handle timeout ourselves?)
+            # TODO: add timeout (is the step's timeout-minutes enough or should we handle timeout ourselves?)
           done
-          echo "::group::Response from HTTP Server"
+
+          echo "::group::Response from HTTP server"
           echo $RESP | jq
           echo "::endgroup::"
+
           cd ..
           script_response=$(./yt-dlp -vF --print-traffic BaW_jenozKc 2>&1) || echo "::error title=Failed to run yt-dlp when testing HTTP server::yt-dlp returned $? exit status"
+
           kill $NODE_PID
+
+          echo "::group::Logs from HTTP server"
+          cat "$SERVER_LOG_PATH"
+          echo "::endgroup::"
+          rm -f $SERVER_LOG_PATH
+
           echo "::group::Logs from yt-dlp"
           printf "%s\n" "$script_response"
           echo "::endgroup::"
+
           if [[ "$script_response" != *"BgUtilHTTPPot: Generating POT via HTTP server"* ]]; then
             echo "::error title=BgUtilHTTPPot was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py::BgUtilHTTPPot was not invoked"
             exit 1
