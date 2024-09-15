@@ -80,7 +80,6 @@ jobs:
           tags: brainicism/bgutil-ytdlp-pot-provider:ci
       - name: Test server method
         timeout-minutes: 3
-        if: always()
         shell: bash
         run: |
           docker run --name bgutil-provider -d -p 4416:4416 brainicism/bgutil-ytdlp-pot-provider:ci
