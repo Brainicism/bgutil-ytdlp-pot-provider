@@ -70,5 +70,4 @@ httpServer.get("/ping", async (request, response) => {
         server_uptime: process.uptime(),
         version: VERSION,
     });
-    process.kill(process.pid);
 });
