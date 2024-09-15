@@ -16,7 +16,7 @@ const options = program.opts();
     const dataSyncId = options.dataSyncId;
     const visitorData = options.visitorData;
     const verbose = options.verbose || false;
-    let visitorIdentifier: string;
+    let visitIdentifier: string;
     let cache: YoutubeSessionDataCaches = {};
     if (fs.existsSync(CACHE_PATH)) {
         try {
@@ -33,7 +33,6 @@ const options = program.opts();
                     };
                 }
             }
-            cache = parsedCaches;
         } catch (e) {
             log(`Error parsing cache. e = ${e}`);
             cache = {};
@@ -47,19 +46,19 @@ const options = program.opts();
 
     if (dataSyncId) {
         log(`Received request for data sync ID: '${dataSyncId}'`);
-        visitorIdentifier = dataSyncId;
+        visitIdentifier = dataSyncId;
     } else if (visitorData) {
         log(`Received request for visitor data: '${visitorData}'`);
-        visitorIdentifier = visitorData;
+        visitIdentifier = visitorData;
     } else {
         log(`Received request for visitor data, grabbing from Innertube`);
         const generatedVisitorData = await sessionManager.generateVisitorData();
         if (!generatedVisitorData) process.exit(1);
         log(`Generated visitor data: ${generatedVisitorData}`);
-        visitorIdentifier = generatedVisitorData;
+        visitIdentifier = generatedVisitorData;
     }
 
-    const sessionData = await sessionManager.generatePoToken(visitorIdentifier);
+    const sessionData = await sessionManager.generatePoToken(visitIdentifier);
     try {
         fs.writeFileSync(
             CACHE_PATH,
