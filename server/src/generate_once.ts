@@ -16,6 +16,9 @@ const options = program.opts();
     const dataSyncId = options.dataSyncId;
     const visitorData = options.visitorData;
     const verbose = options.verbose || false;
+    function log(msg: string) {
+        if (verbose) console.log(msg);
+    }
     let visitIdentifier: string;
     const cache: YoutubeSessionDataCaches = {};
     if (fs.existsSync(CACHE_PATH)) {
@@ -39,9 +42,6 @@ const options = program.opts();
     }
 
     const sessionManager = new SessionManager(verbose, cache);
-    function log(msg: string) {
-        sessionManager.log(msg);
-    }
 
     if (dataSyncId) {
         log(`Received request for data sync ID: '${dataSyncId}'`);
@@ -64,6 +64,8 @@ const options = program.opts();
             JSON.stringify(sessionManager.getYoutubeSessionDataCaches(true)),
             "utf8",
         );
+    } catch (e) {
+        log(`Error writing cache. e = ${e}`);
     } finally {
         console.log(JSON.stringify(sessionData));
     }
