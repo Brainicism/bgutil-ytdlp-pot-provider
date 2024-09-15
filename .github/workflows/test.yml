@@ -81,7 +81,7 @@ jobs:
           Timeout reached before the server is up." && exit 1)
 
           echo "::group::Response from HTTP server"
-          echo "$PING_RESP"
+          echo "$PING_RESP" | jq
           echo "::endgroup::"
 
           cd ..
