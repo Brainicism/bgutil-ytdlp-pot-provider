@@ -25,3 +25,4 @@ plugin/**.pyo
 # yt-dlp source code
 
 **/tmp/
+**/cache.json

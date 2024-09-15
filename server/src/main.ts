@@ -26,15 +26,15 @@ httpServer.post("/get_pot", async (request, response) => {
     const visitorData = request.body.visitor_data as string;
     const dataSyncId = request.body.data_sync_id as string;
 
-    let visitorIdentifier: string;
+    let visitIdentifier: string;
 
     // prioritize data sync id for authenticated requests, if passed
     if (dataSyncId) {
         console.log(`Received request for data sync ID: '${dataSyncId}'`);
-        visitorIdentifier = dataSyncId;
+        visitIdentifier = dataSyncId;
     } else if (visitorData) {
         console.log(`Received request for visitor data: '${visitorData}'`);
-        visitorIdentifier = visitorData;
+        visitIdentifier = visitorData;
     } else {
         console.log(
             `Received request for visitor data, grabbing from Innertube`,
@@ -48,10 +48,10 @@ httpServer.post("/get_pot", async (request, response) => {
         }
 
         console.log(`Generated visitor data: ${generatedVisitorData}`);
-        visitorIdentifier = generatedVisitorData;
+        visitIdentifier = generatedVisitorData;
     }
 
-    const sessionData = await sessionManager.generatePoToken(visitorIdentifier);
+    const sessionData = await sessionManager.generatePoToken(visitIdentifier);
     response.send({
         po_token: sessionData.poToken,
         visit_identifier: sessionData.visitIdentifier,
