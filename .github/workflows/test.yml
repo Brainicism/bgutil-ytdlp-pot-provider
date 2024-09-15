@@ -71,10 +71,9 @@ jobs:
           echo "Waiting for server to be up..."
 
           ping() {
-            until FINAL_RESP=$(curl -o- --silent --fail http://127.0.0.1:4416/ping 2>&1); do
+            until curl -o- --silent --fail http://127.0.0.1:4416/ping 2>&1; do
               sleep ${1:-0.5}
             done
-            [ -n "$FINAL_RESP" ] && echo $FINAL_RESP || echo "failed to get ping response"
           }
           export -f ping
           PING_RESP=$(timeout 7.5 bash -c ping) || \
@@ -82,7 +81,7 @@ jobs:
           Timeout reached before the server is up." && exit 1)
 
           echo "::group::Response from HTTP server"
-          echo "$script_response"
+          echo "$PING_RESP"
           echo "::endgroup::"
 
           cd ..
