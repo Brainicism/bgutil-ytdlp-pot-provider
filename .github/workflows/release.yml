@@ -142,8 +142,6 @@ jobs:
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             # mark as latest only if built on default branch of repository
-            type=raw,value=ci,enable={{is_default_branch}}
-            # mark as ci only if built on default branch of repository
             type=raw,value=${{ needs.release.outputs.version }},enable={{is_default_branch}}
             # add the new git tag only if built on default branch of repository
             type=sha
