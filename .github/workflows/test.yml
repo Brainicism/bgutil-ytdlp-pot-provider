@@ -53,7 +53,6 @@ jobs:
           echo $script_response
           if [[ "$script_response" != *"BgUtilScriptPot: Generating POT via script"* ]]; then
             echo "BgUtilScriptPot was not invoked"
-            # echo "::error title=BgUtilScriptPot was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py,line=1,col=1,endLine=1,endColumn=1::BgUtilScriptPot was not invoked"
             echo "::error title=BgUtilScriptPot was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::BgUtilScriptPot was not invoked"
             exit 1
           fi
@@ -73,6 +72,6 @@ jobs:
           echo $script_response
           if [[ "$script_response" != *"BgUtilHTTPPot: Generating POT via HTTP server"* ]]; then
             echo "BgUtilHTTPPot was not invoked"
-            echo "::error title=BgUtilHTTPPot was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py,line=1,col=1,endLine=1,endColumn=1::BgUtilHTTPPot was not invoked"
+            echo "::error title=BgUtilHTTPPot was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py::BgUtilHTTPPot was not invoked"
             exit 1
           fi
