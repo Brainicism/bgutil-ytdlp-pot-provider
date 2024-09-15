@@ -49,12 +49,12 @@ jobs:
           cp -aT plugin/ ~/yt-dlp-plugins/bgutil-ytdlp-pot-provider/
       - name: Test script method
         run: |
-          script_response=$(./yt-dlp -vF --print-traffic BaW_jenozKc --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" 2>&1)
+          script_response=$(./yt-dlp -vF --print-traffic BaW_jenozKc --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" 2>&1) || echo "::error title=PLACEHOLDER::Failed to run yt-dlp!"
           echo $script_response
           if [[ "$script_response" != *"BgUtilScriptPot: Generating POT via script"* ]]; then
-            # echo "::error title=BgUtilScriptPot was not invoked::BgUtilScriptPot was not invoked"
-            echo "::error file=LICENSE,line=1,endLine=3,title=title::msg“
-            # exit 1
+            echo "BgUtilScriptPot was not invoked"
+            echo "::error title=BgUtilScriptPot was not invoked::BgUtilScriptPot was not invoked"
+            exit 1
           fi
       - name: Test server method
         if: always()
@@ -67,11 +67,11 @@ jobs:
           until curl --silent --fail http://127.0.0.1:4416/ping; do
             sleep 0.5
           done
-          script_response=$(./yt-dlp -vF --print-traffic BaW_jenozKc --extractor-args "youtube:getpot_bgutil_baseurl=http://127.0.0.1:4416" 2>&1)
+          script_response=$(./yt-dlp -vF --print-traffic BaW_jenozKc --extractor-args "youtube:getpot_bgutil_baseurl=http://127.0.0.1:4416" 2>&1) || echo "::error title=PLACEHOLDER::Failed to run yt-dlp!"
           echo $script_response
           if [[ "$script_response" != *"BgUtilHTTPPot: Generating POT via HTTP server"* ]]; then
-            # echo "::error title=BgUtilHTTPPot was not invoked::BgUtilHTTPPot was not invoked"
-            # echo "::error file=.gitignore,line=1,endLine=3,title=title::msg“
+            echo "BgUtilHTTPPot was not invoked"
+            echo "::error title=BgUtilHTTPPot was not invoked::BgUtilHTTPPot was not invoked"
             echo "::error title=ERROR (...),file=/_file,line=1,col=1,endLine=1,endColumn=1::_file:1:1: msg"
-            # exit 1
+            exit 1
           fi
