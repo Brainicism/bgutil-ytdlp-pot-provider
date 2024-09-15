@@ -47,7 +47,7 @@ jobs:
       - name: Test script method
         shell: bash
         run: |
-          script_response=$(./yt-dlp -vF --print-traffic --no-simulate BaW_jenozKc --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" 2>&1) || \
+          script_response=$(./yt-dlp -vF --print-traffic --no-simulate -f "b*" -S "filesize:10M" --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" dQw4w9WgXcQ 2>&1) || \
             echo "::error title=Failed to run yt-dlp when testing script::\
           yt-dlp returned $? exit status"
 
@@ -85,7 +85,7 @@ jobs:
           echo "::endgroup::"
 
           cd ..
-          script_response=$(./yt-dlp -vF --print-traffic --no-simulate BaW_jenozKc 2>&1) || \
+          script_response=$(./yt-dlp -vF --print-traffic --no-simulate -f "b*" -S "filesize:10M" dQw4w9WgXcQ 2>&1) || \
             echo "::error title=Failed to run yt-dlp when testing HTTP server::\
           yt-dlp returned $? exit status"
 
