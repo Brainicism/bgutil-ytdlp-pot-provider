@@ -51,9 +51,12 @@ jobs:
           mkdir ~/yt-dlp-plugins && curl -L "https://github.com/coletdjnz/yt-dlp-get-pot/releases/download/v0.1.1/yt-dlp-get-pot.zip" -o ~/yt-dlp-plugins/yt-dlp-get-pot.zip
           cp -aT plugin/ ~/yt-dlp-plugins/bgutil-ytdlp-pot-provider/
       - name: Test script method
+        shell: bash
         run: |
           script_response=$(./yt-dlp -vF --print-traffic BaW_jenozKc 2>&1) || echo "::error title=Failed to run yt-dlp when testing script::yt-dlp returned $? exit status"
-          echo $script_response
+          echo "::group::Logs from yt-dlp"
+          printf "%s\n" "$script_response"
+          echo "::endgroup::"
           if [[ "$script_response" != *"BgUtilScriptPot: Generating POT via script"* ]]; then
             echo "::error title=BgUtilScriptPot was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::BgUtilScriptPot was not invoked"
             exit 1
@@ -61,17 +64,25 @@ jobs:
       - name: Test server method
         timeout-minutes: 3
         if: always()
+        shell: bash
         run: |
           cd server/
           node build/main.js&
-          cd ..
+          NODE_PID=$!
           echo "Waiting for server to be up..."
           until RESP=$(curl -o- --silent --fail http://127.0.0.1:4416/ping 2>&1); do
             sleep 0.5
+            # TODO: add timeout (is timeout-minutes enough or should we handle timeout ourselves?)
           done
+          echo "::group::Response from HTTP Server"
           echo $RESP | jq
+          echo "::endgroup::"
+          cd ..
           script_response=$(./yt-dlp -vF --print-traffic BaW_jenozKc 2>&1) || echo "::error title=Failed to run yt-dlp when testing HTTP server::yt-dlp returned $? exit status"
-          echo $script_response
+          kill $NODE_PID
+          echo "::group::Logs from yt-dlp"
+          printf "%s\n" "$script_response"
+          echo "::endgroup::"
           if [[ "$script_response" != *"BgUtilHTTPPot: Generating POT via HTTP server"* ]]; then
             echo "::error title=BgUtilHTTPPot was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py::BgUtilHTTPPot was not invoked"
             exit 1
