@@ -102,7 +102,7 @@ jobs:
           docker run --name bgutil-provider -d -p ${{ env.PORT }}:4416 brainicism/bgutil-ytdlp-pot-provider:ci
 
           echo "Waiting for server to be up..."
-          PING_RESP=$(timeout ${{ env.TIMEOUT }} bash -c ping ${{ env.INTERVAL }}) || \
+          PING_RESP=$(timeout ${{ env.TIMEOUT }} bash -c "ping ${{ env.INTERVAL }}") || \
             (echo "::error title=Timeout reached,file=server/src/main.ts::\
           Timeout reached before the server is up." && exit 1)
 
