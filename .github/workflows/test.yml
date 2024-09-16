@@ -70,7 +70,7 @@ jobs:
     env:
       PORT: ${{ 4426 }}
       # Interval/Timeout in seconds to wait for the server to be up
-      INTERVAL: ${{ 0.3 }}
+      INTERVAL: ${{ 0.4 }}
       TIMEOUT: ${{ 7.5 }}
     steps:
       - uses: actions/checkout@v4
