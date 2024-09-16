@@ -82,15 +82,16 @@ jobs:
         timeout-minutes: 3
         shell: bash
         run: |
-          docker run --name bgutil-provider -d -p 4416:4416 brainicism/bgutil-ytdlp-pot-provider:ci
-
           ping() {
             until curl -o- --silent --fail http://127.0.0.1:4416/ping 2>&1; do
-              echo "Waiting for server to be up..."
               sleep ${1:-0.5}
             done
           }
           export -f ping
+
+          docker run --name bgutil-provider -d -p 4416:4416 brainicism/bgutil-ytdlp-pot-provider:ci
+
+          echo "Waiting for server to be up..."
           PING_RESP=$(timeout 7.5 bash -c ping) || \
             (echo "::error title=Timeout reached,file=server/src/main.ts::\
           Timeout reached before the server is up." && exit 1)
@@ -105,7 +106,7 @@ jobs:
 
           docker stop bgutil-provider
 
-          echo "::group::Logs from HTTP server"
+          echo "::group::Logs from HTTP server container"
           docker logs bgutil-provider
           echo "::endgroup::"
 
