@@ -97,7 +97,7 @@ jobs:
           Timeout reached before the server is up." && exit 1)
 
           echo "::group::Response from HTTP server"
-          echo "$PING_RESP" | jq
+          echo "$PING_RESP" | jq -C
           echo "::endgroup::"
 
           script_response=$(./yt-dlp -vF --print-traffic --no-simulate -f "b*" -S "filesize:10M" --exec "rm -f" dQw4w9WgXcQ 2>&1) || \
