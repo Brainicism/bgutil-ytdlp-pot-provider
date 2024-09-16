@@ -6,6 +6,8 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
+env:
+  TEST_ARGS: -vF --print-traffic --no-simulate --color always -f "b*" -S "filesize:10M" --exec "rm -f"
 
 jobs:
   lint-format:
@@ -47,7 +49,7 @@ jobs:
       - name: Test script method
         shell: bash
         run: |
-          script_response=$(./yt-dlp -vF --print-traffic --no-simulate -f "b*" -S "filesize:10M" --exec "rm -f" --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" dQw4w9WgXcQ 2>&1) || \
+          script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" dQw4w9WgXcQ 2>&1) || \
             echo "::error title=Failed to run yt-dlp when testing script::\
           yt-dlp returned $? exit status"
 
@@ -63,14 +65,17 @@ jobs:
   server-method:
     name: Test plugin (server method)
     runs-on: ubuntu-latest
+    env:
+      PORT: 4426
     steps:
       - uses: actions/checkout@v4
       - name: Download yt-dlp
         run: curl -L https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp -o yt-dlp && chmod +x ./yt-dlp
       - name: Install plugin
         run: |
-          mkdir ~/yt-dlp-plugins && curl -L "https://github.com/coletdjnz/yt-dlp-get-pot/releases/download/v0.1.1/yt-dlp-get-pot.zip" -o ~/yt-dlp-plugins/yt-dlp-get-pot.zip
-          cp -aT plugin/ ~/yt-dlp-plugins/bgutil-ytdlp-pot-provider/
+          mkdir -p ~/yt-dlp-plugins/bgutil-ytdlp-pot-provider/ && cd ~/yt-dlp-plugins/
+          curl -L "https://github.com/coletdjnz/yt-dlp-get-pot/releases/download/v0.1.1/yt-dlp-get-pot.zip" -o yt-dlp-get-pot.zip
+          cp -r ${{ github.workspace }}/plugin/ ~/yt-dlp-plugins/
       - name: Build Docker image
         uses: docker/build-push-action@v6
         with:
@@ -83,13 +88,13 @@ jobs:
         shell: bash
         run: |
           ping() {
-            until curl -o- --silent --fail http://127.0.0.1:4416/ping 2>&1; do
+            until curl -o- --silent --fail http://127.0.0.1:${{ env.PORT }}/ping 2>&1; do
               sleep ${1:-0.5}
             done
           }
           export -f ping
 
-          docker run --name bgutil-provider -d -p 4416:4416 brainicism/bgutil-ytdlp-pot-provider:ci
+          docker run --name bgutil-provider -d -p 4416:${{ env.PORT }} brainicism/bgutil-ytdlp-pot-provider:ci
 
           echo "Waiting for server to be up..."
           PING_RESP=$(timeout 7.5 bash -c ping) || \
@@ -100,7 +105,7 @@ jobs:
           echo "$PING_RESP" | jq -C
           echo "::endgroup::"
 
-          script_response=$(./yt-dlp -vF --print-traffic --no-simulate -f "b*" -S "filesize:10M" --exec "rm -f" dQw4w9WgXcQ 2>&1) || \
+          script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtube:getpot_bgutil_baseurl=http://127.0.0.1:${{ env.PORT }}" dQw4w9WgXcQ 2>&1) || \
             echo "::error title=Failed to run yt-dlp when testing HTTP server::\
           yt-dlp returned $? exit status"
 
