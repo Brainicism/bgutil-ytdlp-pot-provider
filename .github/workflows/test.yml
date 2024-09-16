@@ -94,7 +94,7 @@ jobs:
           }
           export -f ping
 
-          docker run --name bgutil-provider -d -p 4416:${{ env.PORT }} brainicism/bgutil-ytdlp-pot-provider:ci
+          docker run --name bgutil-provider -d -p ${{ env.PORT }}:4416 brainicism/bgutil-ytdlp-pot-provider:ci
 
           echo "Waiting for server to be up..."
           PING_RESP=$(timeout 7.5 bash -c ping) || \
