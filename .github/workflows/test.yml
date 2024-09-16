@@ -1,4 +1,4 @@
-name: Test
+name: Run tests
 on:
   workflow_dispatch:
   pull_request:
@@ -6,6 +6,7 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
+
 env:
   TEST_ARGS: -vF --print-traffic --no-simulate --color always -f "b*" -S "filesize:10M" --exec "rm -f"
 
@@ -44,8 +45,9 @@ jobs:
         run: cd server/ && yarn install --frozen-lockfile && npx tsc
       - name: Install plugin
         run: |
-          mkdir ~/yt-dlp-plugins && curl -L "https://github.com/coletdjnz/yt-dlp-get-pot/releases/download/v0.1.1/yt-dlp-get-pot.zip" -o ~/yt-dlp-plugins/yt-dlp-get-pot.zip
-          cp -aT plugin/ ~/yt-dlp-plugins/bgutil-ytdlp-pot-provider/
+          mkdir -p ~/yt-dlp-plugins/bgutil-ytdlp-pot-provider/
+          curl -L "https://github.com/coletdjnz/yt-dlp-get-pot/releases/download/v0.1.1/yt-dlp-get-pot.zip" -o ~/yt-dlp-plugins/yt-dlp-get-pot.zip
+          cp -r plugin/ ~/yt-dlp-plugins/
       - name: Test script method
         shell: bash
         run: |
@@ -67,7 +69,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PORT: ${{ 4426 }}
-      INTERVAL: ${{ 0.5 }}
+      # Interval/Timeout in seconds to wait for the server to be up
+      INTERVAL: ${{ 0.3 }}
       TIMEOUT: ${{ 7.5 }}
     steps:
       - uses: actions/checkout@v4
@@ -75,9 +78,9 @@ jobs:
         run: curl -L https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp -o yt-dlp && chmod +x ./yt-dlp
       - name: Install plugin
         run: |
-          mkdir -p ~/yt-dlp-plugins/bgutil-ytdlp-pot-provider/ && cd ~/yt-dlp-plugins/
-          curl -L "https://github.com/coletdjnz/yt-dlp-get-pot/releases/download/v0.1.1/yt-dlp-get-pot.zip" -o yt-dlp-get-pot.zip
-          cp -r ${{ github.workspace }}/plugin/ ~/yt-dlp-plugins/
+          mkdir -p ~/yt-dlp-plugins/bgutil-ytdlp-pot-provider/
+          curl -L "https://github.com/coletdjnz/yt-dlp-get-pot/releases/download/v0.1.1/yt-dlp-get-pot.zip" -o ~/yt-dlp-plugins/yt-dlp-get-pot.zip
+          cp -r plugin/ ~/yt-dlp-plugins/
       - name: Build Docker image
         uses: docker/build-push-action@v6
         with:
