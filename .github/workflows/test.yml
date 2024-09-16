@@ -1,0 +1,131 @@
+name: Run tests
+on:
+  workflow_dispatch:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  TEST_ARGS: -vF --print-traffic --no-simulate --color always -f "b*" -S "filesize:10M" --exec "rm -f"
+
+jobs:
+  lint-format:
+    name: Lint and format check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Ruff and autopep8
+        run: pip install ruff autopep8
+      - name: Python lint check (Ruff)
+        run: ruff check --output-format=github -v plugin/
+      - name: Python lint check (autopep8)
+        if: always()
+        run: autopep8 --diff plugin/
+      - name: Install server dependencies
+        if: always()
+        run: cd server && yarn install
+      - name: Server lint check (ESlint)
+        if: always()
+        run: cd server && npx eslint --max-warnings=0 src/
+      - name: Server format check (Prettier)
+        if: always()
+        run: cd server && npx prettier --check 'src/**/*.{js,ts}'
+
+  script-method:
+    name: Test plugin (script method)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download yt-dlp
+        run: curl -L https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp -o yt-dlp && chmod +x ./yt-dlp
+      - name: Install and build server dependencies
+        run: cd server/ && yarn install --frozen-lockfile && npx tsc
+      - name: Install plugin
+        run: |
+          mkdir -p ~/yt-dlp-plugins/bgutil-ytdlp-pot-provider/
+          curl -L "https://github.com/coletdjnz/yt-dlp-get-pot/releases/download/v0.1.1/yt-dlp-get-pot.zip" -o ~/yt-dlp-plugins/yt-dlp-get-pot.zip
+          cp -r plugin/ ~/yt-dlp-plugins/
+      - name: Test script method
+        shell: bash
+        run: |
+          script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" dQw4w9WgXcQ 2>&1) || \
+            echo "::error title=Failed to run yt-dlp when testing script::\
+          yt-dlp returned $? exit status"
+
+          echo "::group::Logs from yt-dlp"
+          printf "%s\n" "$script_response"
+          echo "::endgroup::"
+          if [[ "$script_response" != *"BgUtilScriptPot: Generating POT via script: "* ]]; then
+            echo "::error title=BgUtilScriptPot was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::\
+          BgUtilScriptPot was not invoked"
+            exit 1
+          fi
+
+  server-method:
+    name: Test plugin (server method)
+    runs-on: ubuntu-latest
+    env:
+      PORT: ${{ 4426 }}
+      # Interval/Timeout in seconds to wait for the server to be up
+      INTERVAL: ${{ 0.4 }}
+      TIMEOUT: ${{ 7.5 }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download yt-dlp
+        run: curl -L https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp -o yt-dlp && chmod +x ./yt-dlp
+      - name: Install plugin
+        run: |
+          mkdir -p ~/yt-dlp-plugins/bgutil-ytdlp-pot-provider/
+          curl -L "https://github.com/coletdjnz/yt-dlp-get-pot/releases/download/v0.1.1/yt-dlp-get-pot.zip" -o ~/yt-dlp-plugins/yt-dlp-get-pot.zip
+          cp -r plugin/ ~/yt-dlp-plugins/
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: server/
+          file: server/Dockerfile
+          load: true
+          tags: brainicism/bgutil-ytdlp-pot-provider:ci
+      - name: Test server method
+        timeout-minutes: 3
+        shell: bash
+        run: |
+          ping() {
+            until curl -o- --silent --fail http://127.0.0.1:${{ env.PORT }}/ping 2>&1; do
+              sleep ${1:-0.5}
+            done
+          }
+          export -f ping
+
+          docker run --name bgutil-provider -d -p ${{ env.PORT }}:4416 brainicism/bgutil-ytdlp-pot-provider:ci
+
+          echo "Waiting for server to be up..."
+          PING_RESP=$(timeout ${{ env.TIMEOUT }} bash -c "ping ${{ env.INTERVAL }}") || \
+            (echo "::error title=Timeout reached,file=server/src/main.ts::\
+          Timeout reached before the server is up." && exit 1)
+
+          echo "::group::Response from HTTP server"
+          echo "$PING_RESP" | jq -C
+          echo "::endgroup::"
+
+          script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtube:getpot_bgutil_baseurl=http://127.0.0.1:${{ env.PORT }}" dQw4w9WgXcQ 2>&1) || \
+            echo "::error title=Failed to run yt-dlp when testing HTTP server::\
+          yt-dlp returned $? exit status"
+
+          docker stop bgutil-provider
+
+          echo "::group::Logs from HTTP server container"
+          docker logs bgutil-provider
+          echo "::endgroup::"
+
+          echo "::group::Logs from yt-dlp"
+          printf "%s\n" "$script_response"
+          echo "::endgroup::"
+
+          if [[ "$script_response" != *"BgUtilHTTPPot: Generating POT via HTTP server"* ]]; then
+            echo "::error title=BgUtilHTTPPot was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py::\
+          BgUtilHTTPPot was not invoked"
+            exit 1
+          fi

@@ -1,39 +1,12 @@
 name: Create release
 on:
   workflow_dispatch:
-  pull_request:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  lint-format:
-    name: Lint and format check
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@v4
-        if: always()
-      - name: Install Ruff and autopep8
-        if: always()
-        run: pip install ruff autopep8
-      - name: Python lint check (Ruff)
-        if: always()
-        run: ruff check --output-format=github -v plugin/
-      - name: Python lint check (autopep8)
-        if: always()
-        run: autopep8 --diff plugin/
-      - name: Install server dependencies
-        if: always()
-        run: cd server && yarn install
-      - name: Server lint check (ESlint)
-        if: always()
-        run: cd server && npx eslint --max-warnings=0 src/
-      - name: Server format check (Prettier)
-        if: always()
-        run: cd server && npx prettier --check 'src/**/*.{js,ts}'
-
   release:
     name: Release to Github
     permissions:
@@ -67,7 +40,7 @@ jobs:
           EOF
           echo "::endgroup::"
       - name: Bundle
-        if: github.event_name != 'pull_request' && format('refs/heads/{0}', github.event.repository.default_branch) == github.ref
+        if: format('refs/heads/{0}', github.event.repository.default_branch) == github.ref
         # only release on default branch
         id: bundle
         env:
@@ -96,7 +69,7 @@ jobs:
           echo "RELEASE_BODY=$r" | tee -a $GITHUB_OUTPUT  # <--- Set environment variable
 
       - name: Create Release on Github
-        if: github.event_name != 'pull_request' && format('refs/heads/{0}', github.event.repository.default_branch) == github.ref
+        if: format('refs/heads/{0}', github.event.repository.default_branch) == github.ref
         # only release on default branch
         uses: svenstaro/upload-release-action@v2
         with:
@@ -110,7 +83,7 @@ jobs:
 
   release_pypi:
     name: Release to PyPI
-    if: github.event_name != 'pull_request' && format('refs/heads/{0}', github.event.repository.default_branch) == github.ref
+    if: format('refs/heads/{0}', github.event.repository.default_branch) == github.ref
     # only release on default branch
     runs-on: ubuntu-latest
     permissions:
@@ -169,8 +142,6 @@ jobs:
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             # mark as latest only if built on default branch of repository
-            type=raw,value=ci,enable={{is_default_branch}}
-            # mark as ci only if built on default branch of repository
             type=raw,value=${{ needs.release.outputs.version }},enable={{is_default_branch}}
             # add the new git tag only if built on default branch of repository
             type=sha
@@ -178,7 +149,6 @@ jobs:
             type=ref,event=pr
 
       - name: Login to DockerHub
-        if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -192,21 +162,19 @@ jobs:
         with:
           context: server/
           file: server/Dockerfile
-          platforms: ${{ github.event_name != 'pull_request' && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
-          push: ${{ github.event_name != 'pull_request' }}
+          platforms: "linux/amd64,linux/arm64"
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
 
       - name: Add official repository link to README.md
-        if: github.event_name != 'pull_request'
         run: |
           printf '%s\n\n' \
             "Official repository: <${{ github.server_url }}/${{ github.repository }}>" > ./README.md.new
           cat ./README.md >> ./README.md.new && mv -f ./README.md.new ./README.md
 
       - name: Update repo description
-        if: github.event_name != 'pull_request'
         uses: peter-evans/dockerhub-description@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
