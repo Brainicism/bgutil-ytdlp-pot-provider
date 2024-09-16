@@ -66,7 +66,9 @@ jobs:
     name: Test plugin (server method)
     runs-on: ubuntu-latest
     env:
-      PORT: 4426
+      PORT: ${{ 4426 }}
+      INTERVAL: ${{ 0.5 }}
+      TIMEOUT: ${{ 7.5 }}
     steps:
       - uses: actions/checkout@v4
       - name: Download yt-dlp
@@ -97,7 +99,7 @@ jobs:
           docker run --name bgutil-provider -d -p ${{ env.PORT }}:4416 brainicism/bgutil-ytdlp-pot-provider:ci
 
           echo "Waiting for server to be up..."
-          PING_RESP=$(timeout 7.5 bash -c ping) || \
+          PING_RESP=$(timeout ${{ env.TIMEOUT }} bash -c ping ${{ env.INTERVAL }}) || \
             (echo "::error title=Timeout reached,file=server/src/main.ts::\
           Timeout reached before the server is up." && exit 1)
 
