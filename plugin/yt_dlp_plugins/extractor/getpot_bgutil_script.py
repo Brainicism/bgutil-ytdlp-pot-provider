@@ -58,7 +58,7 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
 
         command_args = ['node', self.script_path]
         if proxy := self.proxies:  # maybe?
-            command_args.extend(['-p', proxy])
+            command_args.extend(['-p', json.dumps(proxy)])
         if data_sync_id:
             command_args.extend(['-d', data_sync_id])
         elif visitor_data:
