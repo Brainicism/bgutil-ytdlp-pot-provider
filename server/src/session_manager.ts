@@ -1,6 +1,10 @@
-import { BG } from "bgutils-js";
+import { BG, BgConfig } from "bgutils-js";
 import { JSDOM } from "jsdom";
 import { Innertube } from "youtubei.js";
+import { HttpsProxyAgent } from "https-proxy-agent";
+import axios from "axios";
+import { Agent } from "https";
+import { SocksProxyAgent } from "socks-proxy-agent";
 
 interface YoutubeSessionData {
     poToken: string;
@@ -63,6 +67,10 @@ export class SessionManager {
         if (this.shouldLog) console.log(msg);
     }
 
+    warn(msg: string) {
+        if (this.shouldLog) console.warn(msg);
+    }
+
     async generateVisitorData(): Promise<string | null> {
         const innertube = await Innertube.create({ retrieve_player: false });
         const visitorData = innertube.session.context.client.visitorData;
@@ -74,9 +82,41 @@ export class SessionManager {
         return visitorData;
     }
 
+    getProxyDispatcher(proxy: string): Agent | undefined {
+        let protocol: string;
+        try {
+            const parsedUrl = new URL(proxy);
+
+            if (!parsedUrl.protocol) {
+                protocol = "https";
+            }
+
+            protocol = parsedUrl.protocol.replace(":", ""); // remove the trailing colon
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (e) {
+            // assume http if no protocol was passed
+            protocol = "https";
+        }
+
+        switch (protocol) {
+            case "http":
+            case "https":
+                this.log(`Using HTTPS proxy: ${proxy}`);
+                return new HttpsProxyAgent(proxy);
+            case "socks":
+            case "socks4":
+            case "socks5":
+                this.log(`Using Socks proxy: ${proxy}`);
+                return new SocksProxyAgent(proxy);
+            default:
+                this.warn(`Unsupported proxy protocol: ${proxy}`);
+                return undefined;
+        }
+    }
     // mostly copied from https://github.com/LuanRT/BgUtils/tree/main/examples/node
     async generatePoToken(
         visitIdentifier: string,
+        proxies: string[] = [],
     ): Promise<YoutubeSessionData> {
         this.cleanupCaches();
         const sessionData = this.youtubeSessionDataCaches[visitIdentifier];
@@ -98,17 +138,32 @@ export class SessionManager {
         globalThis.window = dom.window as any;
         globalThis.document = dom.window.document;
 
-        const bgConfig = {
-            fetch: (url: any, options: any) => fetch(url, options),
+        let dispatcher: Agent | undefined;
+        if (proxies.length) {
+            dispatcher = this.getProxyDispatcher(proxies[0]!);
+        }
+
+        const bgConfig: BgConfig = {
+            fetch: async (url: any, options: any): Promise<any> => {
+                const response = await axios.post(url, options.body, {
+                    headers: options.headers,
+                    httpsAgent: dispatcher,
+                });
+
+                return {
+                    ok: true,
+                    json: async () => {
+                        return response.data;
+                    },
+                };
+            },
             globalObj: globalThis,
             identity: visitIdentifier,
             requestKey,
         };
-
         const challenge = await BG.Challenge.create(bgConfig);
 
         if (!challenge) throw new Error("Could not get Botguard challenge");
-
         if (challenge.script) {
             const script = challenge.script.find((sc) => sc !== null);
             if (script) new Function(script)();

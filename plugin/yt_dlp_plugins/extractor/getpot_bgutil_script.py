@@ -24,7 +24,8 @@ from yt_dlp_plugins.extractor.getpot_bgutil import __version__
 @register_provider
 class BgUtilScriptPotProviderRH(GetPOTProvider):
     _PROVIDER_NAME = 'BgUtilScriptPot'
-    _SUPPORTED_CLIENTS = ('web', 'web_safari', 'web_embedded', 'web_music', 'web_creator', 'mweb', 'tv_embedded', 'tv')
+    _SUPPORTED_CLIENTS = ('web', 'web_safari', 'web_embedded',
+                          'web_music', 'web_creator', 'mweb', 'tv_embedded', 'tv')
     VERSION = __version__
     _SUPPORTED_PROXY_SCHEMES = ('http', 'https', 'socks5', ...)
     _SUPPORTED_FEATURES = (Features.ALL_PROXY, ...)
@@ -58,7 +59,7 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
 
         command_args = ['node', self.script_path]
         if proxy := self.proxies:  # maybe?
-            command_args.extend(['-p', json.dumps(proxy)])
+            command_args.extend(['-p', ','.join(proxy.values())])
         if data_sync_id:
             command_args.extend(['-d', data_sync_id])
         elif visitor_data:
@@ -81,7 +82,8 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
             msg += f'\nstderr:\n{stderr.strip()}'
         self._logger.debug(msg)
         if returncode:
-            raise RequestError(f'_get_pot_via_script failed with returncode {returncode}')
+            raise RequestError(
+                f'_get_pot_via_script failed with returncode {returncode}')
 
         try:
             # The JSON response is always the last line

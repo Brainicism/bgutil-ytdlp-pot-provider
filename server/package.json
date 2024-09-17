@@ -19,11 +19,14 @@
     },
     "dependencies": {
         "@commander-js/extra-typings": "commander-js/extra-typings",
+        "axios": "^1.7.7",
         "bgutils-js": "^1.1.0",
         "body-parser": "^1.20.2",
         "commander": "^12.1.0",
         "express": "^4.19.2",
+        "https-proxy-agent": "^7.0.5",
         "jsdom": "^25.0.0",
+        "socks-proxy-agent": "^8.0.4",
         "youtubei.js": "^10.4.0"
     },
     "devDependencies": {

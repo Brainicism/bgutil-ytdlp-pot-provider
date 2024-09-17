@@ -25,7 +25,7 @@ const sessionManager = new SessionManager(options.verbose || false);
 httpServer.post("/get_pot", async (request, response) => {
     const visitorData = request.body.visitor_data as string;
     const dataSyncId = request.body.data_sync_id as string;
-
+    const proxies: string[] = Object.values(request.body.proxies);
     let visitIdentifier: string;
 
     // prioritize data sync id for authenticated requests, if passed
@@ -51,7 +51,10 @@ httpServer.post("/get_pot", async (request, response) => {
         visitIdentifier = generatedVisitorData;
     }
 
-    const sessionData = await sessionManager.generatePoToken(visitIdentifier);
+    const sessionData = await sessionManager.generatePoToken(
+        visitIdentifier,
+        proxies,
+    );
     response.send({
         po_token: sessionData.poToken,
         visit_identifier: sessionData.visitIdentifier,

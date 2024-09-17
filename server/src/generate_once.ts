@@ -7,6 +7,7 @@ const CACHE_PATH = path.resolve(__dirname, "..", "cache.json");
 const program = new Command()
     .option("-v, --visitor-data <visitordata>")
     .option("-d, --data-sync-id <data-sync-id>")
+    .option("-p, --proxies <comma-seperated-proxies>")
     .option("--verbose");
 
 program.parse();
@@ -57,7 +58,12 @@ const options = program.opts();
         visitIdentifier = generatedVisitorData;
     }
 
-    const sessionData = await sessionManager.generatePoToken(visitIdentifier);
+    const proxies = (options.proxies || "").split(",").filter((x) => x);
+    const sessionData = await sessionManager.generatePoToken(
+        visitIdentifier,
+        proxies,
+    );
+
     try {
         fs.writeFileSync(
             CACHE_PATH,
