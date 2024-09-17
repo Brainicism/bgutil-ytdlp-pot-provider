@@ -44,7 +44,7 @@ docker run --name bgutil-provider -d -p 4416:4416 brainicism/bgutil-ytdlp-pot-pr
 ```shell
 # replace 0.4.0 with the latest version, or a matching plugin
 git clone --single-branch --branch 0.4.0 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
-cd bgutils-ytdlp-pot-provider/server/
+cd bgutil-ytdlp-pot-provider/server/
 yarn install --frozen-lockfile
 npx tsc
 node build/main.js
@@ -68,11 +68,12 @@ node build/main.js
 1. Transpile the generation script to Javascript:
 
 ```shell
-# Clone/extract the contents into your home directory (`~/` on Unix-based systems, `%USERPROFILE%` for Windows) if you want to use this method without needing to specify `getpot_bgutil_script` extractor argument on each yt-dlp invocation.
+# Clone/extract the contents into your home directory (`~/` on Unix-based systems, `%USERPROFILE%` for Windows)
+# if you want to use this method without needing to specify `getpot_bgutil_script` extractor argument on each yt-dlp invocation.
 cd ~
 # replace 0.4.0 with the latest version, or a matching plugin
 git clone --single-branch --branch 0.4.0 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
-cd bgutils-ytdlp-pot-provider/server/
+cd bgutil-ytdlp-pot-provider/server/
 yarn install --frozen-lockfile
 npx tsc
 ```
