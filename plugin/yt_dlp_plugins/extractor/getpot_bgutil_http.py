@@ -6,7 +6,7 @@ import typing
 if typing.TYPE_CHECKING:
     from yt_dlp import YoutubeDL
 
-from yt_dlp.networking.common import Request
+from yt_dlp.networking.common import Request, Features
 from yt_dlp.networking.exceptions import RequestError, UnsupportedRequest
 
 try:
@@ -23,6 +23,8 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
     _PROVIDER_NAME = 'BgUtilHTTPPot'
     _SUPPORTED_CLIENTS = ('web', 'web_safari', 'web_embedded', 'web_music', 'web_creator', 'mweb', 'tv_embedded', 'tv')
     VERSION = __version__
+    _SUPPORTED_PROXY_SCHEMES = ('http', 'https', 'socks5', ...)
+    _SUPPORTED_FEATURES = (Features.ALL_PROXY, ...)
 
     def _validate_get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs):
         base_url = ydl.get_info_extractor('Youtube')._configuration_arg(
@@ -58,6 +60,7 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
                     'client': client,
                     'visitor_data': visitor_data,
                     'data_sync_id': data_sync_id,
+                    'proxy': self.proxies,  # maybe?
                 }).encode(), headers={'Content-Type': 'application/json'},
                 extensions={'timeout': 12.5}))
         except Exception as e:
@@ -80,4 +83,5 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
 
 @register_preference(BgUtilHTTPPotProviderRH)
 def bgutil_HTTP_getpot_preference(rh, request):
+    rh.proxies = rh._get_proxies(request)
     return 0

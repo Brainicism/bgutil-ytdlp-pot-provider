@@ -8,6 +8,7 @@ import typing
 
 if typing.TYPE_CHECKING:
     from yt_dlp import YoutubeDL
+from yt_dlp.networking.common import Features
 from yt_dlp.networking.exceptions import RequestError, UnsupportedRequest
 from yt_dlp.utils import Popen, classproperty
 
@@ -25,6 +26,8 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
     _PROVIDER_NAME = 'BgUtilScriptPot'
     _SUPPORTED_CLIENTS = ('web', 'web_safari', 'web_embedded', 'web_music', 'web_creator', 'mweb', 'tv_embedded', 'tv')
     VERSION = __version__
+    _SUPPORTED_PROXY_SCHEMES = ('http', 'https', 'socks5', ...)
+    _SUPPORTED_FEATURES = (Features.ALL_PROXY, ...)
 
     @classproperty(cache=True)
     def _default_script_path(self):
@@ -53,6 +56,8 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
             f'Generating POT via script: {self.script_path}')
 
         command_args = ['node', self.script_path]
+        if proxy := self.proxies:  # maybe?
+            command_args.extend(['-p', proxy])
         if data_sync_id:
             command_args.extend(['-d', data_sync_id])
         elif visitor_data:
@@ -94,4 +99,5 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
 
 @register_preference(BgUtilScriptPotProviderRH)
 def bgutil_script_getpot_preference(rh, request):
+    rh.proxies = rh._get_proxies(request)
     return 100
