@@ -6,7 +6,7 @@ import typing
 if typing.TYPE_CHECKING:
     from yt_dlp import YoutubeDL
 
-from yt_dlp.networking.common import Request, Features
+from yt_dlp.networking.common import Features, Request
 from yt_dlp.networking.exceptions import RequestError, UnsupportedRequest
 
 try:
