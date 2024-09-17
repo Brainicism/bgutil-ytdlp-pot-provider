@@ -27,7 +27,7 @@ cd ..
 ```
 
 #### **Provider**(typescript):
-<!--Please complete this, @Brainicism-->
+Please make sure your code formatting passes eslint and prettier checks by running the script above.
 
 #### **Provider plugin**(python):
-As a yt-dlp plugin, we follow the [yt-dlp coding conventions](https://github.com/yt-dlp/yt-dlp/blob/master/CONTRIBUTING.md#yt-dlp-coding-conventions).
+As a yt-dlp plugin, we follow the [yt-dlp coding conventions](https://github.com/yt-dlp/yt-dlp/blob/master/CONTRIBUTING.md#yt-dlp-coding-conventions). You can use ruff and autopep8 to format your code, as shown in the script above.
