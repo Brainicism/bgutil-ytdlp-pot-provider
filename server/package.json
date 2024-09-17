@@ -2,13 +2,23 @@
     "name": "bgutils-ytdlp-pot-provider",
     "description": "Proof-of-origin token provider and plugin for yt-dlp, using bgutils",
     "license": "GPL-3.0-only",
-    "version": "0.5.0",
+    "contributors": [
+        {
+            "name": "Brainicism",
+            "email": "brainicism@gmail.com"
+        },
+        {
+            "name": "grqz"
+        }
+    ],
+    "version": "0.5.1",
     "scripts": {
         "lint": "npx eslint --max-warnings=0 src/",
         "lint-fix": "npx eslint --fix --max-warnings=0 src/",
         "format": "npx prettier --write 'src/**/*.{js,ts}'"
     },
     "dependencies": {
+        "@commander-js/extra-typings": "commander-js/extra-typings",
         "bgutils-js": "^1.1.0",
         "body-parser": "^1.20.2",
         "commander": "^12.1.0",
@@ -17,7 +27,6 @@
         "youtubei.js": "^10.4.0"
     },
     "devDependencies": {
-        "@commander-js/extra-typings": "commander-js/extra-typings",
         "@eslint/js": "^9.10.0",
         "@types/express": "^4.17.21",
         "@types/jsdom": "^21.1.7",

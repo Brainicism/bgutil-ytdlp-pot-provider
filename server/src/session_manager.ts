@@ -8,25 +8,59 @@ interface YoutubeSessionData {
     generatedAt: Date;
 }
 
+export interface YoutubeSessionDataCaches {
+    [visitIdentifier: string]: YoutubeSessionData;
+}
+
 export class SessionManager {
     shouldLog: boolean;
 
-    private youtubeSessionData: {
-        [visitIdentifier: string]: YoutubeSessionData;
-    } = {};
+    private youtubeSessionDataCaches: YoutubeSessionDataCaches = {};
+    private TOKEN_TTL_HOURS: number;
 
-    constructor(shouldLog = true) {
+    constructor(
+        shouldLog = true,
+        youtubeSessionDataCaches: YoutubeSessionDataCaches = {},
+    ) {
         this.shouldLog = shouldLog;
+        this.setYoutubeSessionDataCaches(youtubeSessionDataCaches);
+        this.TOKEN_TTL_HOURS = process.env.TOKEN_TTL
+            ? parseInt(process.env.TOKEN_TTL)
+            : 6;
     }
 
     invalidateCaches() {
-        this.youtubeSessionData = {};
+        this.setYoutubeSessionDataCaches();
+    }
+
+    cleanupCaches() {
+        for (const visitIdentifier in this.youtubeSessionDataCaches) {
+            const sessionData = this.youtubeSessionDataCaches[visitIdentifier];
+            if (
+                sessionData &&
+                sessionData.generatedAt <
+                    new Date(
+                        new Date().getTime() -
+                            this.TOKEN_TTL_HOURS * 60 * 60 * 1000,
+                    )
+            )
+                delete this.youtubeSessionDataCaches[visitIdentifier];
+        }
+    }
+
+    getYoutubeSessionDataCaches(cleanup = false) {
+        if (cleanup) this.cleanupCaches();
+        return this.youtubeSessionDataCaches;
+    }
+
+    setYoutubeSessionDataCaches(
+        youtubeSessionData: YoutubeSessionDataCaches = {},
+    ) {
+        this.youtubeSessionDataCaches = youtubeSessionData || {};
     }
 
     log(msg: string) {
-        if (this.shouldLog) {
-            console.log(msg);
-        }
+        if (this.shouldLog) console.log(msg);
     }
 
     async generateVisitorData(): Promise<string | null> {
@@ -44,18 +78,9 @@ export class SessionManager {
     async generatePoToken(
         visitIdentifier: string,
     ): Promise<YoutubeSessionData> {
-        const TOKEN_TTL_HOURS = process.env.TOKEN_TTL
-            ? parseInt(process.env.TOKEN_TTL)
-            : 6;
-
-        const sessionData = this.youtubeSessionData[visitIdentifier];
-        if (
-            sessionData &&
-            sessionData.generatedAt >
-                new Date(
-                    new Date().getTime() - TOKEN_TTL_HOURS * 60 * 60 * 1000,
-                )
-        ) {
+        this.cleanupCaches();
+        const sessionData = this.youtubeSessionDataCaches[visitIdentifier];
+        if (sessionData) {
             this.log(
                 `POT for ${visitIdentifier} still fresh, returning cached token`,
             );
@@ -104,12 +129,12 @@ export class SessionManager {
             throw new Error("po_token unexpected undefined");
         }
 
-        this.youtubeSessionData[visitIdentifier] = {
+        this.youtubeSessionDataCaches[visitIdentifier] = {
             visitIdentifier: visitIdentifier,
             poToken: poToken,
             generatedAt: new Date(),
         };
 
-        return this.youtubeSessionData[visitIdentifier];
+        return this.youtubeSessionDataCaches[visitIdentifier];
     }
 }
