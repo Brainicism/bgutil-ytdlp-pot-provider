@@ -54,6 +54,7 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
     def _get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs) -> str:
         self._logger.info(
             f'Generating POT via script: {self.script_path}')
+        self._logger.debug(f'Proxies: {self.proxies!r}')
 
         command_args = ['node', self.script_path]
         if proxy := self.proxies:  # maybe?

@@ -53,6 +53,7 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
 
     def _get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs) -> str:
         self._logger.info('Generating POT via HTTP server')
+        self._logger.debug(f'Proxies: {self.proxies!r}')
 
         try:
             response = ydl.urlopen(Request(
@@ -60,7 +61,7 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
                     'client': client,
                     'visitor_data': visitor_data,
                     'data_sync_id': data_sync_id,
-                    'proxy': self.proxies,  # maybe?
+                    'proxies': self.proxies,  # maybe?
                 }).encode(), headers={'Content-Type': 'application/json'},
                 extensions={'timeout': 12.5}))
         except Exception as e:
