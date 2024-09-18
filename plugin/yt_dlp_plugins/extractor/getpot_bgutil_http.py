@@ -8,6 +8,7 @@ if typing.TYPE_CHECKING:
 
 from yt_dlp.networking.common import Features, Request
 from yt_dlp.networking.exceptions import RequestError, UnsupportedRequest
+from yt_dlp.utils.traversal import traverse_obj
 
 try:
     from yt_dlp_plugins.extractor.getpot import GetPOTProvider, register_preference, register_provider
@@ -26,7 +27,7 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
     VERSION = __version__
     _SUPPORTED_PROXY_SCHEMES = (
         'http', 'https', 'socks4', 'socks4a', 'socks5', 'socks5h')
-    _SUPPORTED_FEATURES = (Features.ALL_PROXY)
+    _SUPPORTED_FEATURES = (Features.NO_PROXY, Features.ALL_PROXY)
 
     def _validate_get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs):
         base_url = ydl.get_info_extractor('Youtube')._configuration_arg(
@@ -57,7 +58,6 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
 
     def _get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs) -> str:
         self._logger.info('Generating POT via HTTP server')
-        self._logger.debug(f'Proxies: {self.proxies.values()!r}')
 
         try:
             response = ydl.urlopen(Request(
@@ -65,6 +65,7 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
                     'client': client,
                     'visitor_data': visitor_data,
                     'data_sync_id': data_sync_id,
+                    'proxy': traverse_obj(self.proxies, 'all'),
                 }).encode(), headers={'Content-Type': 'application/json'},
                 extensions={'timeout': 12.5}, proxies={'all': None}))
         except Exception as e:

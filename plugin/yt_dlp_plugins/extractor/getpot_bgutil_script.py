@@ -10,7 +10,7 @@ if typing.TYPE_CHECKING:
     from yt_dlp import YoutubeDL
 from yt_dlp.networking.common import Features
 from yt_dlp.networking.exceptions import RequestError, UnsupportedRequest
-from yt_dlp.utils import Popen, classproperty
+from yt_dlp.utils import Popen, classproperty, traverse_obj
 
 try:
     from yt_dlp_plugins.extractor.getpot import GetPOTProvider, register_preference, register_provider
@@ -29,7 +29,7 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
     VERSION = __version__
     _SUPPORTED_PROXY_SCHEMES = (
         'http', 'https', 'socks4', 'socks4a', 'socks5', 'socks5h')
-    _SUPPORTED_FEATURES = (Features.ALL_PROXY)
+    _SUPPORTED_FEATURES = (Features.NO_PROXY, Features.ALL_PROXY)
 
     @classproperty(cache=True)
     def _default_script_path(self):
@@ -56,11 +56,10 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
     def _get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs) -> str:
         self._logger.info(
             f'Generating POT via script: {self.script_path}')
-        self._logger.debug(f'Proxies: {self.proxies!r}')
 
         command_args = ['node', self.script_path]
-        if proxy := self.proxies:  # maybe?
-            command_args.extend(['-p', ','.join(proxy.values())])
+        if proxy := traverse_obj(self.proxies, 'all'):
+            command_args.extend(['-p', proxy])
         if data_sync_id:
             command_args.extend(['-d', data_sync_id])
         elif visitor_data:

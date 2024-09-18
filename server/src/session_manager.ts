@@ -101,16 +101,12 @@ export class SessionManager {
         let protocol: string;
         try {
             const parsedUrl = new URL(proxy);
-
-            if (!parsedUrl.protocol) {
-                protocol = "https";
-            }
-
             protocol = parsedUrl.protocol.replace(":", "");
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (e) {
             // assume http if no protocol was passed
-            protocol = "https";
+            protocol = "http";
+            proxy = `http://${proxy}`;
         }
 
         switch (protocol) {
@@ -133,7 +129,7 @@ export class SessionManager {
     // mostly copied from https://github.com/LuanRT/BgUtils/tree/main/examples/node
     async generatePoToken(
         visitIdentifier: string,
-        proxies: string[] = [],
+        proxy: string = "",
     ): Promise<YoutubeSessionData> {
         this.cleanupCaches();
         const sessionData = this.youtubeSessionDataCaches[visitIdentifier];
@@ -156,12 +152,27 @@ export class SessionManager {
         globalThis.document = dom.window.document;
 
         let dispatcher: Agent | undefined;
-        if (proxies.length) {
-            dispatcher = this.getProxyDispatcher(proxies[0]!);
+        let proxies: any;
+        if (proxy) {
+            dispatcher = this.getProxyDispatcher(proxy);
+        } else {
+            proxies = {
+                http: process.env.HTTP_PROXY,
+                https: process.env.HTTPS_PROXY || process.env.HTTP_PROXY,
+                ftp: process.env.FTP_PROXY,
+            };
         }
 
         const bgConfig: BgConfig = {
             fetch: async (url: any, options: any): Promise<any> => {
+                if (proxies) {
+                    const url_components = new URL(url);
+                    dispatcher = this.getProxyDispatcher(
+                        proxies[
+                            url_components.protocol.replace(":", "") || "http"
+                        ],
+                    );
+                }
                 const response = await axios.post(url, options.body, {
                     headers: options.headers,
                     httpsAgent: dispatcher,
