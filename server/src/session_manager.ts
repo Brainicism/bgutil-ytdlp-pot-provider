@@ -156,7 +156,9 @@ export class SessionManager {
         let proxies: any;
         if (proxy) {
             dispatcher = this.getProxyDispatcher(proxy);
-        } else {
+        } else if (process.env.ALL_PROXY) {
+            dispatcher = this.getProxyDispatcher(process.env.ALL_PROXY);
+        }else {
             proxies = {
                 http: process.env.HTTP_PROXY,
                 https: process.env.HTTPS_PROXY || process.env.HTTP_PROXY,
