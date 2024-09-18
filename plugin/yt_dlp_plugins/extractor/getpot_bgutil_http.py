@@ -26,7 +26,7 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
     VERSION = __version__
     _SUPPORTED_PROXY_SCHEMES = (
         'http', 'https', 'socks4', 'socks4a', 'socks5', 'socks5h')
-    _SUPPORTED_FEATURES = (Features.ALL_PROXY, ...)
+    _SUPPORTED_FEATURES = (Features.ALL_PROXY)
 
     def _validate_get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs):
         base_url = ydl.get_info_extractor('Youtube')._configuration_arg(
