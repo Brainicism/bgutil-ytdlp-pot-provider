@@ -158,7 +158,7 @@ export class SessionManager {
             dispatcher = this.getProxyDispatcher(proxy);
         } else if (process.env.ALL_PROXY) {
             dispatcher = this.getProxyDispatcher(process.env.ALL_PROXY);
-        }else {
+        } else {
             proxies = {
                 http: process.env.HTTP_PROXY,
                 https: process.env.HTTPS_PROXY || process.env.HTTP_PROXY,
@@ -168,7 +168,7 @@ export class SessionManager {
 
         const bgConfig: BgConfig = {
             fetch: async (url: any, options: any): Promise<any> => {
-                if (proxies) {
+                if (!dispatcher) {
                     const parsedUrl = new URL(url);
                     dispatcher = this.getProxyDispatcher(
                         proxies[parsedUrl.protocol.replace(":", "") || "http"],
