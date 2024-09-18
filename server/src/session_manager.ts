@@ -91,7 +91,7 @@ export class SessionManager {
                 protocol = "https";
             }
 
-            protocol = parsedUrl.protocol.replace(":", ""); // remove the trailing colon
+            protocol = parsedUrl.protocol.replace(":", "");
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (e) {
             // assume http if no protocol was passed
@@ -105,8 +105,10 @@ export class SessionManager {
                 return new HttpsProxyAgent(proxy);
             case "socks":
             case "socks4":
+            case "socks4a":
             case "socks5":
-                this.log(`Using Socks proxy: ${proxy}`);
+            case "socks5h":
+                this.log(`Using SOCKS proxy: ${proxy}`);
                 return new SocksProxyAgent(proxy);
             default:
                 this.warn(`Unsupported proxy protocol: ${proxy}`);
