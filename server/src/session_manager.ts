@@ -171,17 +171,28 @@ export class SessionManager {
                         proxies[parsedUrl.protocol.replace(":", "") || "http"],
                     );
                 }
-                const response = await axios.post(url, options.body, {
-                    headers: options.headers,
-                    httpsAgent: dispatcher,
-                });
 
-                return {
-                    ok: true,
-                    json: async () => {
-                        return response.data;
-                    },
-                };
+                try {
+                    const response = await axios.post(url, options.body, {
+                        headers: options.headers,
+                        httpsAgent: dispatcher,
+                    });
+
+                    return {
+                        ok: true,
+                        json: async () => {
+                            return response.data;
+                        },
+                    };
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                } catch (e) {
+                    return {
+                        ok: false,
+                        json: async () => {
+                            return null;
+                        },
+                    };
+                }
             },
             globalObj: globalThis,
             identity: visitIdentifier,
