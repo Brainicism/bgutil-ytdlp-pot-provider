@@ -168,9 +168,7 @@ export class SessionManager {
                 if (proxies) {
                     const parsedUrl = new URL(url);
                     dispatcher = this.getProxyDispatcher(
-                        proxies[
-                            parsedUrl.protocol.replace(":", "") || "http"
-                        ],
+                        proxies[parsedUrl.protocol.replace(":", "") || "http"],
                     );
                 }
                 const response = await axios.post(url, options.body, {
