@@ -166,10 +166,10 @@ export class SessionManager {
         const bgConfig: BgConfig = {
             fetch: async (url: any, options: any): Promise<any> => {
                 if (proxies) {
-                    const url_components = new URL(url);
+                    const parsedUrl = new URL(url);
                     dispatcher = this.getProxyDispatcher(
                         proxies[
-                            url_components.protocol.replace(":", "") || "http"
+                            parsedUrl.protocol.replace(":", "") || "http"
                         ],
                     );
                 }
