@@ -98,6 +98,7 @@ export class SessionManager {
     }
 
     getProxyDispatcher(proxy: string): Agent | undefined {
+        if (!proxy) return undefined;
         let protocol: string;
         try {
             const parsedUrl = new URL(proxy);
