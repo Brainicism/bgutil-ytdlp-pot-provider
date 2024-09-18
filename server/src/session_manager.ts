@@ -97,7 +97,7 @@ export class SessionManager {
         return visitorData;
     }
 
-    getProxyDispatcher(proxy: string): Agent | undefined {
+    getProxyDispatcher(proxy: string | undefined): Agent | undefined {
         if (!proxy) return undefined;
         let protocol: string;
         try {
@@ -153,28 +153,18 @@ export class SessionManager {
         globalThis.document = dom.window.document;
 
         let dispatcher: Agent | undefined;
-        let proxies: any;
         if (proxy) {
             dispatcher = this.getProxyDispatcher(proxy);
         } else if (process.env.ALL_PROXY) {
             dispatcher = this.getProxyDispatcher(process.env.ALL_PROXY);
         } else {
-            proxies = {
-                http: process.env.HTTP_PROXY,
-                https: process.env.HTTPS_PROXY || process.env.HTTP_PROXY,
-                ftp: process.env.FTP_PROXY,
-            };
+            dispatcher = this.getProxyDispatcher(
+                process.env.HTTPS_PROXY || process.env.HTTP_PROXY,
+            );
         }
 
         const bgConfig: BgConfig = {
             fetch: async (url: any, options: any): Promise<any> => {
-                if (!dispatcher) {
-                    const parsedUrl = new URL(url);
-                    dispatcher = this.getProxyDispatcher(
-                        proxies[parsedUrl.protocol.replace(":", "") || "http"],
-                    );
-                }
-
                 try {
                     const response = await axios.post(url, options.body, {
                         headers: options.headers,
