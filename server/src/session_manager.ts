@@ -1,4 +1,4 @@
-import { BG, BgConfig } from "bgutils-js";
+import { BG, BgConfig, DescrambledChallenge } from "bgutils-js";
 import { JSDOM } from "jsdom";
 import { Innertube } from "youtubei.js";
 import { HttpsProxyAgent } from "https-proxy-agent";
@@ -178,8 +178,15 @@ export class SessionManager {
             identity: visitIdentifier,
             requestKey,
         };
-        const challenge = await BG.Challenge.create(bgConfig);
 
+        let challenge: DescrambledChallenge | undefined;
+        try {
+            challenge = await BG.Challenge.create(bgConfig);
+        } catch (e) {
+            throw new Error(
+                `Error while attempting to retrieve BG challenge. err = ${e}`,
+            );
+        }
         if (!challenge) throw new Error("Could not get Botguard challenge");
         if (challenge.script) {
             const script = challenge.script.find((sc) => sc !== null);
@@ -188,11 +195,18 @@ export class SessionManager {
             this.logger.log("Unable to load Botguard.");
         }
 
-        const poToken = await BG.PoToken.generate({
-            program: challenge.challenge,
-            globalName: challenge.globalName,
-            bgConfig,
-        });
+        let poToken: string | undefined;
+        try {
+            poToken = await BG.PoToken.generate({
+                program: challenge.challenge,
+                globalName: challenge.globalName,
+                bgConfig,
+            });
+        } catch (e) {
+            throw new Error(
+                `Error while trying to generate PO token. e = ${e}`,
+            );
+        }
 
         this.logger.log(`po_token: ${poToken}`);
         this.logger.log(`visit_identifier: ${visitIdentifier}`);
