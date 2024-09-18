@@ -29,7 +29,7 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
     VERSION = __version__
     _SUPPORTED_PROXY_SCHEMES = (
         'http', 'https', 'socks4', 'socks4a', 'socks5', 'socks5h')
-    _SUPPORTED_FEATURES = (Features.NO_PROXY, Features.ALL_PROXY)
+    _SUPPORTED_FEATURES = (Features.NO_PROXY, Features.ALL_PROXY, ...)
 
     @classproperty(cache=True)
     def _default_script_path(self):
