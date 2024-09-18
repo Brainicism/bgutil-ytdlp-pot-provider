@@ -87,5 +87,4 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
 
 @register_preference(BgUtilHTTPPotProviderRH)
 def bgutil_HTTP_getpot_preference(rh, request):
-    rh.proxies = rh._get_proxies(request)
     return 0

@@ -103,5 +103,4 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
 
 @register_preference(BgUtilScriptPotProviderRH)
 def bgutil_script_getpot_preference(rh, request):
-    rh.proxies = rh._get_proxies(request)
     return 100

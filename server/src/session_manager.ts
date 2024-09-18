@@ -16,17 +16,40 @@ export interface YoutubeSessionDataCaches {
     [visitIdentifier: string]: YoutubeSessionData;
 }
 
-export class SessionManager {
-    shouldLog: boolean;
+class Logger {
+    private shouldLog: boolean;
 
+    constructor(shouldLog = true) {
+        this.shouldLog = shouldLog;
+    }
+
+    debug(msg: string) {
+        if (this.shouldLog) console.debug(msg);
+    }
+
+    log(msg: string) {
+        if (this.shouldLog) console.log(msg);
+    }
+
+    warn(msg: string) {
+        if (this.shouldLog) console.warn(msg);
+    }
+
+    error(msg: string) {
+        if (this.shouldLog) console.error(msg);
+    }
+}
+
+export class SessionManager {
     private youtubeSessionDataCaches: YoutubeSessionDataCaches = {};
     private TOKEN_TTL_HOURS: number;
+    private logger: Logger;
 
     constructor(
         shouldLog = true,
         youtubeSessionDataCaches: YoutubeSessionDataCaches = {},
     ) {
-        this.shouldLog = shouldLog;
+        this.logger = new Logger(shouldLog);
         this.setYoutubeSessionDataCaches(youtubeSessionDataCaches);
         this.TOKEN_TTL_HOURS = process.env.TOKEN_TTL
             ? parseInt(process.env.TOKEN_TTL)
@@ -63,19 +86,11 @@ export class SessionManager {
         this.youtubeSessionDataCaches = youtubeSessionData || {};
     }
 
-    log(msg: string) {
-        if (this.shouldLog) console.log(msg);
-    }
-
-    warn(msg: string) {
-        if (this.shouldLog) console.warn(msg);
-    }
-
     async generateVisitorData(): Promise<string | null> {
         const innertube = await Innertube.create({ retrieve_player: false });
         const visitorData = innertube.session.context.client.visitorData;
         if (!visitorData) {
-            console.error("Unable to generate visitor data via Innertube");
+            this.logger.error("Unable to generate visitor data via Innertube");
             return null;
         }
 
@@ -101,17 +116,17 @@ export class SessionManager {
         switch (protocol) {
             case "http":
             case "https":
-                this.log(`Using HTTPS proxy: ${proxy}`);
+                this.logger.log(`Using HTTP/HTTPS proxy: ${proxy}`);
                 return new HttpsProxyAgent(proxy);
             case "socks":
             case "socks4":
             case "socks4a":
             case "socks5":
             case "socks5h":
-                this.log(`Using SOCKS proxy: ${proxy}`);
+                this.logger.log(`Using SOCKS proxy: ${proxy}`);
                 return new SocksProxyAgent(proxy);
             default:
-                this.warn(`Unsupported proxy protocol: ${proxy}`);
+                this.logger.warn(`Unsupported proxy protocol: ${proxy}`);
                 return undefined;
         }
     }
@@ -123,13 +138,13 @@ export class SessionManager {
         this.cleanupCaches();
         const sessionData = this.youtubeSessionDataCaches[visitIdentifier];
         if (sessionData) {
-            this.log(
+            this.logger.log(
                 `POT for ${visitIdentifier} still fresh, returning cached token`,
             );
             return sessionData;
         }
 
-        this.log(
+        this.logger.log(
             `POT for ${visitIdentifier} stale or not yet generated, generating...`,
         );
 
@@ -170,7 +185,7 @@ export class SessionManager {
             const script = challenge.script.find((sc) => sc !== null);
             if (script) new Function(script)();
         } else {
-            this.log("Unable to load Botguard.");
+            this.logger.log("Unable to load Botguard.");
         }
 
         const poToken = await BG.PoToken.generate({
@@ -179,8 +194,8 @@ export class SessionManager {
             bgConfig,
         });
 
-        this.log(`po_token: ${poToken}`);
-        this.log(`visit_identifier: ${visitIdentifier}`);
+        this.logger.log(`po_token: ${poToken}`);
+        this.logger.log(`visit_identifier: ${visitIdentifier}`);
 
         if (!poToken) {
             throw new Error("po_token unexpected undefined");
