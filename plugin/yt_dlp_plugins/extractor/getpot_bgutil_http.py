@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import json
 import typing
-import urllib.request
 
 if typing.TYPE_CHECKING:
     from yt_dlp import YoutubeDL
 
-from yt_dlp.networking.common import Features
+from yt_dlp.networking.common import Features, Request
 from yt_dlp.networking.exceptions import RequestError, UnsupportedRequest
 
 try:
@@ -25,7 +24,8 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
     _SUPPORTED_CLIENTS = ('web', 'web_safari', 'web_embedded',
                           'web_music', 'web_creator', 'mweb', 'tv_embedded', 'tv')
     VERSION = __version__
-    _SUPPORTED_PROXY_SCHEMES = ('http', 'https', 'socks5', ...)
+    _SUPPORTED_PROXY_SCHEMES = (
+        'http', 'https', 'socks4', 'socks4a', 'socks5', 'socks5h')
     _SUPPORTED_FEATURES = (Features.ALL_PROXY, ...)
 
     def _validate_get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs):
@@ -35,7 +35,8 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
             raise UnsupportedRequest(
                 'One of [data_sync_id, visitor_data] must be passed')
         try:
-            response = urllib.request.urlopen(f'{base_url}/ping', timeout=5)
+            response = ydl.urlopen(Request(
+                f'{base_url}/ping', extensions={'timeout': 5.0}, proxies={'all': None}))
         except Exception as e:
             raise UnsupportedRequest(
                 f'Error reaching GET /ping (caused by {e!s})') from e
@@ -56,16 +57,16 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
 
     def _get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs) -> str:
         self._logger.info('Generating POT via HTTP server')
-        self._logger.debug(f'Proxies: {self.proxies!r}')
+        self._logger.debug(f'Proxies: {self.proxies.values()!r}')
 
         try:
-            response = urllib.request.urlopen(urllib.request.Request(
+            response = ydl.urlopen(Request(
                 f'{self.base_url}/get_pot', data=json.dumps({
                     'client': client,
                     'visitor_data': visitor_data,
                     'data_sync_id': data_sync_id,
-                    'proxies': self.proxies.values(),
-                }).encode(), headers={'Content-Type': 'application/json'}), timeout=12.5)
+                }).encode(), headers={'Content-Type': 'application/json'},
+                extensions={'timeout': 12.5}, proxies={'all': None}))
         except Exception as e:
             raise RequestError(
                 f'Error reaching POST /get_pot (caused by {e!s})') from e

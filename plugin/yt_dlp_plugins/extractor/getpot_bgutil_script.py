@@ -27,7 +27,8 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
     _SUPPORTED_CLIENTS = ('web', 'web_safari', 'web_embedded',
                           'web_music', 'web_creator', 'mweb', 'tv_embedded', 'tv')
     VERSION = __version__
-    _SUPPORTED_PROXY_SCHEMES = ('http', 'https', 'socks5', ...)
+    _SUPPORTED_PROXY_SCHEMES = (
+        'http', 'https', 'socks4', 'socks4a', 'socks5', 'socks5h')
     _SUPPORTED_FEATURES = (Features.ALL_PROXY, ...)
 
     @classproperty(cache=True)
