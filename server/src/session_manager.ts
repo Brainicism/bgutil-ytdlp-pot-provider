@@ -155,11 +155,11 @@ export class SessionManager {
         let dispatcher: Agent | undefined;
         if (proxy) {
             dispatcher = this.getProxyDispatcher(proxy);
-        } else if (process.env.ALL_PROXY) {
-            dispatcher = this.getProxyDispatcher(process.env.ALL_PROXY);
         } else {
             dispatcher = this.getProxyDispatcher(
-                process.env.HTTPS_PROXY || process.env.HTTP_PROXY,
+                process.env.HTTPS_PROXY ||
+                    process.env.HTTP_PROXY ||
+                    process.env.ALL_PROXY,
             );
         }
 
