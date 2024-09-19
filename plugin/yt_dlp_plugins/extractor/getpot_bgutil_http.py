@@ -6,7 +6,8 @@ import typing
 if typing.TYPE_CHECKING:
     from yt_dlp import YoutubeDL
 
-from yt_dlp.networking.common import Request
+from yt_dlp.networking._helper import select_proxy
+from yt_dlp.networking.common import Features, Request
 from yt_dlp.networking.exceptions import RequestError, UnsupportedRequest
 
 try:
@@ -21,8 +22,12 @@ from yt_dlp_plugins.extractor.getpot_bgutil import __version__
 @register_provider
 class BgUtilHTTPPotProviderRH(GetPOTProvider):
     _PROVIDER_NAME = 'BgUtilHTTPPot'
-    _SUPPORTED_CLIENTS = ('web', 'web_safari', 'web_embedded', 'web_music', 'web_creator', 'mweb', 'tv_embedded', 'tv')
+    _SUPPORTED_CLIENTS = ('web', 'web_safari', 'web_embedded',
+                          'web_music', 'web_creator', 'mweb', 'tv_embedded', 'tv')
     VERSION = __version__
+    _SUPPORTED_PROXY_SCHEMES = (
+        'http', 'https', 'socks4', 'socks4a', 'socks5', 'socks5h')
+    _SUPPORTED_FEATURES = (Features.NO_PROXY, Features.ALL_PROXY)
 
     def _validate_get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs):
         base_url = ydl.get_info_extractor('Youtube')._configuration_arg(
@@ -31,9 +36,11 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
             raise UnsupportedRequest(
                 'One of [data_sync_id, visitor_data] must be passed')
         try:
-            response = ydl.urlopen(Request(f'{base_url}/ping', extensions={'timeout': 5.0}))
+            response = ydl.urlopen(Request(
+                f'{base_url}/ping', extensions={'timeout': 5.0}, proxies={'all': None}))
         except Exception as e:
-            raise UnsupportedRequest(f'Error reaching GET /ping (caused by {e!s})') from e
+            raise UnsupportedRequest(
+                f'Error reaching GET /ping (caused by {e!s})') from e
         try:
             response = json.load(response)
         except json.JSONDecodeError as e:
@@ -51,6 +58,11 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
 
     def _get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs) -> str:
         self._logger.info('Generating POT via HTTP server')
+        if ((proxy := select_proxy('https://jnn-pa.googleapis.com', self.proxies))
+                != select_proxy('https://youtube.com', self.proxies)):
+            self._logger.warning(
+                'Proxies for https://youtube.com and https://jnn-pa.googleapis.com are different. '
+                'This is likely to cause subsequent errors.')
 
         try:
             response = ydl.urlopen(Request(
@@ -58,8 +70,9 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
                     'client': client,
                     'visitor_data': visitor_data,
                     'data_sync_id': data_sync_id,
+                    'proxy': proxy,
                 }).encode(), headers={'Content-Type': 'application/json'},
-                extensions={'timeout': 12.5}))
+                extensions={'timeout': 12.5}, proxies={'all': None}))
         except Exception as e:
             raise RequestError(
                 f'Error reaching POST /get_pot (caused by {e!s})') from e
