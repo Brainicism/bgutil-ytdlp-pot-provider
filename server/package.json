@@ -1,5 +1,5 @@
 {
-    "name": "bgutils-ytdlp-pot-provider",
+    "name": "bgutil-ytdlp-pot-provider",
     "description": "Proof-of-origin token provider and plugin for yt-dlp, using bgutils",
     "license": "GPL-3.0-only",
     "contributors": [
@@ -11,7 +11,7 @@
             "name": "grqz"
         }
     ],
-    "version": "0.5.2",
+    "version": "0.6.0",
     "scripts": {
         "lint": "npx eslint --max-warnings=0 src/",
         "lint-fix": "npx eslint --fix --max-warnings=0 src/",
