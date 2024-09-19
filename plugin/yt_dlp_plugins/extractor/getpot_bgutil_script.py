@@ -58,7 +58,11 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
         self._logger.info(
             f'Generating POT via script: {self.script_path}')
         command_args = ['node', self.script_path]
-        if proxy := select_proxy('http://youtube.com', self.proxies):
+        if proxy := select_proxy('https://jnn-pa.googleapis.com', self.proxies):
+            if proxy != select_proxy('https://youtube.com', self.proxies):
+                self._logger.warning(
+                    'Proxies for https://youtube.com and https://jnn-pa.googleapis.com are different. '
+                    'This is likely to cause subsequent errors.')
             command_args.extend(['-p', proxy])
         if data_sync_id:
             command_args.extend(['-d', data_sync_id])
