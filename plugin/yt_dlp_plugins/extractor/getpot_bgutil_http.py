@@ -6,9 +6,9 @@ import typing
 if typing.TYPE_CHECKING:
     from yt_dlp import YoutubeDL
 
+from yt_dlp.networking._helper import select_proxy
 from yt_dlp.networking.common import Features, Request
 from yt_dlp.networking.exceptions import RequestError, UnsupportedRequest
-from yt_dlp.utils.traversal import traverse_obj
 
 try:
     from yt_dlp_plugins.extractor.getpot import GetPOTProvider, register_preference, register_provider
@@ -27,7 +27,7 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
     VERSION = __version__
     _SUPPORTED_PROXY_SCHEMES = (
         'http', 'https', 'socks4', 'socks4a', 'socks5', 'socks5h')
-    _SUPPORTED_FEATURES = (Features.NO_PROXY, Features.ALL_PROXY, ...)
+    _SUPPORTED_FEATURES = (Features.NO_PROXY, Features.ALL_PROXY)
 
     def _validate_get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs):
         base_url = ydl.get_info_extractor('Youtube')._configuration_arg(
@@ -65,7 +65,7 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
                     'client': client,
                     'visitor_data': visitor_data,
                     'data_sync_id': data_sync_id,
-                    'proxy': traverse_obj(self.proxies, 'all'),
+                    'proxy': select_proxy('http://youtube.com', self.proxies),
                 }).encode(), headers={'Content-Type': 'application/json'},
                 extensions={'timeout': 12.5}, proxies={'all': None}))
         except Exception as e:
