@@ -58,7 +58,7 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
 
     def _get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs) -> str:
         self._logger.info('Generating POT via HTTP server')
-        if (proxy := select_proxy('https://jnn-pa.googleapis.com', self.proxies)
+        if ((proxy := select_proxy('https://jnn-pa.googleapis.com', self.proxies))
                 != select_proxy('https://youtube.com', self.proxies)):
             self._logger.warning(
                 'Proxies for https://youtube.com and https://jnn-pa.googleapis.com are different. '
