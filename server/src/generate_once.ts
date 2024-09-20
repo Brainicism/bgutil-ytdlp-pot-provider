@@ -7,14 +7,16 @@ const CACHE_PATH = path.resolve(__dirname, "..", "cache.json");
 const program = new Command()
     .option("-v, --visitor-data <visitordata>")
     .option("-d, --data-sync-id <data-sync-id>")
+    .option("-p, --proxy <proxy-all>")
     .option("--verbose");
 
 program.parse();
 const options = program.opts();
 
 (async () => {
-    const dataSyncId = options.dataSyncId;
     const visitorData = options.visitorData;
+    const dataSyncId = options.dataSyncId;
+    const proxy = options.proxy || "";
     const verbose = options.verbose || false;
     let visitIdentifier: string;
     const cache: YoutubeSessionDataCaches = {};
@@ -57,7 +59,11 @@ const options = program.opts();
         visitIdentifier = generatedVisitorData;
     }
 
-    const sessionData = await sessionManager.generatePoToken(visitIdentifier);
+    const sessionData = await sessionManager.generatePoToken(
+        visitIdentifier,
+        proxy,
+    );
+
     try {
         fs.writeFileSync(
             CACHE_PATH,

@@ -3,6 +3,7 @@
 [![Docker Image Version (tag)](https://img.shields.io/docker/v/brainicism/bgutil-ytdlp-pot-provider/latest?style=for-the-badge&label=docker)](https://hub.docker.com/r/brainicism/bgutil-ytdlp-pot-provider)
 [![GitHub Release](https://img.shields.io/github/v/release/Brainicism/bgutil-ytdlp-pot-provider?style=for-the-badge)](https://github.com/Brainicism/bgutil-ytdlp-pot-provider/releases)
 [![PyPI - Version](https://img.shields.io/pypi/v/bgutil-ytdlp-pot-provider?style=for-the-badge)](https://pypi.org/project/bgutil-ytdlp-pot-provider/)
+[![CI Status](https://img.shields.io/github/actions/workflow/status/Brainicism/bgutil-ytdlp-pot-provider/test.yml?branch=master&label=Tests&style=for-the-badge)](https://github.com/Brainicism/bgutil-ytdlp-pot-provider/actions/workflows/test.yml)
 
 A proof-of-origin token (POT) provider to be used alongside [coletdjnz's POT plugin framework](https://github.com/coletdjnz/yt-dlp-get-pot). We use [LuanRT's Botguard interfacing library](https://github.com/LuanRT/BgUtils) to generate the token.
 
@@ -22,7 +23,7 @@ The provider comes in two parts:
 1. **Requires yt-dlp `NIGHTLY 2024.09.13.232912` or above.**
 
 2. If using Docker image for option (a) for the provider, the Docker runtime is required.  
-Otherwise, Node.js and Yarn are required. You will also need to clone the repository.
+   Otherwise, Node.js (>= 18) and Yarn are required. You will also need to clone the repository.
 
 ### 1. Set up the provider
 
@@ -41,9 +42,9 @@ docker run --name bgutil-provider -d -p 4416:4416 brainicism/bgutil-ytdlp-pot-pr
 **Native:**
 
 ```shell
-# replace 0.4.0 with the latest version, or a matching plugin
-git clone --single-branch --branch 0.4.0 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
-cd bgutils-ytdlp-pot-provider/server/
+# replace 0.6.0 with the latest version, or a matching plugin
+git clone --single-branch --branch 0.6.0 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
+cd bgutil-ytdlp-pot-provider/server/
 yarn install --frozen-lockfile
 npx tsc
 node build/main.js
@@ -67,11 +68,12 @@ node build/main.js
 1. Transpile the generation script to Javascript:
 
 ```shell
-# Clone/extract the contents into your home directory (`~/` on Unix-based systems, `%USERPROFILE%` for Windows) if you want to use this method without needing to specify `getpot_bgutil_script` extractor argument on each yt-dlp invocation.
+# Clone/extract the contents into your home directory (`~/` on Unix-based systems, `%USERPROFILE%` for Windows)
+# if you want to use this method without needing to specify `getpot_bgutil_script` extractor argument on each yt-dlp invocation.
 cd ~
-# replace 0.4.0 with the latest version, or a matching plugin
-git clone --single-branch --branch 0.4.0 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
-cd bgutils-ytdlp-pot-provider/server/
+# replace 0.6.0 with the latest version, or a matching plugin
+git clone --single-branch --branch 0.6.0 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
+cd bgutil-ytdlp-pot-provider/server/
 yarn install --frozen-lockfile
 npx tsc
 ```
