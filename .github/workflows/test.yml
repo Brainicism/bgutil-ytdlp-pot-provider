@@ -52,19 +52,26 @@ jobs:
       - name: Test script method
         shell: bash
         run: |
-          if ! script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" dQw4w9WgXcQ 2>&1); then
-            echo "::error title=yt-dlp failed when testing script,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::yt-dlp returned $? exit status"
-            exit 1
-          fi
+          exit_code=0
+          script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" dQw4w9WgXcQ 2>&1) || \
+            ret=$?
 
           echo "::group::Logs from yt-dlp"
           printf "%s\n" "$script_response"
           echo "::endgroup::"
+
+          if [ "$ret" -ne 0 ]; then
+            echo "::error title=yt-dlp failed when testing script,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::yt-dlp returned $ret exit status"
+            [ "$exit_code" -eq 0 ] && exit_code=$ret
+          fi
+
           if [[ "$script_response" != *"BgUtilScriptPot: Generating POT via script: "* ]]; then
             echo "::error title=BgUtilScriptPot was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::\
           BgUtilScriptPot was not invoked"
-            exit 1
+            [ "$exit_code" -eq 0 ] && exit_code=1
           fi
+
+          exit $exit_code
 
   server-method:
     name: Test plugin (server method)
@@ -72,7 +79,7 @@ jobs:
     env:
       PORT: ${{ 4426 }}
       # Interval/Timeout in seconds to wait for the server to be up
-      INTERVAL: ${{ 0.4 }}
+      INTERVAL: ${{ 0.5 }}
       TIMEOUT: ${{ 7.5 }}
     steps:
       - uses: actions/checkout@v4
@@ -94,6 +101,7 @@ jobs:
         timeout-minutes: 3
         shell: bash
         run: |
+          exit_code=0
           ping() {
             until curl -o- --silent --fail http://127.0.0.1:${{ env.PORT }}/ping 2>&1; do
               sleep ${1:-0.5}
@@ -112,9 +120,8 @@ jobs:
           echo "$PING_RESP" | jq -C
           echo "::endgroup::"
 
-          if ! script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtube:getpot_bgutil_baseurl=http://127.0.0.1:${{ env.PORT }}" dQw4w9WgXcQ 2>&1); then
-            echo "::error title=yt-dlp failed when testing HTTP server,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py::yt-dlp returned $? exit status"
-          fi
+          script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtube:getpot_bgutil_baseurl=http://127.0.0.1:${{ env.PORT }}" dQw4w9WgXcQ 2>&1) || \
+            ret=$?
 
           docker stop bgutil-provider
 
@@ -125,9 +132,16 @@ jobs:
           echo "::group::Logs from yt-dlp"
           printf "%s\n" "$script_response"
           echo "::endgroup::"
+          
+          if [ "$ret" -ne 0 ]; then
+            echo "::error title=yt-dlp failed when testing HTTP server,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py::yt-dlp returned $ret exit status"
+            [ "$exit_code" -eq 0 ] && exit_code=$ret
+          fi
 
           if [[ "$script_response" != *"BgUtilHTTPPot: Generating POT via HTTP server"* ]]; then
             echo "::error title=BgUtilHTTPPot was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py::\
           BgUtilHTTPPot was not invoked"
-            exit 1
+            [ "$exit_code" -eq 0 ] && exit_code=1
           fi
+
+          exit $exit_code
