@@ -1,6 +1,6 @@
 ### Coding conventions
 
-Since the provider comes in two parts(the **Provider**(coded in typescript) and the **Provider plugin**(coded in python)), we have different code formatting standards for them.  
+Since the provider consists of two parts(the **Provider**(coded in typescript) and the **Provider plugin**(coded in python)), we have different code formatting standards for them.  
 Please format your code by running this script below before you push a commit:
 
 ```shell
