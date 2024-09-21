@@ -53,9 +53,11 @@ jobs:
         shell: bash
         run: |
           exit_code=0
-          script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" dQw4w9WgXcQ 2>&1)\
-            ||true
-          ret=$?
+
+          {
+            script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" dQw4w9WgXcQ 2>&1)
+            ret=$?
+          } || true
 
           echo "::group::Logs from yt-dlp"
           printf "%s\n" "$script_response"
@@ -121,9 +123,10 @@ jobs:
           echo "$PING_RESP" | jq -C
           echo "::endgroup::"
 
-          script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtube:getpot_bgutil_baseurl=http://127.0.0.1:${{ env.PORT }}" dQw4w9WgXcQ 2>&1)\
-            ||true
-          ret=$?
+          {
+            script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtube:getpot_bgutil_baseurl=http://127.0.0.1:${{ env.PORT }}" dQw4w9WgXcQ 2>&1)
+            ret=$?
+          } || true
 
           docker stop bgutil-provider
 
