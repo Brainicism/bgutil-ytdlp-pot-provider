@@ -4,21 +4,27 @@ Since the provider comes in two parts(the **Provider**(coded in typescript) and 
 Please format your code by running this script below before you push a commit:
 
 ```shell
-# Make sure you have ruff, autopep8 and prettier installed already
+# Make sure you have ruff, autopep8, eslint and prettier installed already
 ruff check --fix plugin/
 autopep8 --in-place plugin/
 
-npx prettier --check --write "server/src/**/*.{js,ts}"
+cd server
+npx eslint --fix --max-warnings=0 src/
+npx prettier --check --write "src/**/*.{js,ts}"
+cd ..
 ```
 
-If you don't want the code formatter to change your code, you may check if there's any problem with your code with this script:
+If you don't want the code formatter to fix your code automatically, you may check if there's any problem with your code with this script:
 
 ```shell
-# Make sure you have ruff, autopep8 and prettier installed already
+# Make sure you have ruff, autopep8, eslint and prettier installed already
 ruff check plugin/
 autopep8 plugin/
 
-npx prettier --check --write "server/src/**/*.{js,ts}"
+cd server
+npx eslint --max-warnings=0 src/
+npx prettier --check "src/**/*.{js,ts}"
+cd ..
 ```
 
 #### **Provider**(typescript):
