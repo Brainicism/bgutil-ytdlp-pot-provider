@@ -52,9 +52,10 @@ jobs:
       - name: Test script method
         shell: bash
         run: |
-          script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" dQw4w9WgXcQ 2>&1) || \
-            echo "::error title=Failed to run yt-dlp when testing script::\
-          yt-dlp returned $? exit status"
+          if ! script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" dQw4w9WgXcQ 2>&1); then
+            echo "::error title=yt-dlp failed when testing script,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::yt-dlp returned $? exit status"
+            exit 1
+          fi
 
           echo "::group::Logs from yt-dlp"
           printf "%s\n" "$script_response"
@@ -111,9 +112,9 @@ jobs:
           echo "$PING_RESP" | jq -C
           echo "::endgroup::"
 
-          script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtube:getpot_bgutil_baseurl=http://127.0.0.1:${{ env.PORT }}" dQw4w9WgXcQ 2>&1) || \
-            echo "::error title=Failed to run yt-dlp when testing HTTP server::\
-          yt-dlp returned $? exit status"
+          if ! script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtube:getpot_bgutil_baseurl=http://127.0.0.1:${{ env.PORT }}" dQw4w9WgXcQ 2>&1); then
+            echo "::error title=yt-dlp failed when testing HTTP server,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py::yt-dlp returned $? exit status"
+          fi
 
           docker stop bgutil-provider
 
