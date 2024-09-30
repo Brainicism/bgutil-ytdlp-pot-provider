@@ -1,7 +1,7 @@
 # BgUtils POT Provider
 
 > [!CAUTION]
-> No longer working as of 9/21/24. See [#37](https://github.com/Brainicism/bgutil-ytdlp-pot-provider/issues/37) for more details.
+> Passing PO tokens no longer bypasses the bot check for majority of cases. See [#37](https://github.com/Brainicism/bgutil-ytdlp-pot-provider/issues/37) for more details.
 
 [![Docker Image Version (tag)](https://img.shields.io/docker/v/brainicism/bgutil-ytdlp-pot-provider/latest?style=for-the-badge&label=docker)](https://hub.docker.com/r/brainicism/bgutil-ytdlp-pot-provider)
 [![GitHub Release](https://img.shields.io/github/v/release/Brainicism/bgutil-ytdlp-pot-provider?style=for-the-badge)](https://github.com/Brainicism/bgutil-ytdlp-pot-provider/releases)
