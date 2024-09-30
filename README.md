@@ -23,7 +23,7 @@ The provider comes in two parts:
 
 ### Base Requirements
 
-1. **Requires yt-dlp `NIGHTLY 2024.09.13.232912` or above.**
+1. **Requires yt-dlp `2024.09.27` or above.**
 
 2. If using Docker image for option (a) for the provider, the Docker runtime is required.  
    Otherwise, Node.js (>= 18) and Yarn are required. You will also need to clone the repository.
