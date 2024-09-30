@@ -11,7 +11,7 @@
             "name": "grqz"
         }
     ],
-    "version": "0.6.0",
+    "version": "0.6.1",
     "scripts": {
         "lint": "npx eslint --max-warnings=0 src/",
         "lint-fix": "npx eslint --fix --max-warnings=0 src/",
