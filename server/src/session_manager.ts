@@ -188,7 +188,7 @@ export class SessionManager {
                 }
             },
             globalObj: globalThis,
-            identity: visitIdentifier,
+            identifier: visitIdentifier,
             requestKey,
         };
 

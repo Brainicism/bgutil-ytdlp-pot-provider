@@ -1,5 +1,8 @@
 # BgUtils POT Provider
 
+> [!CAUTION]
+> Passing PO tokens no longer bypasses the bot check for majority of cases. See [#37](https://github.com/Brainicism/bgutil-ytdlp-pot-provider/issues/37) for more details.
+
 [![Docker Image Version (tag)](https://img.shields.io/docker/v/brainicism/bgutil-ytdlp-pot-provider/latest?style=for-the-badge&label=docker)](https://hub.docker.com/r/brainicism/bgutil-ytdlp-pot-provider)
 [![GitHub Release](https://img.shields.io/github/v/release/Brainicism/bgutil-ytdlp-pot-provider?style=for-the-badge)](https://github.com/Brainicism/bgutil-ytdlp-pot-provider/releases)
 [![PyPI - Version](https://img.shields.io/pypi/v/bgutil-ytdlp-pot-provider?style=for-the-badge)](https://pypi.org/project/bgutil-ytdlp-pot-provider/)
@@ -20,7 +23,7 @@ The provider comes in two parts:
 
 ### Base Requirements
 
-1. Requires yt-dlp `NIGHTLY 2024.09.13.232912` or above.
+1. Requires yt-dlp `2024.09.27` or above.
 
 2. If using Docker image for option (a) for the provider, the Docker runtime is required.  
    Otherwise, Node.js (>= 18) and Yarn are required. You will also need git to clone the repository.
