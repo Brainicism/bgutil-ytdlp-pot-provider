@@ -201,20 +201,24 @@ export class SessionManager {
             );
         }
         if (!challenge) throw new Error("Could not get Botguard challenge");
-        if (challenge.script) {
-            const script = challenge.script.find((sc) => sc !== null);
-            if (script) new Function(script)();
-        } else {
-            this.logger.log("Unable to load Botguard.");
-        }
+
+        const interpreterJavascript =
+            challenge.interpreterJavascript
+                .privateDoNotAccessOrElseSafeScriptWrappedValue;
+
+        if (interpreterJavascript) {
+            new Function(interpreterJavascript)();
+        } else throw new Error("Could not load VM");
 
         let poToken: string | undefined;
         try {
-            poToken = await BG.PoToken.generate({
-                program: challenge.challenge,
+            const poTokenResult = await BG.PoToken.generate({
+                program: challenge.program,
                 globalName: challenge.globalName,
                 bgConfig,
             });
+
+            poToken = poTokenResult.poToken;
         } catch (e) {
             throw new Error(
                 `Error while trying to generate PO token. e = ${e}`,
@@ -228,12 +232,14 @@ export class SessionManager {
             throw new Error("po_token unexpected undefined");
         }
 
-        this.youtubeSessionDataCaches[visitIdentifier] = {
+        const youtubeSessionData = {
             visitIdentifier: visitIdentifier,
             poToken: poToken,
             generatedAt: new Date(),
         };
 
-        return this.youtubeSessionDataCaches[visitIdentifier];
+        this.youtubeSessionDataCaches[visitIdentifier] = youtubeSessionData;
+
+        return youtubeSessionData;
     }
 }
