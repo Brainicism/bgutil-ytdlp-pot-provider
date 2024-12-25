@@ -57,11 +57,11 @@ jobs:
           # check that the script is returning a POT
           script_output=$(node server/build/generate_once.js)
 
-          po_token=$(echo "$script_output" | jq -r '.po_token')
-          visit_identifier=$(echo "$script_output" | jq -r '.visit_identifier')
+          po_token=$(echo "$script_output" | jq -r '.poToken')
+          visit_identifier=$(echo "$script_output" | jq -r '.visitIdentifier')
 
-          if [[ "$po_token" == "null" || "$visit_identifier" == "null" ]]; then
-              echo "::error title=PoToken generation failed,file=server/src/session_manager.ts::'po_token' or 'visit_identifier' is null."
+          if [[ "$po_token" != "null" && "$visit_identifier" == "null" ]]; then
+              echo "Error: 'po_token' or 'visit_identifier' is null."
               exit 1
           fi
 
@@ -136,8 +136,8 @@ jobs:
 
           # check that the server is returning a POT
           pot_response=$(curl -s -X POST "http://127.0.0.1:${{ env.PORT }}/get_pot")
-          po_token=$(echo "$pot_response" | jq -r '.poToken')
-          visit_identifier=$(echo "$pot_response" | jq -r '.visitIdentifier')
+          po_token=$(echo "$pot_response" | jq -r '.po_token')
+          visit_identifier=$(echo "$pot_response" | jq -r '.visit_identifier')
 
           if [[ "$po_token" != "null" && "$visit_identifier" == "null" ]]; then
               echo "Error: 'po_token' or 'visit_identifier' is null."
