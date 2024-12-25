@@ -63,7 +63,7 @@ httpServer.post("/get_pot", async (request, response) => {
         });
     } catch (e) {
         console.error(
-            `Failed while generating POT. err = ${JSON.stringify(e)}`,
+            `Failed while generating POT. err.name = ${e.name}. err.message = ${e.message}. err.stack = ${e.stack}`,
         );
         response.status(500).send({ error: JSON.stringify(e) });
     }

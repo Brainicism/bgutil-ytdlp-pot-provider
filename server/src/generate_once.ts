@@ -74,13 +74,15 @@ const options = program.opts();
                 "utf8",
             );
         } catch (e) {
-            console.warn(`Error writing cache. e = ${e}`);
+            console.warn(
+                `Error writing cache. err.name = ${e.name}. err.message = ${e.message}. err.stack = ${e.stack}`,
+            );
         } finally {
             console.log(JSON.stringify(sessionData));
         }
     } catch (e) {
         console.error(
-            `Failed while generating POT. err = ${JSON.stringify(e)}`,
+            `Failed while generating POT. err.name = ${e.name}. err.message = ${e.message}. err.stack = ${e.stack}`,
         );
         console.log(JSON.stringify({}));
         process.exit(1);

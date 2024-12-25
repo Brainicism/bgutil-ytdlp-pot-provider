@@ -5,6 +5,7 @@ import { HttpsProxyAgent } from "https-proxy-agent";
 import axios from "axios";
 import { Agent } from "https";
 import { SocksProxyAgent } from "socks-proxy-agent";
+import { error } from "console";
 
 interface YoutubeSessionData {
     poToken: string;
@@ -217,7 +218,7 @@ export class SessionManager {
             });
         } catch (e) {
             throw new Error(
-                `Error while trying to generate PO token. e = ${e}`,
+                `Error while trying to generate PO token. err.name = ${e.name}. err.message = ${e.message}. err.stack = ${e.stack}`,
             );
         }
 
