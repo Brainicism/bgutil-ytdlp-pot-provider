@@ -5,7 +5,6 @@ import { HttpsProxyAgent } from "https-proxy-agent";
 import axios from "axios";
 import { Agent } from "https";
 import { SocksProxyAgent } from "socks-proxy-agent";
-import { error } from "console";
 
 interface YoutubeSessionData {
     poToken: string;
