@@ -177,13 +177,13 @@ export class SessionManager {
                             return response.data;
                         },
                     };
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 } catch (e) {
                     return {
                         ok: false,
                         json: async () => {
                             return null;
                         },
+                        status: e.response?.status || e.code,
                     };
                 }
             },
@@ -218,6 +218,7 @@ export class SessionManager {
         } catch (e) {
             throw new Error(
                 `Error while trying to generate PO token. err.name = ${e.name}. err.message = ${e.message}. err.stack = ${e.stack}`,
+                { cause: e },
             );
         }
 
