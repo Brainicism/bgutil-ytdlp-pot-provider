@@ -1,7 +1,7 @@
 # BgUtils POT Provider
 
 > [!CAUTION]
-> Passing PO tokens no longer bypasses the bot check for majority of cases. See [#37](https://github.com/Brainicism/bgutil-ytdlp-pot-provider/issues/37) for more details.
+> Providing a PO token does not guarantee bypassing 403 errors or bot checks, but it _may_ help your traffic seem more legitimate.
 
 [![Docker Image Version (tag)](https://img.shields.io/docker/v/brainicism/bgutil-ytdlp-pot-provider/latest?style=for-the-badge&label=docker)](https://hub.docker.com/r/brainicism/bgutil-ytdlp-pot-provider)
 [![GitHub Release](https://img.shields.io/github/v/release/Brainicism/bgutil-ytdlp-pot-provider?style=for-the-badge)](https://github.com/Brainicism/bgutil-ytdlp-pot-provider/releases)
@@ -65,11 +65,11 @@ node build/main.js
 - **POST /get_pot**: Accepts a `visitor_data` (unauthenticated), `data_sync_id` (authenticated) or an empty body in the request body. If no identifier is passed, a new unauthenticated `visitor_data` will be generated. Returns `po_token` and the associated identifier `visit_identifier`.
 - **POST /invalidate_caches**: Resets the PO token cache, forcing new tokens to be generated on next fetch.
 - **GET /ping**: Ping the server. The response includes:
-   * `logging`: Logging verbosity(`normal` or `verbose`)
-   * `token_ttl_hours`: The current applied `TOKEN_TTL` value, defaults to 6.
-   * `server_uptime`: Uptime of the server process.
-   * `version`: Current server version.
-</details>
+  - `logging`: Logging verbosity(`normal` or `verbose`)
+  - `token_ttl_hours`: The current applied `TOKEN_TTL` value, defaults to 6.
+  - `server_uptime`: Uptime of the server process.
+  - `version`: Current server version.
+  </details>
 
 #### (b) Generation Script Option
 
