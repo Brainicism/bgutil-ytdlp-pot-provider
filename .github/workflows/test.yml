@@ -60,7 +60,7 @@ jobs:
           po_token=$(echo "$script_output" | jq -r '.po_token')
           visit_identifier=$(echo "$script_output" | jq -r '.visit_identifier')
 
-          if [[ "$po_token" != "null" && "$visit_identifier" == "null" ]]; then
+          if [[ "$po_token" == "null" || "$visit_identifier" == "null" ]]; then
               echo "Error: 'po_token' or 'visit_identifier' is null."
               exit 1
           fi
