@@ -61,7 +61,7 @@ jobs:
           visit_identifier=$(echo "$script_output" | jq -r '.visit_identifier')
 
           if [[ "$po_token" == "null" || "$visit_identifier" == "null" ]]; then
-              echo "Error: 'po_token' or 'visit_identifier' is null."
+              echo "::error title=PoToken generation failed,file=server/src/session_manager.ts::'po_token' or 'visit_identifier' is null."
               exit 1
           fi
 
