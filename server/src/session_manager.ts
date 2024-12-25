@@ -198,6 +198,7 @@ export class SessionManager {
         } catch (e) {
             throw new Error(
                 `Error while attempting to retrieve BG challenge. err = ${JSON.stringify(e)}`,
+                { cause: e },
             );
         }
         if (!challenge) throw new Error("Could not get Botguard challenge");
