@@ -59,20 +59,32 @@ const options = program.opts();
         visitIdentifier = generatedVisitorData;
     }
 
-    const sessionData = await sessionManager.generatePoToken(
-        visitIdentifier,
-        proxy,
-    );
-
     try {
-        fs.writeFileSync(
-            CACHE_PATH,
-            JSON.stringify(sessionManager.getYoutubeSessionDataCaches(true)),
-            "utf8",
+        const sessionData = await sessionManager.generatePoToken(
+            visitIdentifier,
+            proxy,
         );
+
+        try {
+            fs.writeFileSync(
+                CACHE_PATH,
+                JSON.stringify(
+                    sessionManager.getYoutubeSessionDataCaches(true),
+                ),
+                "utf8",
+            );
+        } catch (e) {
+            console.warn(
+                `Error writing cache. err.name = ${e.name}. err.message = ${e.message}. err.stack = ${e.stack}`,
+            );
+        } finally {
+            console.log(JSON.stringify(sessionData));
+        }
     } catch (e) {
-        console.warn(`Error writing cache. e = ${e}`);
-    } finally {
-        console.log(JSON.stringify(sessionData));
+        console.error(
+            `Failed while generating POT. err.name = ${e.name}. err.message = ${e.message}. err.stack = ${e.stack}`,
+        );
+        console.log(JSON.stringify({}));
+        process.exit(1);
     }
 })();

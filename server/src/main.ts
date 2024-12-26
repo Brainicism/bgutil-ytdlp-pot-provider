@@ -51,14 +51,22 @@ httpServer.post("/get_pot", async (request, response) => {
         visitIdentifier = generatedVisitorData;
     }
 
-    const sessionData = await sessionManager.generatePoToken(
-        visitIdentifier,
-        proxy,
-    );
-    response.send({
-        po_token: sessionData.poToken,
-        visit_identifier: sessionData.visitIdentifier,
-    });
+    try {
+        const sessionData = await sessionManager.generatePoToken(
+            visitIdentifier,
+            proxy,
+        );
+
+        response.send({
+            po_token: sessionData.poToken,
+            visit_identifier: sessionData.visitIdentifier,
+        });
+    } catch (e) {
+        console.error(
+            `Failed while generating POT. err.name = ${e.name}. err.message = ${e.message}. err.stack = ${e.stack}`,
+        );
+        response.status(500).send({ error: JSON.stringify(e) });
+    }
 });
 
 httpServer.post("/invalidate_caches", async (request, response) => {

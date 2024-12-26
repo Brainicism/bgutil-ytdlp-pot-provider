@@ -45,8 +45,8 @@ docker run --name bgutil-provider -d -p 4416:4416 brainicism/bgutil-ytdlp-pot-pr
 **Native:**
 
 ```shell
-# Replace 0.6.0 with the latest version or the one that matches the plugin
-git clone --single-branch --branch 0.6.0 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
+# Replace 0.7.0 with the latest version or the one that matches the plugin
+git clone --single-branch --branch 0.7.0 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
 cd bgutil-ytdlp-pot-provider/server/
 yarn install --frozen-lockfile
 npx tsc
@@ -80,8 +80,8 @@ node build/main.js
 # on each yt-dlp invocation, clone/extract the source code into your home directory.
 # Replace `~` with `%USERPROFILE%` if using Windows
 cd ~
-# Replace 0.6.0 with the latest version or the one that matches the plugin
-git clone --single-branch --branch 0.6.0 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
+# Replace 0.7.0 with the latest version or the one that matches the plugin
+git clone --single-branch --branch 0.7.0 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
 cd bgutil-ytdlp-pot-provider/server/
 yarn install --frozen-lockfile
 npx tsc
