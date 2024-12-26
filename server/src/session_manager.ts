@@ -165,30 +165,38 @@ export class SessionManager {
 
         const bgConfig: BgConfig = {
             fetch: async (url: any, options: any): Promise<any> => {
-                try {
-                    const response = await axios.post(url, options.body, {
-                        headers: {
-                            ...options.headers,
-                            "User-Agent":
-                                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-                        },
-                        httpsAgent: dispatcher,
-                    });
+                const max_retries = 3;
+                for (let attempts = 1; attempts <= max_retries; attempts++) {
+                    try {
+                        const response = await axios.post(url, options.body, {
+                            headers: {
+                                ...options.headers,
+                                "User-Agent":
+                                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+                            },
+                            httpsAgent: dispatcher,
+                        });
 
-                    return {
-                        ok: true,
-                        json: async () => {
-                            return response.data;
-                        },
-                    };
-                } catch (e) {
-                    return {
-                        ok: false,
-                        json: async () => {
-                            return null;
-                        },
-                        status: e.response?.status || e.code,
-                    };
+                        return {
+                            ok: true,
+                            json: async () => {
+                                return response.data;
+                            },
+                        };
+                    } catch (e) {
+                        if (attempts >= max_retries) {
+                            return {
+                                ok: false,
+                                json: async () => {
+                                    return null;
+                                },
+                                status: e.response?.status || e.code,
+                            };
+                        }
+                        await new Promise((resolve) =>
+                            setTimeout(resolve, 1500),
+                        );
+                    }
                 }
             },
             globalObj: globalThis,
