@@ -194,7 +194,7 @@ export class SessionManager {
                             };
                         }
                         await new Promise((resolve) =>
-                            setTimeout(resolve, 1500),
+                            setTimeout(resolve, 5000),
                         );
                     }
                 }
