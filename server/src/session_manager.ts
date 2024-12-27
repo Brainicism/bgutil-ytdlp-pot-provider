@@ -165,8 +165,8 @@ export class SessionManager {
 
         const bgConfig: BgConfig = {
             fetch: async (url: any, options: any): Promise<any> => {
-                const max_retries = 3;
-                for (let attempts = 1; attempts <= max_retries; attempts++) {
+                const maxRetries = 3;
+                for (let attempts = 1; attempts <= maxRetries; attempts++) {
                     try {
                         const response = await axios.post(url, options.body, {
                             headers: {
@@ -184,7 +184,7 @@ export class SessionManager {
                             },
                         };
                     } catch (e) {
-                        if (attempts >= max_retries) {
+                        if (attempts >= maxRetries) {
                             return {
                                 ok: false,
                                 json: async () => {
