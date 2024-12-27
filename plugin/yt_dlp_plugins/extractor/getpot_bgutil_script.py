@@ -98,7 +98,7 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
             script_data_resp = json.loads(stdout.splitlines()[-1])
         except json.JSONDecodeError as e:
             raise RequestError(
-                f'Error parsing JSON response from _get_pot_via_script (caused by {e!s})') from e
+                f'Error parsing JSON response from _get_pot_via_script (caused by {e!r})') from e
         else:
             self._logger.debug(
                 f'_get_pot_via_script response = {script_data_resp}')

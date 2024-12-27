@@ -40,12 +40,12 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
                 f'{base_url}/ping', extensions={'timeout': 5.0}, proxies={'all': None}))
         except Exception as e:
             raise UnsupportedRequest(
-                f'Error reaching GET /ping (caused by {e!s})') from e
+                f'Error reaching GET /ping (caused by {e!r})') from e
         try:
             response = json.load(response)
         except json.JSONDecodeError as e:
             raise UnsupportedRequest(
-                f'Error parsing response JSON (caused by {e!s})'
+                f'Error parsing response JSON (caused by {e!r})'
                 f', response: {response.read()}') from e
         if response.get('version') != self.VERSION:
             self._logger.warning(
@@ -75,13 +75,13 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
                 extensions={'timeout': 20.0}, proxies={'all': None}))
         except Exception as e:
             raise RequestError(
-                f'Error reaching POST /get_pot (caused by {e!s})') from e
+                f'Error reaching POST /get_pot (caused by {e!r})') from e
 
         try:
             response_json = json.load(response)
         except Exception as e:
             raise RequestError(
-                f'Error parsing response JSON (caused by {e!s}). response = {response.read().decode()}') from e
+                f'Error parsing response JSON (caused by {e!r}). response = {response.read().decode()}') from e
 
         if error_msg := response_json.get('error'):
             raise RequestError(error_msg)
