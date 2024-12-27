@@ -72,7 +72,7 @@ class BgUtilHTTPPotProviderRH(GetPOTProvider):
                     'data_sync_id': data_sync_id,
                     'proxy': proxy,
                 }).encode(), headers={'Content-Type': 'application/json'},
-                extensions={'timeout': 20}, proxies={'all': None}))
+                extensions={'timeout': 20.0}, proxies={'all': None}))
         except Exception as e:
             raise RequestError(
                 f'Error reaching POST /get_pot (caused by {e!s})') from e

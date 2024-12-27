@@ -76,10 +76,14 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
 
         try:
             stdout, stderr, returncode = Popen.run(
-                command_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                command_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                timeout=20.0)
+        except subprocess.TimeoutExpired as e:
+            raise RequestError(
+                f'_get_pot_via_script failed: Timeout expired when trying to run script (caused by {e!r})')
         except Exception as e:
             raise RequestError(
-                f'_get_pot_via_script failed: Unable to run script (caused by {e!s})') from e
+                f'_get_pot_via_script failed: Unable to run script (caused by {e!r})') from e
 
         msg = f'stdout:\n{stdout.strip()}'
         if stderr.strip():  # Empty strings are falsy
