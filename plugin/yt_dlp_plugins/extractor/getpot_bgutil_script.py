@@ -65,9 +65,9 @@ class BgUtilScriptPotProviderRH(GetPOTProvider):
                     'This is likely to cause subsequent errors.')
             command_args.extend(['-p', proxy])
         if data_sync_id:
-            command_args.extend(['-d', data_sync_id])
+            command_args.extend(['-d', f"'{data_sync_id}'"])
         elif visitor_data:
-            command_args.extend(['-v', visitor_data])
+            command_args.extend(['-v', f"'{visitor_data}'"])
         else:
             raise RequestError(
                 'Unexpected missing visitorData and dataSyncId in _get_pot_via_script')
