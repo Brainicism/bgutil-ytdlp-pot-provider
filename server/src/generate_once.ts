@@ -3,7 +3,30 @@ import { Command } from "@commander-js/extra-typings";
 import * as fs from "fs";
 import * as path from "path";
 
-const CACHE_PATH = path.resolve(__dirname, "..", "cache.json");
+// Follow XDG Base Directory Specification: https://specifications.freedesktop.org/basedir-spec/latest/
+let cachedir;
+if ("XDG_CACHE_HOME" in process.env) {
+    cachedir = path.resolve(
+        process.env.XDG_CACHE_HOME || "",
+        "bgutil-ytdlp-pot-provider",
+    );
+} else if ("HOME" in process.env) {
+    cachedir = path.resolve(
+        process.env.HOME || "",
+        ".cache",
+        "bgutil-ytdlp-pot-provider",
+    );
+} else {
+    // fall back to a known path if environment variables are not found
+    cachedir = path.resolve(__dirname, "..");
+}
+if (!fs.existsSync(cachedir)) {
+    fs.mkdir(cachedir, { recursive: true }, (err) => {
+        if (err) throw err;
+    });
+}
+const CACHE_PATH = path.resolve(cachedir, "cache.json");
+
 const program = new Command()
     .option("-v, --visitor-data <visitordata>")
     .option("-d, --data-sync-id <data-sync-id>")
