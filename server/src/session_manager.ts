@@ -117,7 +117,7 @@ export class SessionManager {
                 loggedProxy = proxy.replace(parsedUrl.password, "****");
             }
         } catch (e) {
-            this.logger.warn(`Fail to parse proxy url ${proxy}: ${e}`)
+            this.logger.warn(`Fail to parse proxy url ${proxy}: ${e}`);
         }
 
         switch (protocol) {
