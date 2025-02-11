@@ -116,7 +116,6 @@ export class SessionManager {
             if (parsedUrl.password) {
                 loggedProxy = proxy.replace(parsedUrl.password, "****");
             }
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (e) {
             this.logger.warn(`Fail to parse proxy url ${proxy}: ${e}`)
         }
