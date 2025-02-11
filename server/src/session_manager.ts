@@ -100,8 +100,8 @@ export class SessionManager {
     getProxyDispatcher(proxy: string | undefined): Agent | undefined {
         if (!proxy) return undefined;
         let protocol: string;
-        const parsedUrl = new URL(proxy);
         try {
+            const parsedUrl = new URL(proxy);
             protocol = parsedUrl.protocol.replace(":", "");
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (e) {
@@ -110,25 +110,31 @@ export class SessionManager {
             proxy = `http://${proxy}`;
         }
 
-        let logProxyUrl: string = proxy;
-        if (parsedUrl.password) {
-            logProxyUrl = proxy.replace(parsedUrl.password, "****");
+        let loggedProxy: string = proxy;
+        try {
+            const parsedUrl = new URL(proxy);
+            if (parsedUrl.password) {
+                loggedProxy = proxy.replace(parsedUrl.password, "****");
+            }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (e) {
+            this.logger.warn(`Fail to parse proxy url ${proxy}: ${e}`)
         }
 
         switch (protocol) {
             case "http":
             case "https":
-                this.logger.log(`Using HTTP/HTTPS proxy: ${logProxyUrl}`);
+                this.logger.log(`Using HTTP/HTTPS proxy: ${loggedProxy}`);
                 return new HttpsProxyAgent(proxy);
             case "socks":
             case "socks4":
             case "socks4a":
             case "socks5":
             case "socks5h":
-                this.logger.log(`Using SOCKS proxy: ${logProxyUrl}`);
+                this.logger.log(`Using SOCKS proxy: ${loggedProxy}`);
                 return new SocksProxyAgent(proxy);
             default:
-                this.logger.warn(`Unsupported proxy protocol: ${logProxyUrl}`);
+                this.logger.warn(`Unsupported proxy protocol: ${loggedProxy}`);
                 return undefined;
         }
     }
