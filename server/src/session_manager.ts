@@ -128,7 +128,7 @@ export class SessionManager {
                 this.logger.log(`Using SOCKS proxy: ${logProxyUrl}`);
                 return new SocksProxyAgent(proxy);
             default:
-                this.logger.warn(`Unsupported proxy protocol: ${proxy}`);
+                this.logger.warn(`Unsupported proxy protocol: ${logProxyUrl}`);
                 return undefined;
         }
     }
