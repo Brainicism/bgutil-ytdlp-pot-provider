@@ -118,6 +118,7 @@ export class SessionManager {
             }
         } catch (e) {
             this.logger.warn(`Fail to parse proxy url ${proxy}: ${e}`);
+            return undefined;
         }
 
         switch (protocol) {
