@@ -17,7 +17,19 @@ except ImportError:
 else:
     @getpot.register_provider
     class BgUtilHTTPGetPOTRH(BgUtilBaseGetPOTRH):
-        def _validate_get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs):
+        def _validate_get_pot(
+            self,
+            client: str,
+            ydl: YoutubeDL,
+            visitor_data=None,
+            data_sync_id=None,
+            session_index=None,
+            player_url=None,
+            context=None,
+            video_id=None,
+            ytcfg=None,
+            **kwargs,
+        ):
             base_url = ydl.get_info_extractor('Youtube')._configuration_arg(
                 'getpot_bgutil_baseurl', ['http://127.0.0.1:4416'], casesense=True)[0]
             if not data_sync_id and not visitor_data:
@@ -28,7 +40,7 @@ else:
                     f'{base_url}/ping', extensions={'timeout': 5.0}, proxies={'all': None}))
             except Exception as e:
                 self.warn_and_raise(
-                    f'Error reaching GET /ping (caused by {e})', raise_from=e)
+                    f'Error reaching GET /ping (caused by {e.__class__.__name__})', raise_from=e)
             try:
                 response = json.load(response)
             except json.JSONDecodeError as e:
@@ -44,7 +56,19 @@ else:
                     once=True)
             self.base_url = base_url
 
-        def _get_pot(self, client: str, ydl: YoutubeDL, visitor_data=None, data_sync_id=None, player_url=None, **kwargs) -> str:
+        def _get_pot(
+            self,
+            client: str,
+            ydl: YoutubeDL,
+            visitor_data=None,
+            data_sync_id=None,
+            session_index=None,
+            player_url=None,
+            context=None,
+            video_id=None,
+            ytcfg=None,
+            **kwargs,
+        ) -> str:
             self._logger.info('Generating POT via HTTP server')
             if ((proxy := select_proxy('https://jnn-pa.googleapis.com', self.proxies))
                     != select_proxy('https://youtube.com', self.proxies)):
@@ -60,7 +84,7 @@ else:
                         'data_sync_id': data_sync_id,
                         'proxy': proxy,
                     }).encode(), headers={'Content-Type': 'application/json'},
-                    extensions={'timeout': 20.0}, proxies={'all': None}))
+                    extensions={'timeout': self._GETPOT_TIMEOUT}, proxies={'all': None}))
             except Exception as e:
                 raise RequestError(
                     f'Error reaching POST /get_pot (caused by {e!r})') from e

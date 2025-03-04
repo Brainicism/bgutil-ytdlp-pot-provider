@@ -64,7 +64,7 @@ else:
             try:
                 stdout, stderr, returncode = Popen.run(
                     command_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-                    timeout=20.0)
+                    timeout=self._GETPOT_TIMEOUT)
             except subprocess.TimeoutExpired as e:
                 raise RequestError(
                     f'_get_pot_via_script failed: Timeout expired when trying to run script (caused by {e!r})')

@@ -17,6 +17,7 @@ class BgUtilBaseGetPOTRH(getpot.GetPOTProvider):
     _SUPPORTED_PROXY_SCHEMES = (
         'http', 'https', 'socks4', 'socks4a', 'socks5', 'socks5h')
     _SUPPORTED_FEATURES = (Features.NO_PROXY, Features.ALL_PROXY)
+    _SUPPORTED_CONTEXTS = ('gvs',)
     _GETPOT_TIMEOUT = 20.0
 
     def warn_and_raise(self, msg, once=True, raise_from=None):
