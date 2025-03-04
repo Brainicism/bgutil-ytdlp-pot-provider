@@ -82,9 +82,9 @@ jobs:
             echo "::warning title=yt-dlp failed when testing script,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::yt-dlp returned $ret exit status"
           fi
 
-          if [[ "$script_response" != *"BgUtilScriptPot: Generating POT via script: "* ]]; then
-            echo "::error title=BgUtilScriptPot was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::\
-          BgUtilScriptPot was not invoked"
+          if [[ "$script_response" != *"BgUtilScript: Generating POT via script: "* ]]; then
+            echo "::error title=BgUtilScript was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::\
+          BgUtilScript was not invoked"
             [ "$exit_code" -eq 0 ] && exit_code=1
           fi
 
@@ -170,9 +170,9 @@ jobs:
             echo "::warning title=yt-dlp failed when testing HTTP server,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py::yt-dlp returned $ret exit status"
           fi
 
-          if [[ "$script_response" != *"BgUtilHTTPPot: Generating POT via HTTP server"* ]]; then
-            echo "::error title=BgUtilHTTPPot was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py::\
-          BgUtilHTTPPot was not invoked"
+          if [[ "$script_response" != *"BgUtilHTTP: Generating POT via HTTP server"* ]]; then
+            echo "::error title=BgUtilHTTP was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py::\
+          BgUtilHTTP was not invoked"
             [ "$exit_code" -eq 0 ] && exit_code=1
           fi
 
