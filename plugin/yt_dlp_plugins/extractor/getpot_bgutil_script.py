@@ -115,10 +115,9 @@ else:
                     f'Error parsing JSON response from _get_pot_via_script (caused by {e!r})') from e
             if 'poToken' not in script_data_resp:
                 raise RequestError('The script did not respond with a po_token')
-            else:
-                return self._cache_token(
-                    script_data_resp['poToken'],
-                    content_binding=self.content_binding, context=context)
+            return self._cache_token(
+                script_data_resp['poToken'],
+                content_binding=self.content_binding, context=context)
 
     @getpot.register_preference(BgUtilScriptGetPOTRH)
     def bgutil_script_getpot_preference(rh, request):
