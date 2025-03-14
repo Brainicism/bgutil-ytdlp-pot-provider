@@ -64,7 +64,7 @@ node build/main.js
 
 - **POST /get_pot**: Generate a new POT.
   - The request data should be a JSON including:
-    - `visitor_data`: Content binding (optional, a new unauthenticated visitor data will be generated if not passed).
+    - `visitor_data`: Content binding (required).
     - `proxy`: A string indicating the proxy to use for the requests (optional).
   - Returns a JSON:
     - `po_token`: The POT.
@@ -97,7 +97,7 @@ npx tsc
 <details>
   <summary>Script options</summary>
 
-- `-v, --visitor-data <visitordata>`: The content binding, optional. If no content binding is passed, a new unauthenticated visitor data will be generated.
+- `-v, --visitor-data <visitordata>`: The content binding, required.
 - `-p, --proxy <proxy-all>`: The proxy to use for the requests, optional.
 - `--version`: Print the script version and exit
 - `--verbose`: Use verbose logging

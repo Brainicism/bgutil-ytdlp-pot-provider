@@ -17,7 +17,7 @@ const options = program.opts();
         console.log(VERSION);
         process.exit(0);
     }
-    let contentBinding = options.dataSyncId || options.visitorData;
+    const contentBinding = options.dataSyncId || options.visitorData;
     if (options.dataSyncId) console.warn("-d is deprecated, use -v instead");
     const proxy = options.proxy || "";
     const verbose = options.verbose || false;
@@ -27,9 +27,10 @@ const options = program.opts();
         if (verbose) console.log(msg);
     }
 
-    if (!contentBinding)
-        contentBinding =
-            (await sessionManager.generateVisitorData()) || process.exit(1);
+    if (!contentBinding) {
+        console.error("No content binding provided");
+        process.exit(1);
+    }
     log(`Received request for visitor data: '${contentBinding}'`);
 
     try {

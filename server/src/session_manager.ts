@@ -1,6 +1,5 @@
 import { BG, BgConfig, DescrambledChallenge } from "bgutils-js";
 import { JSDOM } from "jsdom";
-import { Innertube } from "youtubei.js";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import axios from "axios";
 import { Agent } from "https";
@@ -41,20 +40,6 @@ export class SessionManager {
 
     constructor(shouldLog = true) {
         this.logger = new Logger(shouldLog);
-    }
-
-    async generateVisitorData(): Promise<string | null> {
-        this.logger.log(
-            `Received request for visitor data, grabbing from Innertube`,
-        );
-        const innertube = await Innertube.create({ retrieve_player: false });
-        const visitorData = innertube.session.context.client.visitorData;
-        if (!visitorData) {
-            this.logger.error("Unable to generate visitor data via Innertube");
-            return null;
-        }
-        this.logger.log(`Generated visitor data: ${visitorData}`);
-        return visitorData;
     }
 
     getProxyDispatcher(proxy: string | undefined): Agent | undefined {
