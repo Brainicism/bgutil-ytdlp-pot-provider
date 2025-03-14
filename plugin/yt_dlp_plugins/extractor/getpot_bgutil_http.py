@@ -35,14 +35,14 @@ else:
                 response = ydl.urlopen(Request(
                     f'{base_url}/ping', extensions={'timeout': self._GET_VSN_TIMEOUT}, proxies={'all': None}))
             except Exception as e:
-                self._warn_and_raise(
-                    f'Error reaching GET /ping (caused by {e.__class__.__name__})', raise_from=e)
+                self._logger.warning(
+                    f'Error reaching GET /ping (caused by {e.__class__.__name__})', once=True)
             try:
                 response = json.load(response)
             except json.JSONDecodeError as e:
-                self._warn_and_raise(
-                    f'Error parsing response JSON (caused by {e!r})'
-                    f', response: {response.read()}', raise_from=e)
+                self._logger.warning(
+                    f'Error parsing ping response JSON (caused by {e!r})'
+                    f', response: {response.read()}', once=True)
             self._check_version(response.get('version'), name='HTTP server')
             self.base_url = base_url
 
