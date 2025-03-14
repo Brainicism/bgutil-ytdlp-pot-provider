@@ -54,11 +54,7 @@ jobs:
         run: |
           exit_code=0
 
-          # check that the script is returning a POT
-          script_output=$(node server/build/generate_once.js)
-          echo "::group::POT response from the script"
-          echo "$script_output" | jq -C
-          echo "::endgroup::"
+          echo "script version: $(node server/build/generate_once.js --version)"
 
           po_token=$(echo "$script_output" | jq -r '.poToken')
           visit_identifier=$(echo "$script_output" | jq -r '.visitIdentifier')
