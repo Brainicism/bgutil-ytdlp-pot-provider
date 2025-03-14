@@ -18,7 +18,7 @@ const options = program.opts();
         process.exit(0);
     }
     let contentBinding = options.dataSyncId || options.visitorData;
-    if (options.dataSyncId) console.error("-d is deprecated, use -v instead");
+    if (options.dataSyncId) console.warn("-d is deprecated, use -v instead");
     const proxy = options.proxy || "";
     const verbose = options.verbose || false;
 
