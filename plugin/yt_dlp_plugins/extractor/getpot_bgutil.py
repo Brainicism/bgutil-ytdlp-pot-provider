@@ -74,21 +74,19 @@ class BgUtilBaseGetPOTRH(getpot.GetPOTProvider):
         return {k: v for k, v in cached_tokens.items() if v['expires_at'] > time.time()}
 
     def get_cache_ttl(self, context):
-        context_ttl = f'{context}_ttl'
-
         def first_valid(*args):
             return next((arg for arg in args if arg is not None), None)
         return int(first_valid(
-            self._get_config_setting(context_ttl),
+            self._get_config_setting(f'{context}_ttl'),
             self._DEFAULT_CACHE_TTL_SECONDS.get(context),
             0))
 
-    def _cache_token(self, po_token, expires_at=None, *,
+    def _cache_token(self, po_token, *,
                      content_binding, context):
         cached_tokens = self._get_active_cache(self.yt_ie)
         cached_tokens[content_binding] = {
             'po_token': po_token,
-            'expires_at': time.time() + self.get_cache_ttl(context=context) if expires_at is None else expires_at,
+            'expires_at': time.time() + self.get_cache_ttl(context=context),
             'version': self.VERSION,
         }
         self.yt_ie.cache.store(self._CACHE_STORE, self._CACHE_STORE_KEY, cached_tokens)
