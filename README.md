@@ -129,38 +129,37 @@ If you want to change the port number used by the provider server, use the `--po
 node build/main.js --port 8080
 ```
 
-If changing the port or IP used for the provider server, pass it to yt-dlp via `baseurl`
+If changing the port or IP used for the provider server, pass it to yt-dlp via `getpot_bgutil_baseurl`
 
 ```shell
---extractor-args "youtube-bgutilhttp:baseurl=http://127.0.0.1:8080"
+--extractor-args "youtube:getpot_bgutil_baseurl=http://127.0.0.1:8080"
 ```
 
 ---
 
 If using option (b) script for the provider, with the default script location in your home directory (i.e: `~/bgutil-ytdlp-pot-provider` or `%USERPROFILE%\bgutil-ytdlp-pot-provider`), you can also use yt-dlp like normal.
 
-If you installed the script in a different location, pass it as the extractor argument `script` to `youtube-bgutilscript` for each yt-dlp call.
+If you installed the script in a different location, pass it as the extractor argument `getpot_bgutil_script` to `youtube` for each yt-dlp call.
 
 ```shell
---extractor-args "youtube-bgutilscript:script=$WORKSPACE/bgutil-ytdlp-pot-provider/server/build/generate_once.js"
+--extractor-args "youtube:getpot_bgutil_script=$WORKSPACE/bgutil-ytdlp-pot-provider/server/build/generate_once.js"
 ```
 
-We use a cache internally for all generated tokens. You can change the TTL (time to live) for the token cache with an extractor argument called `{context}_ttl`, where `{context}` denotes the token context (can be `gvs` or `player`). The TTL extractor arguments are in seconds.  
+We use a cache internally for all generated tokens. You can change the TTL (time to live) for the token cache with an extractor argument called `{provider_name}_{context}_ttl`, where `{provider_name}` is the provider's name in lower case and `{context}` denotes the token context (can be `gvs` or `player`). The TTL extractor arguments are in seconds.  
 The default cache TTL is 6 hours for gvs and 10 minutes for player.  
 For example if you want to change the gvs token TTL to 1 day when using the script method, you can pass the following to yt-dlp:  
 ```shell
---extractor-args "youtube-bgutilscript:gvs_ttl=86400"
+--extractor-args "youtube:bgutilscript_gvs_ttl=86400"
 ```
 
 If you want to disable caching, pass 0 to all TTLs like this:
 ```shell
---extractor-args "youtube-bgutilscript:gvs-ttl=0;player-ttl=0" \
---extractor-args "youtube-bgutilhttp:gvs_ttl=0;player_ttl=0"
+--extractor-args "youtube:bgutilscript_gvs_ttl=0;bgutilscript_player_ttl=0;youtube:bgutilhttp_gvs_ttl=0;bgutilhttp_player_ttl=0"
 ```
 This only prevents **new cache from being written to the disk**. The old cache can still be read. Currently, there isn't an option to tell the plugin to ignore the old cache.
 
 Note that if you want to pass multiple arguments to a GetPOT provider, use a `;` seperated list.  
-For example, you can use `--extractor-args "youtube-bgutilscript:gvs-ttl=0;script=/path/to/bgutil-ytdlp-pot-provider/server/build/generate_once.js"` if you want to disable caching for gvs tokens and have a custom script path.
+For example, you can use `--extractor-args "youtube:bgutilscript_gvs_ttl=0;getpot_bgutil_script=/path/to/bgutil-ytdlp-pot-provider/server/build/generate_once.js"` if you want to disable caching for gvs tokens and have a custom script path.
 
 ---
 

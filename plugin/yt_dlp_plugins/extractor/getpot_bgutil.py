@@ -52,10 +52,9 @@ class BgUtilBaseGetPOTRH(getpot.GetPOTProvider):
     def _CONFIG_NAME(cls):
         return cls.RH_NAME.lower()
 
-    def _get_config_setting(self, key, casesense=True, default=None, ie_key=None):
+    def _get_config_setting(self, key, casesense=True, default=None):
         return self.yt_ie._configuration_arg(
-            key, [default], ie_key=f'youtube-{self._CONFIG_NAME}' if ie_key is None else ie_key,
-            casesense=casesense)[0]
+            key, [default], casesense=casesense)[0]
 
     def _warn_and_raise(self, msg, once=True, raise_from=None):
         self._logger.warning(msg, once=once)
@@ -78,7 +77,7 @@ class BgUtilBaseGetPOTRH(getpot.GetPOTProvider):
         def first_valid(*args):
             return next((arg for arg in args if arg is not None), None)
         return int(first_valid(
-            self._get_config_setting(f'{context}_ttl'),
+            self._get_config_setting(f'{self._CONFIG_NAME}_{context}_ttl'),
             self._DEFAULT_CACHE_TTL_SECONDS.get(context),
             0))
 

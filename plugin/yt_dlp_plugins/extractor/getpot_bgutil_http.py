@@ -30,7 +30,7 @@ else:
             **kwargs,
         ):
             base_url = self._get_config_setting(
-                'baseurl', default='http://127.0.0.1:4416')
+                'getpot_bgutil_baseurl', default='http://127.0.0.1:4416')
             try:
                 response = ydl.urlopen(Request(
                     f'{base_url}/ping', extensions={'timeout': self._GET_VSN_TIMEOUT}, proxies={'all': None}))

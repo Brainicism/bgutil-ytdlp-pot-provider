@@ -51,7 +51,7 @@ else:
             **kwargs,
         ):
             # validate script
-            script_path = self._get_config_setting('script', default=self._default_script_path)
+            script_path = self._get_config_setting('getpot_bgutil_script', default=self._default_script_path)
             if not os.path.isfile(script_path):
                 self._warn_and_raise(
                     f"Script path doesn't exist: {script_path}")
