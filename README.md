@@ -81,7 +81,7 @@ node build/main.js
 1. Transpile the generation script to Javascript:
 
 ```shell
-# If you want to use this method without specifying `script` extractor argument
+# If you want to use this method without specifying `getpot_bgutil_script` extractor argument
 # on each yt-dlp invocation, clone/extract the source code into your home directory.
 # Replace `~` with `%USERPROFILE%` if using Windows
 cd ~
