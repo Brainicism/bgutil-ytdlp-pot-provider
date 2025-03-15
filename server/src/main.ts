@@ -45,7 +45,6 @@ httpServer.post("/get_pot", async (request, response) => {
 
         response.send({
             po_token: sessionData.poToken,
-            visit_identifier: sessionData.visitIdentifier,
         });
     } catch (e) {
         console.error(

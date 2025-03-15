@@ -56,14 +56,6 @@ jobs:
 
           echo "script version: $(node server/build/generate_once.js --version)"
 
-          po_token=$(echo "$script_output" | jq -r '.poToken')
-          visit_identifier=$(echo "$script_output" | jq -r '.visitIdentifier')
-
-          if [[ "$po_token" == "null" || "$visit_identifier" == "null" ]]; then
-              echo "::error title=PoToken generation failed,file=server/src/session_manager.ts::'po_token' or 'visit_identifier' is null."
-              exit 1
-          fi
-
           # expect this to fail, but just make sure that the plugin is invoked
           {
             script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" dQw4w9WgXcQ 2>&1)

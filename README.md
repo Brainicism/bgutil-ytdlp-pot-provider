@@ -64,11 +64,10 @@ node build/main.js
 
 - **POST /get_pot**: Generate a new POT.
   - The request data should be a JSON including:
-    - `content_binding`: Content binding (required).
+    - `content_binding`: [Content binding](#content-binding) (required).
     - `proxy`: A string indicating the proxy to use for the requests (optional).
   - Returns a JSON:
     - `po_token`: The POT.
-    - `visit_identifier`: The passed or generated content binding.
 - **GET /ping**: Ping the server. The response includes:
   - `logging`: Logging verbosity(`normal` or `verbose`).
   - `server_uptime`: Uptime of the server process in seconds.
@@ -95,9 +94,9 @@ npx tsc
 2. Make sure `node` is available in your `PATH`.
 
 <details>
-  <summary>Script options</summary>
+  <summary>Script Options</summary>
 
-- `-c, --content-binding <content-binding>`: The content binding, required.
+- `-c, --content-binding <content-binding>`: The [content binding](#content-binding), required.
 - `-p, --proxy <proxy-all>`: The proxy to use for the requests, optional.
 - `--version`: Print the script version and exit
 - `--verbose`: Use verbose logging
@@ -164,3 +163,11 @@ For example, you can use `--extractor-args "youtube:bgutilscript_gvs_ttl=0;getpo
 ---
 
 If both methods are available for use, the option (b) script will be prioritized.
+
+## Content Binding
+
+Content binding refers to the data used to generate a PO Token.
+
+GVS tokens (See [PO Tokens for GVS](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide#po-tokens-for-gvs) from the PO Token Guide) are all session-bound so the content binding for a GVS token is either a Visitor ID (also known as `visitorData`, `VISITOR_INFO1_LIVE`, used when not logged in) or the account Session ID (first part of the Data Sync ID, used when logged in).
+
+Player tokens are mostly content-bound and their content bindings are the video IDs. Note that the `web_music` client uses the session token instead of video ID to generate player tokens.
