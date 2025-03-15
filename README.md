@@ -97,7 +97,7 @@ npx tsc
 <details>
   <summary>Script options</summary>
 
-- `-v, --visitor-data <visitordata>`: The content binding, required.
+- `-c, --content-binding <content-binding>`: The content binding, required.
 - `-p, --proxy <proxy-all>`: The proxy to use for the requests, optional.
 - `--version`: Print the script version and exit
 - `--verbose`: Use verbose logging
