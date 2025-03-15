@@ -10,7 +10,7 @@
 
 A proof-of-origin token (POT) provider to be used alongside [coletdjnz's POT plugin framework](https://github.com/coletdjnz/yt-dlp-get-pot). We use [LuanRT's Botguard interfacing library](https://github.com/LuanRT/BgUtils) to generate the token.
 
-This is used to bypass the 'Sign in to confirm you're not a bot' message when invoking yt-dlp from an IP address flagged by YouTube. See _[What is a PO Token?](https://github.com/yt-dlp/yt-dlp/wiki/Extractors#po-token-guide)_ for more details.
+This is used to bypass the 'Sign in to confirm you're not a bot' message when invoking yt-dlp from an IP address flagged by YouTube. See _[PO Token Guide](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide)_ for more details.
 
 The provider comes in two parts:
 
@@ -145,7 +145,7 @@ If you installed the script in a different location, pass it as the extractor ar
 --extractor-args "youtube:getpot_bgutil_script=$WORKSPACE/bgutil-ytdlp-pot-provider/server/build/generate_once.js"
 ```
 
-We use a cache internally for all generated tokens. You can change the TTL (time to live) for the token cache with an extractor argument called `{provider_name}_{context}_ttl`, where `{provider_name}` is the provider's name in lower case and `{context}` denotes the token context (can be `gvs` or `player`). The TTL extractor arguments are in seconds.  
+We use a cache internally for all generated tokens. You can change the TTL (time to live) for the token cache with an extractor argument called `{provider_name}_{context}_ttl`, where `{provider_name}` is the provider's name in lower case and `{context}` denotes the token context (can be `gvs` or `player`, see [Technical Details](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide#technical-details) in the PO Token Guide). The TTL extractor arguments are in seconds.  
 The default cache TTL is 6 hours for gvs and 10 minutes for player.  
 For example if you want to change the gvs token TTL to 1 day when using the script method, you can pass the following to yt-dlp:  
 ```shell
