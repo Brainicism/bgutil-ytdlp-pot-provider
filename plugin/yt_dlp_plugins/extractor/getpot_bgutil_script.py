@@ -27,7 +27,7 @@ else:
         def _check_script_version(self, node_path, script_path):
             stdout, stderr, returncode = Popen.run(
                 [node_path, script_path, '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-                env=self._GETPOT_ENV, timeout=self._GET_VSN_TIMEOUT)
+                timeout=self._GET_VSN_TIMEOUT)
             if returncode:
                 self._logger.warning(
                     f'Failed to check script version. '
@@ -92,7 +92,7 @@ else:
             try:
                 stdout, stderr, returncode = Popen.run(
                     command_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-                    env=self._GETPOT_ENV, timeout=self._GETPOT_TIMEOUT)
+                    timeout=self._GETPOT_TIMEOUT)
             except subprocess.TimeoutExpired as e:
                 raise RequestError(
                     f'_get_pot_via_script failed: Timeout expired when trying to run script (caused by {e!r})')

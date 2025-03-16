@@ -2,7 +2,6 @@ from __future__ import annotations
 
 __version__ = '0.7.4'
 
-import os
 import typing
 
 if typing.TYPE_CHECKING:
@@ -30,9 +29,6 @@ class BgUtilBaseGetPOTRH(getpot.GetPOTProvider):
     _SUPPORTED_CONTEXTS = ('gvs', 'player')
     _GETPOT_TIMEOUT = 20.0
     _GET_VSN_TIMEOUT = 5.0
-    _GETPOT_ENV = {
-        **os.environ,
-    }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
