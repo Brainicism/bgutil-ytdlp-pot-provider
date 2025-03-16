@@ -76,6 +76,14 @@ jobs:
             [ "$exit_code" -eq 0 ] && exit_code=1
           fi
 
+          pot_response=$(echo "$script_response" | grep '^{"visitIdentifier":"' | jq -Cr '.poToken')
+          echo "POT: $pot_response"
+          if [[ "$po_token" == "null" || -z "$po_token" ]]; then
+             echo "::error title=Failed to generate POT,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::\
+          Failed to generate POT"
+            [ "$exit_code" -eq 0 ] && exit_code=1
+          fi
+
           exit $exit_code
 
   server-method:
