@@ -51,7 +51,8 @@ else:
             **kwargs,
         ):
             # validate script
-            script_path = self._get_config_setting('getpot_bgutil_script', default=self._default_script_path)
+            script_path = self._get_config_setting(
+                'getpot_bgutil_script', default=self._default_script_path)
             if not os.path.isfile(script_path):
                 self._warn_and_raise(
                     f"Script path doesn't exist: {script_path}")
@@ -114,13 +115,13 @@ else:
                 raise RequestError(
                     f'Error parsing JSON response from _get_pot_via_script (caused by {e!r})') from e
             if 'poToken' not in script_data_resp:
-                raise RequestError('The script did not respond with a po_token')
-            return self._cache_token(
-                script_data_resp['poToken'],
-                content_binding=self.content_binding, context=context)
+                raise RequestError(
+                    'The script did not respond with a po_token')
+            return script_data_resp['poToken']
 
     @getpot.register_preference(BgUtilScriptGetPOTRH)
     def bgutil_script_getpot_preference(rh, request):
         return 100
 
-    __all__ = [BgUtilScriptGetPOTRH.__class__.__name__, bgutil_script_getpot_preference.__name__]
+    __all__ = [BgUtilScriptGetPOTRH.__class__.__name__,
+               bgutil_script_getpot_preference.__name__]

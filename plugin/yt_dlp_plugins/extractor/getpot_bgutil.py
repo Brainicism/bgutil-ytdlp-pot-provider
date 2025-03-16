@@ -36,12 +36,6 @@ class BgUtilBaseGetPOTRH(getpot.GetPOTProvider):
         'TOKEN_TTL': '0',
         # pass TOKEN_TTL=0 for compatibility, TOKEN_TTL is removed in this version
     }
-    _CACHE_STORE = 'youtube-getpot-bgutil'
-    _CACHE_STORE_KEY = 'po_token'
-    _DEFAULT_CACHE_TTL_SECONDS = {
-        'gvs': 6 * 60 * 60,
-        'player': 10 * 60,
-    }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -52,70 +46,9 @@ class BgUtilBaseGetPOTRH(getpot.GetPOTProvider):
     def _CONFIG_NAME(cls):
         return cls.RH_NAME.lower()
 
-    def _get_config_setting(self, key, casesense=True, default=None):
-        return self.yt_ie._configuration_arg(
-            key, [default], casesense=casesense)[0]
-
     def _warn_and_raise(self, msg, once=True, raise_from=None):
         self._logger.warning(msg, once=once)
         raise UnsupportedRequest(msg) from raise_from
-
-    @staticmethod
-    def _get_content_binding(client, context, data_sync_id=None, visitor_data=None, video_id=None):
-        # https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide#po-tokens-for-player
-        if context == 'gvs' or client == 'web_music':
-            # web_music player or gvs is bound to data_sync_id or visitor_data
-            return data_sync_id or visitor_data
-        return video_id
-
-    @classmethod
-    def _get_active_cache(cls, ie) -> dict:
-        cached_tokens = cls._get_cached_tokens(ie)
-        return {k: v for k, v in cached_tokens.items() if v['expires_at'] > time.time()}
-
-    def get_cache_ttl(self, context):
-        def first_valid(*args):
-            return next((arg for arg in args if arg is not None), None)
-        return int(first_valid(
-            self._get_config_setting(f'{self._CONFIG_NAME}_{context}_ttl'),
-            self._DEFAULT_CACHE_TTL_SECONDS.get(context),
-            0))
-
-    def _cache_token(self, po_token, *,
-                     content_binding, context):
-        cached_tokens = self._get_active_cache(self.yt_ie)
-        cached_tokens[content_binding] = {
-            'po_token': po_token,
-            'expires_at': time.time() + self.get_cache_ttl(context=context),
-            'version': self.VERSION,
-        }
-        self.yt_ie.cache.store(self._CACHE_STORE, self._CACHE_STORE_KEY, cached_tokens)
-        return po_token
-
-    @classmethod
-    def _get_cached_tokens(cls, ie) -> dict:
-        return ie.cache.load(cls._CACHE_STORE, cls._CACHE_STORE_KEY) or {}
-
-    def _get_cached_token(self, context, content_binding):
-        token_data = self._get_cached_tokens(self.yt_ie).get(content_binding)
-        if not token_data:
-            return None
-        if token_data['expires_at'] < time.time():
-            self._logger.debug(f'Cached {context} PO Token expired')
-            return None
-
-        pot = token_data['po_token']
-        self._logger.debug(f'Retrieved {context} PO Token from cache: {pot}')
-        return pot
-
-    def _check_version(self, got_version, *, default='unknown', name):
-        if got_version != self.VERSION:
-            self._logger.warning(
-                f'The provider plugin and the {name} are on different versions, '
-                f'this may cause compatibility issues. '
-                f'Please ensure they are on the same version. '
-                f'(plugin: {self.VERSION}, {name}: {got_version or 'unknown'})',
-                once=True)
 
     def _get_yt_proxy(self):
         if ((proxy := select_proxy('https://jnn-pa.googleapis.com', self.proxies))

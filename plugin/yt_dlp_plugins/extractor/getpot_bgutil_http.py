@@ -86,12 +86,12 @@ else:
                 raise RequestError(error_msg)
             if 'po_token' not in response_json:
                 raise RequestError('Server did not respond with a po_token')
-            return self._cache_token(
-                response_json['po_token'],
-                content_binding=self.content_binding, context=context)
+
+            return response_json['po_token']
 
     @getpot.register_preference(BgUtilHTTPGetPOTRH)
     def bgutil_HTTP_getpot_preference(rh, request):
         return 0
 
-    __all__ = [BgUtilHTTPGetPOTRH.__class__.__name__, bgutil_HTTP_getpot_preference.__name__]
+    __all__ = [BgUtilHTTPGetPOTRH.__class__.__name__,
+               bgutil_HTTP_getpot_preference.__name__]
