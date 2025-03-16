@@ -45,6 +45,10 @@ class BgUtilBaseGetPOTRH(getpot.GetPOTProvider):
     def _CONFIG_NAME(cls):
         return cls.RH_NAME.lower()
 
+    def _get_config_setting(self, key, casesense=True, default=None):
+        return self.yt_ie._configuration_arg(
+            key, [default], casesense=casesense)[0]
+
     def _warn_and_raise(self, msg, once=True, raise_from=None):
         self._logger.warning(msg, once=once)
         raise UnsupportedRequest(msg) from raise_from
