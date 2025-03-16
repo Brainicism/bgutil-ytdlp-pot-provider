@@ -54,9 +54,15 @@ httpServer.post("/get_pot", async (request, response) => {
     }
 });
 
+httpServer.post("/invalidate_caches", async (request, response) => {
+    sessionManager.invalidateCaches();
+    response.send();
+});
+
 httpServer.get("/ping", async (request, response) => {
     response.send({
         logging: options.verbose ? "verbose" : "normal",
+        token_ttl_hours: process.env.TOKEN_TTL || 6,
         server_uptime: process.uptime(),
         version: VERSION,
     });
