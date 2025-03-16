@@ -2,8 +2,6 @@ from __future__ import annotations
 
 __version__ = '0.7.4'
 
-import os
-import time
 import typing
 
 if typing.TYPE_CHECKING:
@@ -31,17 +29,6 @@ class BgUtilBaseGetPOTRH(getpot.GetPOTProvider):
     _SUPPORTED_CONTEXTS = ('gvs', 'player')
     _GETPOT_TIMEOUT = 20.0
     _GET_VSN_TIMEOUT = 5.0
-    _GETPOT_ENV = {
-        **os.environ,
-        'TOKEN_TTL': '0',
-        # pass TOKEN_TTL=0 for compatibility, TOKEN_TTL is removed in this version
-    }
-    _CACHE_STORE = 'youtube-getpot-bgutil'
-    _CACHE_STORE_KEY = 'po_token'
-    _DEFAULT_CACHE_TTL_SECONDS = {
-        'gvs': 6 * 60 * 60,
-        'player': 10 * 60,
-    }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -67,46 +54,6 @@ class BgUtilBaseGetPOTRH(getpot.GetPOTProvider):
             # web_music player or gvs is bound to data_sync_id or visitor_data
             return data_sync_id or visitor_data
         return video_id
-
-    @classmethod
-    def _get_active_cache(cls, ie) -> dict:
-        cached_tokens = cls._get_cached_tokens(ie)
-        return {k: v for k, v in cached_tokens.items() if v['expires_at'] > time.time()}
-
-    def get_cache_ttl(self, context):
-        def first_valid(*args):
-            return next((arg for arg in args if arg is not None), None)
-        return int(first_valid(
-            self._get_config_setting(f'{self._CONFIG_NAME}_{context}_ttl'),
-            self._DEFAULT_CACHE_TTL_SECONDS.get(context),
-            0))
-
-    def _cache_token(self, po_token, *,
-                     content_binding, context):
-        cached_tokens = self._get_active_cache(self.yt_ie)
-        cached_tokens[content_binding] = {
-            'po_token': po_token,
-            'expires_at': time.time() + self.get_cache_ttl(context=context),
-            'version': self.VERSION,
-        }
-        self.yt_ie.cache.store(self._CACHE_STORE, self._CACHE_STORE_KEY, cached_tokens)
-        return po_token
-
-    @classmethod
-    def _get_cached_tokens(cls, ie) -> dict:
-        return ie.cache.load(cls._CACHE_STORE, cls._CACHE_STORE_KEY) or {}
-
-    def _get_cached_token(self, context, content_binding):
-        token_data = self._get_cached_tokens(self.yt_ie).get(content_binding)
-        if not token_data:
-            return None
-        if token_data['expires_at'] < time.time():
-            self._logger.debug(f'Cached {context} PO Token expired')
-            return None
-
-        pot = token_data['po_token']
-        self._logger.debug(f'Retrieved {context} PO Token from cache: {pot}')
-        return pot
 
     def _check_version(self, got_version, *, default='unknown', name):
         if got_version != self.VERSION:

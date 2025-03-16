@@ -54,7 +54,7 @@ node build/main.js
 ```
 
 <details>
-  <summary>Server Command Line Options/Endpoints</summary>
+  <summary>Server Command Line Options/Endpoints/Environment Variables</summary>
 
 **Options**
 - `-p, --port <PORT>`: The port on which the server listens.
@@ -72,6 +72,10 @@ node build/main.js
   - `logging`: Logging verbosity(`normal` or `verbose`).
   - `server_uptime`: Uptime of the server process in seconds.
   - `version`: Current server version.
+
+**Environment Variables**
+
+- **TOKEN_TTL**: The time in hours for a PO token to be considered valid. While there are no definitive answers on how long a token is valid, it has been observed to be valid for atleast a couple of days (Default: 6).
 
 </details>
 
@@ -94,12 +98,18 @@ npx tsc
 2. Make sure `node` is available in your `PATH`.
 
 <details>
-  <summary>Script Options</summary>
+  <summary>Script Options/Environment Variables</summary>
+
+**Options**
 
 - `-c, --content-binding <content-binding>`: The [content binding](#content-binding), required.
 - `-p, --proxy <proxy-all>`: The proxy to use for the requests, optional.
-- `--version`: Print the script version and exit
-- `--verbose`: Use verbose logging
+- `--version`: Print the script version and exit.
+- `--verbose`: Use verbose logging.
+
+**Environment Variables**
+
+- **TOKEN_TTL**: The time in hours for a PO token to be considered valid. While there are no definitive answers on how long a token is valid, it has been observed to be valid for atleast a couple of days (Default: 6).
 
 </details>
 
@@ -144,21 +154,14 @@ If you installed the script in a different location, pass it as the extractor ar
 --extractor-args "youtube:getpot_bgutil_script=$WORKSPACE/bgutil-ytdlp-pot-provider/server/build/generate_once.js"
 ```
 
-We use a cache internally for all generated tokens. You can change the TTL (time to live) for the token cache with an extractor argument called `{provider_name}_{context}_ttl`, where `{provider_name}` is the provider's name in lower case and `{context}` denotes the token context (can be `gvs` or `player`, see [Technical Details](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide#technical-details) in the PO Token Guide). The TTL extractor arguments are in seconds.  
-The default cache TTL is 6 hours for gvs and 10 minutes for player.  
-For example if you want to change the gvs token TTL to 1 day when using the script method, you can pass the following to yt-dlp:  
-```shell
---extractor-args "youtube:bgutilscript_gvs_ttl=86400"
-```
+Note that if you want to pass multiple arguments to the `youtube` extractor, use a `;` seperated list.
 
-If you want to disable caching, pass 0 to all TTLs like this:
-```shell
---extractor-args "youtube:bgutilscript_gvs_ttl=0;bgutilscript_player_ttl=0;youtube:bgutilhttp_gvs_ttl=0;bgutilhttp_player_ttl=0"
-```
-This only prevents **new cache from being written to the disk**. The old cache can still be read. Currently, there isn't an option to tell the plugin to ignore the old cache.
+For example, you can use `--extractor-args "youtube:player_client=web;getpot_bgutil_script=/path/to/bgutil-ytdlp-pot-provider/server/build/generate_once.js"` if you want to set the youtube player client to web and use a custom script path.
 
-Note that if you want to pass multiple arguments to a GetPOT provider, use a `;` seperated list.  
-For example, you can use `--extractor-args "youtube:bgutilscript_gvs_ttl=0;getpot_bgutil_script=/path/to/bgutil-ytdlp-pot-provider/server/build/generate_once.js"` if you want to disable caching for gvs tokens and have a custom script path.
+---
+
+We use a cache internally for all generated tokens. You can change the TTL (time to live) for the token cache with the environment variable `TOKEN_TTL`. It's currently impossible to use different TTLs for different token contexts (can be `gvs` or `player`, see [Technical Details](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide#technical-details) in the PO Token Guide). The environment variable is in hours and defaults to 6.  
+When using the script method, the environment variables will be passed down to the script. You can pass a `TOKEN_TTL` to yt-dlp to use a custom TTL.
 
 ---
 

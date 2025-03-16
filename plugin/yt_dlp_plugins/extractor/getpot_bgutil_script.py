@@ -27,7 +27,7 @@ else:
         def _check_script_version(self, node_path, script_path):
             stdout, stderr, returncode = Popen.run(
                 [node_path, script_path, '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-                env=self._GETPOT_ENV, timeout=self._GET_VSN_TIMEOUT)
+                timeout=self._GET_VSN_TIMEOUT)
             if returncode:
                 self._logger.warning(
                     f'Failed to check script version. '
@@ -51,7 +51,8 @@ else:
             **kwargs,
         ):
             # validate script
-            script_path = self._get_config_setting('getpot_bgutil_script', default=self._default_script_path)
+            script_path = self._get_config_setting(
+                'getpot_bgutil_script', default=self._default_script_path)
             if not os.path.isfile(script_path):
                 self._warn_and_raise(
                     f"Script path doesn't exist: {script_path}")
@@ -91,7 +92,7 @@ else:
             try:
                 stdout, stderr, returncode = Popen.run(
                     command_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-                    env=self._GETPOT_ENV, timeout=self._GETPOT_TIMEOUT)
+                    timeout=self._GETPOT_TIMEOUT)
             except subprocess.TimeoutExpired as e:
                 raise RequestError(
                     f'_get_pot_via_script failed: Timeout expired when trying to run script (caused by {e!r})')
@@ -114,13 +115,13 @@ else:
                 raise RequestError(
                     f'Error parsing JSON response from _get_pot_via_script (caused by {e!r})') from e
             if 'poToken' not in script_data_resp:
-                raise RequestError('The script did not respond with a po_token')
-            return self._cache_token(
-                script_data_resp['poToken'],
-                content_binding=self.content_binding, context=context)
+                raise RequestError(
+                    'The script did not respond with a po_token')
+            return script_data_resp['poToken']
 
     @getpot.register_preference(BgUtilScriptGetPOTRH)
     def bgutil_script_getpot_preference(rh, request):
         return 100
 
-    __all__ = [BgUtilScriptGetPOTRH.__class__.__name__, bgutil_script_getpot_preference.__name__]
+    __all__ = [BgUtilScriptGetPOTRH.__class__.__name__,
+               bgutil_script_getpot_preference.__name__]
