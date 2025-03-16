@@ -61,6 +61,15 @@ class BgUtilBaseGetPOTRH(getpot.GetPOTProvider):
             return data_sync_id or visitor_data
         return video_id
 
+    def _check_version(self, got_version, *, default='unknown', name):
+        if got_version != self.VERSION:
+            self._logger.warning(
+                f'The provider plugin and the {name} are on different versions, '
+                f'this may cause compatibility issues. '
+                f'Please ensure they are on the same version. '
+                f'(plugin: {self.VERSION}, {name}: {got_version or 'unknown'})',
+                once=True)
+
     def _get_yt_proxy(self):
         if ((proxy := select_proxy('https://jnn-pa.googleapis.com', self.proxies))
                 != select_proxy('https://youtube.com', self.proxies)):
