@@ -59,7 +59,6 @@ else:
             ytcfg=None,
             **kwargs,
         ) -> str:
-            # BgUtilScript loads cache, don't need to do it again here
             self._logger.info('Generating POT via HTTP server')
             proxy = self._get_yt_proxy()
 
