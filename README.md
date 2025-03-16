@@ -70,6 +70,7 @@ node build/main.js
     - `po_token`: The POT.
 - **GET /ping**: Ping the server. The response includes:
   - `logging`: Logging verbosity(`normal` or `verbose`).
+  - `token_ttl_hours`: The current applied `TOKEN_TTL` value, defaults to 6.
   - `server_uptime`: Uptime of the server process in seconds.
   - `version`: Current server version.
 

@@ -31,7 +31,7 @@ class Logger {
     }
 
     warn(msg: string) {
-        // stderr should be always showed
+        // stderr should always be shown
         console.warn(msg);
     }
 
