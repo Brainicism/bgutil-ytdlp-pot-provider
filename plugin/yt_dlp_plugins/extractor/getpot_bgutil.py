@@ -50,6 +50,14 @@ class BgUtilBaseGetPOTRH(getpot.GetPOTProvider):
         self._logger.warning(msg, once=once)
         raise UnsupportedRequest(msg) from raise_from
 
+    @staticmethod
+    def _get_content_binding(client, context, data_sync_id=None, visitor_data=None, video_id=None):
+        # https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide#po-tokens-for-player
+        if context == 'gvs' or client == 'web_music':
+            # web_music player or gvs is bound to data_sync_id or visitor_data
+            return data_sync_id or visitor_data
+        return video_id
+
     def _get_yt_proxy(self):
         if ((proxy := select_proxy('https://jnn-pa.googleapis.com', self.proxies))
                 != select_proxy('https://youtube.com', self.proxies)):
