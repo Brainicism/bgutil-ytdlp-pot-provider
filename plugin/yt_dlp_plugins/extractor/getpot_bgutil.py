@@ -32,8 +32,6 @@ class BgUtilBaseGetPOTRH(getpot.GetPOTProvider):
     _GET_VSN_TIMEOUT = 5.0
     _GETPOT_ENV = {
         **os.environ,
-        'TOKEN_TTL': '0',
-        # pass TOKEN_TTL=0 for compatibility, TOKEN_TTL is removed in this version
     }
 
     def __init__(self, *args, **kwargs):
