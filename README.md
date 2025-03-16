@@ -168,10 +168,18 @@ When using the script method, the environment variables will be passed down to t
 
 If both methods are available for use, the option (b) script will be prioritized.
 
-## Content Binding
+### Content Binding
 
 Content binding refers to the data used to generate a PO Token.
 
 GVS tokens (See [PO Tokens for GVS](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide#po-tokens-for-gvs) from the PO Token Guide) are all session-bound so the content binding for a GVS token is either a Visitor ID (also known as `visitorData`, `VISITOR_INFO1_LIVE`, used when not logged in) or the account Session ID (first part of the Data Sync ID, used when logged in).
 
 Player tokens are mostly content-bound and their content bindings are the video IDs. Note that the `web_music` client uses the session token instead of video ID to generate player tokens.
+
+### Verification
+
+To check if the plugin was installed correctly, you should see the `bgutil` providers in yt-dlp's verbose output: `yt-dlp -v YOUTUBE_URL`.
+
+```
+[debug] [GetPOT] PO Token Providers: BgUtilHTTP-0.7.3, BgUtilScript-0.7.3
+```
