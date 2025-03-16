@@ -100,7 +100,7 @@ npx tsc
 <details>
   <summary>Script Options/Environment Variables</summary>
 
-**Script Options**
+**Options**
 
 - `-c, --content-binding <content-binding>`: The [content binding](#content-binding), required.
 - `-p, --proxy <proxy-all>`: The proxy to use for the requests, optional.
