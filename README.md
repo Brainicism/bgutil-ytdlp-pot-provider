@@ -133,3 +133,11 @@ If you installed the script in a different location, pass it as the extractor ar
 ---
 
 If both methods are available for use, the option (b) script will be prioritized.
+
+### Verification
+
+To check if the plugin was installed correctly, you should see the `bgutil` providers in yt-dlp's verbose output: `yt-dlp -v YOUTUBE_URL`.
+
+```
+[debug] [GetPOT] PO Token Providers: BgUtilHTTP-0.7.3, BgUtilScript-0.7.3
+```
