@@ -160,7 +160,7 @@ jobs:
           fi
           
           {
-            po_token=$(echo "$script_response" | grep '^\[debug\]\ \[GetPOT\]\ BgUtilHTTP:\ Generated\ POT:\ ' | sed 's/\[debug\]\ \[GetPOT\]\ BgUtilHTTP:\ Generated\ POT:\ //')
+            po_token=$(echo "$script_response" | grep '^\[debug\]\ \[GetPOT\]\ BgUtilHTTP:\ Generated\ POT:\ ' | sed 's/^\[debug\]\ \[GetPOT\]\ BgUtilHTTP:\ Generated\ POT:\ //')
           } || true
           echo "POT: $po_token"
           if [[ "$po_token" == "None" || -z "$po_token" ]]; then
