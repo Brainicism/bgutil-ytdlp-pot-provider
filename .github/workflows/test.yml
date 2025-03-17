@@ -40,6 +40,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10" # keep in sync with yt-dlp's bundled version https://github.com/yt-dlp/yt-dlp/blob/2ee3a0aff9be2be3bea60640d3d8a0febaf0acb6/.github/workflows/build.yml#L457
       - name: Download yt-dlp
         run: curl -L https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp -o yt-dlp && chmod +x ./yt-dlp
       - name: Install and build server dependencies
@@ -96,6 +99,9 @@ jobs:
       TIMEOUT: ${{ 7.5 }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10" # keep in sync with yt-dlp's bundled version https://github.com/yt-dlp/yt-dlp/blob/2ee3a0aff9be2be3bea60640d3d8a0febaf0acb6/.github/workflows/build.yml#L457
       - name: Download yt-dlp
         run: curl -L https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp -o yt-dlp && chmod +x ./yt-dlp
       - name: Install plugin
@@ -158,7 +164,7 @@ jobs:
           BgUtilHTTP was not invoked"
             [ "$exit_code" -eq 0 ] && exit_code=1
           fi
-          
+
           {
             po_token=$(echo "$script_response" | grep -m1 '^\[debug\]\ \[GetPOT\]\ BgUtilHTTP:\ Generated\ POT:\ ' | sed 's/^\[debug\]\ \[GetPOT\]\ BgUtilHTTP:\ Generated\ POT:\ //')
           } || true
