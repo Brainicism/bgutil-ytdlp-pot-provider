@@ -29,6 +29,7 @@ class BgUtilBaseGetPOTRH(getpot.GetPOTProvider):
     _SUPPORTED_CONTEXTS = ('gvs', 'player')
     _GETPOT_TIMEOUT = 20.0
     _GET_VSN_TIMEOUT = 5.0
+    _MIN_NODE_VSN = (18, 0, 0)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -61,7 +62,7 @@ class BgUtilBaseGetPOTRH(getpot.GetPOTProvider):
                 f'The provider plugin and the {name} are on different versions, '
                 f'this may cause compatibility issues. '
                 f'Please ensure they are on the same version. '
-                f'(plugin: {self.VERSION}, {name}: {got_version or 'unknown'})',
+                f'(plugin: {self.VERSION}, {name}: {got_version or default})',
                 once=True)
 
     def _get_yt_proxy(self):
