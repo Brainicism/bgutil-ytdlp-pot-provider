@@ -168,5 +168,6 @@ jobs:
           Failed to generate POT"
             [ "$exit_code" -eq 0 ] && exit_code=1
           fi
+          echo abcd
 
           exit $exit_code
