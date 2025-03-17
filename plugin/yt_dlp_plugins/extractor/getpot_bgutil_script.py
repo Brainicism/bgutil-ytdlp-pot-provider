@@ -21,7 +21,7 @@ else:
     class BgUtilScriptGetPOTRH(BgUtilBaseGetPOTRH):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
-            self._check_script = functools.cache(self._check_script_vsn_impl)
+            self._check_script = functools.cache(self._check_script_impl)
 
         @functools.cached_property
         def _node_path(self):
@@ -37,7 +37,7 @@ else:
             return os.path.join(
                 home, 'bgutil-ytdlp-pot-provider', 'server', 'build', 'generate_once.js')
 
-        def _check_script_vsn_impl(self, script_path):
+        def _check_script_impl(self, script_path):
             if not os.path.isfile(script_path):
                 self._warn_and_raise(
                     f"Script path doesn't exist: {script_path}")
