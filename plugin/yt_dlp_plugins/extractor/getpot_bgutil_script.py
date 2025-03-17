@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 import json
 import os.path
 import shutil
@@ -18,12 +19,16 @@ except ImportError:
 else:
     @getpot.register_provider
     class BgUtilScriptGetPOTRH(BgUtilBaseGetPOTRH):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.node_path = None
+        @functools.cached_property
+        def _node_path(self):
+            node_path = shutil.which('node')
+            if node_path is None:
+                self._warn_and_raise('node is not in PATH')
+            self._check_node_version(node_path)
+            return node_path
 
         @classproperty(cache=True)
-        def _default_script_path(self):
+        def _default_script_path(cls):
             home = os.path.expanduser('~')
             return os.path.join(
                 home, 'bgutil-ytdlp-pot-provider', 'server', 'build', 'generate_once.js')
@@ -81,11 +86,6 @@ else:
             ytcfg=None,
             **kwargs,
         ):
-            if not self.node_path:
-                if (node_path := shutil.which('node')) is None:
-                    self._warn_and_raise('node is not in PATH')
-                self._check_node_version(node_path)
-                self.node_path = node_path
             # validate script
             script_path = self._get_config_setting(
                 'getpot_bgutil_script', default=self._default_script_path)
@@ -95,7 +95,7 @@ else:
             if os.path.basename(script_path) != 'generate_once.js':
                 self._warn_and_raise(
                     'Incorrect script passed to extractor args. Path to generate_once.js required')
-            self._check_script_version(self.node_path, script_path)
+            self._check_script_version(self._node_path, script_path)
             self.script_path = script_path
 
         def _get_pot(
@@ -113,7 +113,7 @@ else:
         ) -> str:
             self._logger.info(
                 f'Generating POT via script: {self.script_path}')
-            command_args = [self.node_path, self.script_path]
+            command_args = [self._node_path, self.script_path]
             if proxy := self._get_yt_proxy():
                 command_args.extend(['-p', proxy])
             # keep compat with previous versions
