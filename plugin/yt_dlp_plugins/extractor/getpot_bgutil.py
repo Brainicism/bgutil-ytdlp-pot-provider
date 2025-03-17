@@ -62,7 +62,7 @@ class BgUtilBaseGetPOTRH(getpot.GetPOTProvider):
                 f'The provider plugin and the {name} are on different versions, '
                 f'this may cause compatibility issues. '
                 f'Please ensure they are on the same version. '
-                f'(plugin: {self.VERSION}, {name}: {got_version or 'unknown'})',
+                f'(plugin: {self.VERSION}, {name}: {got_version if got_version is not None else default})',
                 once=True)
 
     def _get_yt_proxy(self):
