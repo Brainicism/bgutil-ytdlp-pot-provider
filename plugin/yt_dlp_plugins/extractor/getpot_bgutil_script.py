@@ -37,6 +37,33 @@ else:
             else:
                 self._check_version(stdout.strip(), name='script')
 
+        def _check_node_version(self, node_path):
+            import re
+            try:
+                stdout, stderr, returncode = Popen.run(
+                    [node_path, '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                    timeout=self._GET_VSN_TIMEOUT)
+                stdout = stdout.strip()
+                mobj = re.match(r'v(\d+)\.(\d+)\.(\d+)', stdout)
+                if returncode or not mobj:
+                    raise ValueError
+                node_vsn = tuple(map(int, mobj.groups()))
+                if node_vsn >= self._MIN_NODE_VSN:
+                    return node_vsn
+                raise RuntimeError
+            except RuntimeError as e:
+                min_vsn_str = 'v' + '.'.join(str(v) for v in self._MIN_NODE_VSN)
+                self._warn_and_raise(
+                    f'Node version too low. '
+                    f'(got {stdout}, but at least {min_vsn_str} is required)',
+                    raise_from=e)
+            except (subprocess.TimeoutExpired, ValueError) as e:
+                self._warn_and_raise(
+                    f'Failed to check node version. '
+                    f'Node returned {returncode} exit status. '
+                    f'Node stdout: {stdout}; Node stderr: {stderr}',
+                    raise_from=e)
+
         def _real_validate_get_pot(
             self,
             client: str,
@@ -61,6 +88,7 @@ else:
                     'Incorrect script passed to extractor args. Path to generate_once.js required')
             if (node_path := shutil.which('node')) is None:
                 self._warn_and_raise('node is not in PATH')
+            self._check_node_version(node_path)
             self._check_script_version(node_path, script_path)
             self.script_path = script_path
             self.node_path = node_path

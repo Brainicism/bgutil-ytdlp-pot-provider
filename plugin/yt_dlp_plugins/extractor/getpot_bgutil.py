@@ -29,6 +29,7 @@ class BgUtilBaseGetPOTRH(getpot.GetPOTProvider):
     _SUPPORTED_CONTEXTS = ('gvs', 'player')
     _GETPOT_TIMEOUT = 20.0
     _GET_VSN_TIMEOUT = 5.0
+    _MIN_NODE_VSN = (18, 0, 0)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
