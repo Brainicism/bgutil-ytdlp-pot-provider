@@ -18,6 +18,10 @@ except ImportError:
 else:
     @getpot.register_provider
     class BgUtilScriptGetPOTRH(BgUtilBaseGetPOTRH):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.node_path = None
+
         @classproperty(cache=True)
         def _default_script_path(self):
             home = os.path.expanduser('~')
@@ -77,6 +81,11 @@ else:
             ytcfg=None,
             **kwargs,
         ):
+            if not self.node_path:
+                if (node_path := shutil.which('node')) is None:
+                    self._warn_and_raise('node is not in PATH')
+                self._check_node_version(node_path)
+                self.node_path = node_path
             # validate script
             script_path = self._get_config_setting(
                 'getpot_bgutil_script', default=self._default_script_path)
@@ -86,12 +95,8 @@ else:
             if os.path.basename(script_path) != 'generate_once.js':
                 self._warn_and_raise(
                     'Incorrect script passed to extractor args. Path to generate_once.js required')
-            if (node_path := shutil.which('node')) is None:
-                self._warn_and_raise('node is not in PATH')
-            self._check_node_version(node_path)
-            self._check_script_version(node_path, script_path)
+            self._check_script_version(self.node_path, script_path)
             self.script_path = script_path
-            self.node_path = node_path
 
         def _get_pot(
             self,
