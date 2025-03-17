@@ -76,7 +76,7 @@ jobs:
             [ "$exit_code" -eq 0 ] && exit_code=1
           fi
 
-          pot_response=$(echo "$script_response" | grep -A1 '^\[debug\]\ \[GetPOT\]\ BgUtilScript:\ stdout:$' | tail -n1 | jq -C '.poToken')
+          pot_response=$(echo "$script_response" | grep -A1 -m1 '^\[debug\]\ \[GetPOT\]\ BgUtilScript:\ stdout:$' | tail -n1 | jq -C '.poToken')
           echo "POT: $pot_response"
           if [[ "$pot_response" == "null" || -z "$pot_response" || "$pot_response" == '""' ]]; then
              echo "::error title=Failed to generate POT,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::\
@@ -160,7 +160,7 @@ jobs:
           fi
           
           {
-            po_token=$(echo "$script_response" | grep '^\[debug\]\ \[GetPOT\]\ BgUtilHTTP:\ Generated\ POT:\ ' | sed 's/^\[debug\]\ \[GetPOT\]\ BgUtilHTTP:\ Generated\ POT:\ //')
+            po_token=$(echo "$script_response" | grep -m1 '^\[debug\]\ \[GetPOT\]\ BgUtilHTTP:\ Generated\ POT:\ ' | sed 's/^\[debug\]\ \[GetPOT\]\ BgUtilHTTP:\ Generated\ POT:\ //')
           } || true
           echo "POT: $po_token"
           if [[ "$po_token" == "None" || -z "$po_token" ]]; then
@@ -168,6 +168,5 @@ jobs:
           Failed to generate POT"
             [ "$exit_code" -eq 0 ] && exit_code=1
           fi
-          echo abcd
 
           exit $exit_code
