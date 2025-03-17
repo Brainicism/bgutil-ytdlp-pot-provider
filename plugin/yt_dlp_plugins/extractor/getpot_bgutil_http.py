@@ -7,7 +7,7 @@ if typing.TYPE_CHECKING:
     from yt_dlp import YoutubeDL
 
 from yt_dlp.networking.common import Request
-from yt_dlp.networking.exceptions import RequestError
+from yt_dlp.networking.exceptions import HTTPError, RequestError, TransportError
 
 try:
     from yt_dlp_plugins.extractor.getpot_bgutil import BgUtilBaseGetPOTRH, getpot
@@ -34,13 +34,18 @@ else:
             try:
                 response = json.load(ydl.urlopen(Request(
                     f'{base_url}/ping', extensions={'timeout': self._GET_VSN_TIMEOUT}, proxies={'all': None})))
+            except TransportError as e:
+                # the server may be down
+                self._warn_and_raise(
+                    f'Error reaching GET /ping (caused by {e.__class__.__name__})')
+            except HTTPError as e:
+                # may be an old server, don't raise
+                self._logger.warning(f'HTTP Error reaching GET /ping (caused by {e!r})', once=True)
             except json.JSONDecodeError as e:
-                self._logger.warning(
-                    f'Error parsing ping response JSON (caused by {e!r})'
-                    f', response: {response.read()}', once=True)
+                # invalid server
+                self._warn_and_raise(f'Error parsing ping response JSON (caused by {e!r})')
             except Exception as e:
-                self._logger.warning(
-                    f'Error reaching GET /ping (caused by {e.__class__.__name__})', once=True)
+                self._warn_and_raise(f'Unknown error reaching GET /ping (caused by {e!r})', raise_from=e)
             else:
                 self._check_version(response.get('version'), name='HTTP server')
             self.base_url = base_url
