@@ -158,5 +158,13 @@ jobs:
           BgUtilHTTP was not invoked"
             [ "$exit_code" -eq 0 ] && exit_code=1
           fi
+          
+          po_token = $(echo "$script_response" | grep '^Generated POT: ' | sed 's/^Generated POT: //')
+          echo "POT: $po_token"
+          if [[ "$po_token" == "None" || -z "$po_token" ]]; then
+             echo "::error title=Failed to generate POT,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py::\
+          Failed to generate POT"
+            [ "$exit_code" -eq 0 ] && exit_code=1
+          fi
 
           exit $exit_code

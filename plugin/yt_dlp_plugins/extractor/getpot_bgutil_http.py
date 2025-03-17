@@ -86,7 +86,9 @@ else:
             if 'po_token' not in response_json:
                 raise RequestError('Server did not respond with a po_token')
 
-            return response_json['po_token']
+            po_token = response_json['po_token']
+            self._logger.debug(f'Generated POT: {po_token}')
+            return po_token
 
     @getpot.register_preference(BgUtilHTTPGetPOTRH)
     def bgutil_HTTP_getpot_preference(rh, request):
