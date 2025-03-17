@@ -19,6 +19,10 @@ except ImportError:
 else:
     @getpot.register_provider
     class BgUtilScriptGetPOTRH(BgUtilBaseGetPOTRH):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self._check_script = functools.cache(self._check_script_vsn_impl)
+
         @functools.cached_property
         def _node_path(self):
             node_path = shutil.which('node')
@@ -33,9 +37,15 @@ else:
             return os.path.join(
                 home, 'bgutil-ytdlp-pot-provider', 'server', 'build', 'generate_once.js')
 
-        def _check_script_version(self, node_path, script_path):
+        def _check_script_vsn_impl(self, script_path):
+            if not os.path.isfile(script_path):
+                self._warn_and_raise(
+                    f"Script path doesn't exist: {script_path}")
+            if os.path.basename(script_path) != 'generate_once.js':
+                self._warn_and_raise(
+                    'Incorrect script passed to extractor args. Path to generate_once.js required')
             stdout, stderr, returncode = Popen.run(
-                [node_path, script_path, '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                [self._node_path, script_path, '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
                 timeout=self._GET_VSN_TIMEOUT)
             if returncode:
                 self._logger.warning(
@@ -89,13 +99,7 @@ else:
             # validate script
             script_path = self._get_config_setting(
                 'getpot_bgutil_script', default=self._default_script_path)
-            if not os.path.isfile(script_path):
-                self._warn_and_raise(
-                    f"Script path doesn't exist: {script_path}")
-            if os.path.basename(script_path) != 'generate_once.js':
-                self._warn_and_raise(
-                    'Incorrect script passed to extractor args. Path to generate_once.js required')
-            self._check_script_version(self._node_path, script_path)
+            self._check_script(script_path)
             self.script_path = script_path
 
         def _get_pot(
