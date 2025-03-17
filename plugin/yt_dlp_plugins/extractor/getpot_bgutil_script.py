@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 import json
 import os.path
 import shutil
@@ -18,15 +19,33 @@ except ImportError:
 else:
     @getpot.register_provider
     class BgUtilScriptGetPOTRH(BgUtilBaseGetPOTRH):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self._check_script = functools.cache(self._check_script_impl)
+
+        @functools.cached_property
+        def _node_path(self):
+            node_path = shutil.which('node')
+            if node_path is None:
+                self._warn_and_raise('node is not in PATH')
+            self._check_node_version(node_path)
+            return node_path
+
         @classproperty(cache=True)
-        def _default_script_path(self):
+        def _default_script_path(cls):
             home = os.path.expanduser('~')
             return os.path.join(
                 home, 'bgutil-ytdlp-pot-provider', 'server', 'build', 'generate_once.js')
 
-        def _check_script_version(self, node_path, script_path):
+        def _check_script_impl(self, script_path):
+            if not os.path.isfile(script_path):
+                self._warn_and_raise(
+                    f"Script path doesn't exist: {script_path}")
+            if os.path.basename(script_path) != 'generate_once.js':
+                self._warn_and_raise(
+                    'Incorrect script passed to extractor args. Path to generate_once.js required')
             stdout, stderr, returncode = Popen.run(
-                [node_path, script_path, '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                [self._node_path, script_path, '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
                 timeout=self._GET_VSN_TIMEOUT)
             if returncode:
                 self._logger.warning(
@@ -36,6 +55,33 @@ else:
                     once=True)
             else:
                 self._check_version(stdout.strip(), name='script')
+
+        def _check_node_version(self, node_path):
+            import re
+            try:
+                stdout, stderr, returncode = Popen.run(
+                    [node_path, '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                    timeout=self._GET_VSN_TIMEOUT)
+                stdout = stdout.strip()
+                mobj = re.match(r'v(\d+)\.(\d+)\.(\d+)', stdout)
+                if returncode or not mobj:
+                    raise ValueError
+                node_vsn = tuple(map(int, mobj.groups()))
+                if node_vsn >= self._MIN_NODE_VSN:
+                    return node_vsn
+                raise RuntimeError
+            except RuntimeError as e:
+                min_vsn_str = 'v' + '.'.join(str(v) for v in self._MIN_NODE_VSN)
+                self._warn_and_raise(
+                    f'Node version too low. '
+                    f'(got {stdout}, but at least {min_vsn_str} is required)',
+                    raise_from=e)
+            except (subprocess.TimeoutExpired, ValueError) as e:
+                self._warn_and_raise(
+                    f'Failed to check node version. '
+                    f'Node returned {returncode} exit status. '
+                    f'Node stdout: {stdout}; Node stderr: {stderr}',
+                    raise_from=e)
 
         def _real_validate_get_pot(
             self,
@@ -53,17 +99,8 @@ else:
             # validate script
             script_path = self._get_config_setting(
                 'getpot_bgutil_script', default=self._default_script_path)
-            if not os.path.isfile(script_path):
-                self._warn_and_raise(
-                    f"Script path doesn't exist: {script_path}")
-            if os.path.basename(script_path) != 'generate_once.js':
-                self._warn_and_raise(
-                    'Incorrect script passed to extractor args. Path to generate_once.js required')
-            if (node_path := shutil.which('node')) is None:
-                self._warn_and_raise('node is not in PATH')
-            self._check_script_version(node_path, script_path)
+            self._check_script(script_path)
             self.script_path = script_path
-            self.node_path = node_path
 
         def _get_pot(
             self,
@@ -80,7 +117,7 @@ else:
         ) -> str:
             self._logger.info(
                 f'Generating POT via script: {self.script_path}')
-            command_args = [self.node_path, self.script_path]
+            command_args = [self._node_path, self.script_path]
             if proxy := self._get_yt_proxy():
                 command_args.extend(['-p', proxy])
             # keep compat with previous versions
