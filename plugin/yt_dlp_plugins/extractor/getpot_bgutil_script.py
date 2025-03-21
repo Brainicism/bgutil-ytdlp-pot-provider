@@ -101,7 +101,7 @@ class BgUtilScriptPTP(BgUtilPTPBase):
                 f'Node returned {returncode} exit status. '
                 f'Node stdout: {stdout}; Node stderr: {stderr}')
 
-    def _real_fetch_pot(
+    def _real_request_pot(
         self,
         ctx: PoTokenRequest,
     ) -> PoTokenResponse:

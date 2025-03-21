@@ -56,7 +56,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
     def is_available(self):
         return self._server_available or self._last_server_check + 60 < time.time()
 
-    def _real_fetch_pot(
+    def _real_request_pot(
         self,
         ctx: PoTokenRequest,
     ) -> PoTokenResponse:
