@@ -42,7 +42,7 @@ else:
                 if script_path_provided:  # server down is expected, log info
                     self._info_and_raise(warning_base + 'This is expected if you are using the script method.')
                 else:
-                    self._warn_and_raise(warning_base + f'Otherwise, make sure that the server is reachable at {base_url}.')
+                    self._warn_and_raise(warning_base + f'Please make sure that the server is reachable at {base_url}.')
             except HTTPError as e:
                 # may be an old server, don't raise
                 self._logger.warning(
