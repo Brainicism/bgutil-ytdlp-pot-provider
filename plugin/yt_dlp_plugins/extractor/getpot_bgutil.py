@@ -48,7 +48,7 @@ class BgUtilBaseGetPOTRH(getpot.GetPOTProvider):
         self._logger.warning(msg, once=once)
         raise UnsupportedRequest(msg) from raise_from
 
-    def _info_and_raise(self, msg, once=True, raise_from=None):
+    def _info_and_raise(self, msg, raise_from=None):
         self._logger.info(msg)
         raise UnsupportedRequest(msg) from raise_from
 
