@@ -41,11 +41,11 @@ else:
             if not os.path.isfile(script_path):
                 base_url_provided = self._get_config_setting(
                     'getpot_bgutil_baseurl', default=None) is not None
-                warning_msg = f"Script path doesn't exist: {script_path}. This is expected if you are using the server method. Otherwise, make sure that the script has been transpiled correctly."
+                warning_base = f"Script path doesn't exist: {script_path}. "
                 if base_url_provided:  # script path not existing is expected, log info
-                    self._info_and_raise(warning_msg)
+                    self._info_and_raise(warning_base + 'This is expected if you are using the server method.')
                 else:
-                    self._warn_and_raise(warning_msg)
+                    self._warn_and_raise(warning_base + 'Please make sure the script has been transpiled correctly.')
             if os.path.basename(script_path) != 'generate_once.js':
                 self._warn_and_raise(
                     'Incorrect script passed to extractor args. Path to generate_once.js required')
