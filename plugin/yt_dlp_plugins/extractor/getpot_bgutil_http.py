@@ -36,8 +36,13 @@ else:
                     f'{base_url}/ping', extensions={'timeout': self._GET_VSN_TIMEOUT}, proxies={'all': None})))
             except TransportError as e:
                 # the server may be down
-                self._warn_and_raise(
-                    f'Error reaching GET {base_url}/ping (caused by {e.__class__.__name__}). This is expected if you are using the script method. Otherwise, make sure that the server is reachable at {base_url}/ping.')
+                script_path_provided = self._get_config_setting(
+                    'getpot_bgutil_script', default=None) is not None
+                warning_msg = f'Error reaching GET {base_url}/ping (caused by {e.__class__.__name__}). This is expected if you are using the script method. Otherwise, make sure that the server is reachable at {base_url}/ping.'
+                if script_path_provided:
+                    self._info_and_raise(warning_msg)
+                else:
+                    self._warn_and_raise(warning_msg)
             except HTTPError as e:
                 # may be an old server, don't raise
                 self._logger.warning(

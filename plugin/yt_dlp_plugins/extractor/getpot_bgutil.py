@@ -48,6 +48,10 @@ class BgUtilBaseGetPOTRH(getpot.GetPOTProvider):
         self._logger.warning(msg, once=once)
         raise UnsupportedRequest(msg) from raise_from
 
+    def _info_and_raise(self, msg, once=True, raise_from=None):
+        self._logger.info(msg, once=once)
+        raise UnsupportedRequest(msg) from raise_from
+
     @staticmethod
     def _get_content_binding(client, context, data_sync_id=None, visitor_data=None, video_id=None):
         # https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide#po-tokens-for-player
