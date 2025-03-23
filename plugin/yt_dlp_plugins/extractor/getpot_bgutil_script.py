@@ -40,7 +40,7 @@ else:
         def _check_script_impl(self, script_path):
             if not os.path.isfile(script_path):
                 self._warn_and_raise(
-                    f"Script path doesn't exist: {script_path}")
+                    f"Script path doesn't exist: {script_path}. This is expected if you are using the server method. Otherwise, make sure that the script has been transpiled correctly.")
             if os.path.basename(script_path) != 'generate_once.js':
                 self._warn_and_raise(
                     'Incorrect script passed to extractor args. Path to generate_once.js required')
@@ -71,7 +71,8 @@ else:
                     return node_vsn
                 raise RuntimeError
             except RuntimeError as e:
-                min_vsn_str = 'v' + '.'.join(str(v) for v in self._MIN_NODE_VSN)
+                min_vsn_str = 'v' + '.'.join(str(v)
+                                             for v in self._MIN_NODE_VSN)
                 self._warn_and_raise(
                     f'Node version too low. '
                     f'(got {stdout}, but at least {min_vsn_str} is required)',
