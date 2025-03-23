@@ -38,11 +38,11 @@ else:
                 # the server may be down
                 script_path_provided = self._get_config_setting(
                     'getpot_bgutil_script', default=None) is not None
-                warning_msg = f'Error reaching GET {base_url}/ping (caused by {e.__class__.__name__}). This is expected if you are using the script method. Otherwise, make sure that the server is reachable at {base_url}/ping.'
-                if script_path_provided:  # server down is expecting,  log info
-                    self._info_and_raise(warning_msg)
+                warning_base = f'Error reaching GET {base_url}/ping (caused by {e.__class__.__name__}). '
+                if script_path_provided:  # server down is expected, log info
+                    self._info_and_raise(warning_base + 'This is expected if you are using the script method.')
                 else:
-                    self._warn_and_raise(warning_msg)
+                    self._warn_and_raise(warning_base + f'Otherwise, make sure that the server is reachable at {base_url}.')
             except HTTPError as e:
                 # may be an old server, don't raise
                 self._logger.warning(
