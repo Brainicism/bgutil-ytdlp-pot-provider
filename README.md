@@ -59,7 +59,6 @@ node build/main.js
 **Options**
 
 - `-p, --port <PORT>`: The port on which the server listens.
-- `--verbose`: Use verbose logging
 
 **Environment Variables**
 
