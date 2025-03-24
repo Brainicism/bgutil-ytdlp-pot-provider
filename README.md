@@ -68,6 +68,9 @@ node build/main.js
 
 #### (b) Generation Script Option
 
+> [!IMPORTANT]
+> This method is not recommended for high concurrency usage. Every yt-dlp call incurs the overhead of spawning a new node process to run the script. This method also handles cache concurrency poorly.
+
 1. Transpile the generation script to Javascript:
 
 ```shell
