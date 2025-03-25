@@ -26,8 +26,7 @@
         "express": "^4.21.2",
         "https-proxy-agent": "^7.0.6",
         "jsdom": "^25.0.1",
-        "socks-proxy-agent": "^8.0.5",
-        "youtubei.js": "^12.2.0"
+        "socks-proxy-agent": "^8.0.5"
     },
     "devDependencies": {
         "@eslint/js": "^9.17.0",
