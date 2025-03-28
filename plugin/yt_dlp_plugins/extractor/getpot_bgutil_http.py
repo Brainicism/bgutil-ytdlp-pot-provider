@@ -12,7 +12,7 @@ try:
 except ImportError:
     pass
 
-from yt_dlp.extractor.youtube.pot.provider import register_provider, PoTokenRequest, PoTokenProviderError, PoTokenResponse, register_preference
+from yt_dlp.extractor.youtube.pot.provider import register_provider, PoTokenRequest, PoTokenProviderError, PoTokenResponse, register_preference, UnsupportedPoTokenRequest
 
 
 @register_provider
@@ -28,33 +28,40 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
 
     def _check_server_availability(self, ctx: PoTokenRequest):
         if self._last_server_check + 60 > time.time():
-            return
+            return self._server_available
 
+        self._last_server_check = time.time()
         try:
+             self.logger.trace('Checking server availability')
              response = json.load(self._urlopen(ctx, Request(
                  f'{self.base_url}/ping', extensions={'timeout': self._GET_VSN_TIMEOUT}, proxies={'all': None})))
         except TransportError as e:
              # the server may be down
+             self._server_available = False
              self._warn_and_raise(
                  f'Error reaching GET /ping (caused by {e.__class__.__name__})')
-             self._server_available = False
+             return
         except HTTPError as e:
              # may be an old server, don't raise
+             self._server_available = False
              self.logger.warning(f'HTTP Error reaching GET /ping (caused by {e!r})', once=True)
-             self._server_available = True
+             return
         except json.JSONDecodeError as e:
             # invalid server
+            self._server_available = False
             self._warn_and_raise(f'Error parsing ping response JSON (caused by {e!r})')
-            self._server_available = False
+            return
         except Exception as e:
-            self._warn_and_raise(f'Unknown error reaching GET /ping (caused by {e!r})', raise_from=e)
             self._server_available = False
-        else:
-            self._check_version(response.get('version'), name='HTTP server')
-            self._server_available = True
+            self._warn_and_raise(f'Unknown error reaching GET /ping (caused by {e!r})', raise_from=e)
+            return
+
+        self._check_version(response.get('version'), name='HTTP server')
+        self._server_available = True
+        return True
 
     def is_available(self):
-        return self._server_available or self._last_server_check + 60 < time.time()
+        return self._server_available or self._last_server_check + 60 < int(time.time())
 
     def _real_request_pot(
         self,
@@ -62,7 +69,8 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
     ) -> PoTokenResponse:
 
         self.logger.debug('Generating POT via HTTP server')
-        self._check_server_availability(ctx)
+        if not self._check_server_availability(ctx):
+            raise UnsupportedPoTokenRequest(f'{self.PROVIDER_NAME} server is not available')
 
         proxy = ctx.request_proxy
 
