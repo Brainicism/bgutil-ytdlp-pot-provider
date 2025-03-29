@@ -77,7 +77,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
         try:
             response = self._urlopen(ctx, Request(
                 f'{self.base_url}/get_pot', data=json.dumps({
-                    'content_binding': get_webpo_content_binding(ctx),
+                    'content_binding': get_webpo_content_binding(ctx)[0],
                     'proxy': proxy,
                 }).encode(), headers={'Content-Type': 'application/json'},
                 extensions={'timeout': self._GETPOT_TIMEOUT}, proxies={'all': None}))

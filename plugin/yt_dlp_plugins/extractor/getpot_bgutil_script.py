@@ -111,7 +111,7 @@ class BgUtilScriptPTP(BgUtilPTPBase):
         if proxy := ctx.request_proxy:
             command_args.extend(['-p', proxy])
 
-        command_args.extend(['-v', get_webpo_content_binding(ctx)])
+        command_args.extend(['-v', get_webpo_content_binding(ctx)[0]])
         self.logger.debug(
             f'Executing command to get POT via script: {" ".join(command_args)}')
 
