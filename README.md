@@ -116,12 +116,6 @@ npx tsc
 
 ### 2. Install the plugin
 
-#### PyPI:
-
-```shell
-python3 -m pip install -U bgutil-ytdlp-pot-provider
-```
-
 #### Manual:
 
 1. Download the latest release zip from [releases](https://github.com/Brainicism/bgutil-ytdlp-pot-provider/releases).
@@ -140,7 +134,7 @@ node build/main.js --port 8080
 If changing the port or IP used for the provider server, pass it to yt-dlp via `base_url`
 
 ```shell
---extractor-args "youtube-bgutilhttp:base_url=http://127.0.0.1:8080"
+--extractor-args "youtubepot-bgutilhttp:base_url=http://127.0.0.1:8080"
 ```
 
 ---
@@ -150,7 +144,7 @@ If using option (b) script for the provider, with the default script location in
 If you installed the script in a different location, pass it as the extractor argument `script_path` to `youtube-bgutilscript` for each yt-dlp call.
 
 ```shell
---extractor-args "youtube-bgutilscript:script_path=$WORKSPACE/bgutil-ytdlp-pot-provider/server/build/generate_once.js"
+--extractor-args "youtubepot-bgutilscript:script_path=$WORKSPACE/bgutil-ytdlp-pot-provider/server/build/generate_once.js"
 ```
 
 ---
