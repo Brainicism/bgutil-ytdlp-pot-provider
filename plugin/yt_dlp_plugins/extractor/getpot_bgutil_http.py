@@ -12,7 +12,7 @@ try:
 except ImportError:
     pass
 
-from yt_dlp.extractor.youtube.pot.provider import register_provider, PoTokenRequest, PoTokenProviderError, PoTokenResponse, register_preference, UnsupportedPoTokenRequest
+from yt_dlp.extractor.youtube.pot.provider import register_provider, PoTokenRequest, PoTokenProviderError, PoTokenResponse, register_preference, PoTokenProviderRejectedRequest
 
 
 @register_provider
@@ -70,7 +70,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
 
         self.logger.debug('Generating POT via HTTP server')
         if not self._check_server_availability(ctx):
-            raise UnsupportedPoTokenRequest(f'{self.PROVIDER_NAME} server is not available')
+            raise PoTokenProviderRejectedRequest(f'{self.PROVIDER_NAME} server is not available')
 
         proxy = ctx.request_proxy
 
