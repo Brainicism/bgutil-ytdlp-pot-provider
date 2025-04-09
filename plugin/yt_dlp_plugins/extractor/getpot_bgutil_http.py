@@ -47,7 +47,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
             # the server may be down
             self._server_available = False
             self._warn_and_raise(
-                f'Error reaching GET /ping (caused by {e.__class__.__name__})')
+                f'Error reaching GET /ping {self.base_url}/ping (caused by {e.__class__.__name__})')
             return
         except HTTPError as e:
             # may be an old server, don't raise
