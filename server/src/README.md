@@ -13,7 +13,6 @@ If you are interested in using the script/server standalone for generating your 
     - Returns a JSON:
         - `po_token`: The POT.
 - **GET /ping**: Ping the server. The response includes:
-    - `token_ttl_hours`: The current applied `TOKEN_TTL` value, defaults to 6.
     - `server_uptime`: Uptime of the server process in seconds.
     - `version`: Current server version.
 
@@ -25,10 +24,6 @@ If you are interested in using the script/server standalone for generating your 
 - `-p, --proxy <proxy-all>`: The proxy to use for the requests, optional.
 - `--version`: Print the script version and exit.
 - `--verbose`: Use verbose logging.
-
-**Environment Variables**
-
-- **TOKEN_TTL**: The time in hours for a PO token to be considered valid. While there are no definitive answers on how long a token is valid, it has been observed to be valid for atleast a couple of days (Default: 6).
 
 ### Content Binding
 
