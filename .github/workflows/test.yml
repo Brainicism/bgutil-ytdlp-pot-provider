@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  TEST_ARGS: -vF --print-traffic --no-simulate --color always -f "b*" -S "filesize:10M" --exec "rm -f"
+  TEST_ARGS: -vF --print-traffic --color always -f "b*" -S "filesize:10M" --exec "rm -f"
 
 jobs:
   lint-format:
