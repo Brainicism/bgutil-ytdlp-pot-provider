@@ -64,7 +64,7 @@ jobs:
           # expect this to fail, but just make sure that the plugin is invoked
           {
             # TODO: revert to nightly binary
-            script_response=$(bash dev/yt-dlp.sh ${{ env.TEST_ARGS }} --extractor-args "youtubepot-bgutilscript:script_path=server/build/generate_once.js" --extractor-args "youtube:pot_debug=true" dQw4w9WgXcQ 2>&1)
+            script_response=$(bash dev/yt-dlp.sh ${{ env.TEST_ARGS }} --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" --extractor-args "youtube:pot_debug=true" dQw4w9WgXcQ 2>&1)
             ret=$?
           } || true
 
@@ -151,7 +151,7 @@ jobs:
           # expect this to fail, but just make sure that the plugin is invoked
           {
             # TODO: revert to nightly binary
-            server_response=$(bash dev/yt-dlp.sh ${{ env.TEST_ARGS }} --extractor-args "youtubepot-bgutilhttp:base_url=http://127.0.0.1:${{ env.PORT }}"   --extractor-args "youtube:pot_debug=true" dQw4w9WgXcQ 2>&1)
+            server_response=$(bash dev/yt-dlp.sh ${{ env.TEST_ARGS }} --extractor-args "youtube:getpot_bgutil_baseurl=http://127.0.0.1:${{ env.PORT }}"   --extractor-args "youtube:pot_debug=true" dQw4w9WgXcQ 2>&1)
             ret=$?
           } || true
 
