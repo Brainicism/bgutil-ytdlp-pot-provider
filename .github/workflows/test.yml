@@ -146,7 +146,7 @@ jobs:
 
           # expect this to fail, but just make sure that the plugin is invoked
           {
-            script_response=$(bash dev/yt-dlp.sh ${{ env.TEST_ARGS }} --extractor-args "youtubepot-bgutilhttp:base_url=http://127.0.0.1:${{ env.PORT }}" dQw4w9WgXcQ 2>&1)
+            server_response=$(bash dev/yt-dlp.sh ${{ env.TEST_ARGS }} --extractor-args "youtubepot-bgutilhttp:base_url=http://127.0.0.1:${{ env.PORT }}" dQw4w9WgXcQ 2>&1)
             ret=$?
           } || true
 
@@ -157,21 +157,21 @@ jobs:
           echo "::endgroup::"
 
           echo "::group::Logs from yt-dlp"
-          printf "%s\n" "$script_response"
+          printf "%s\n" "$server_response"
           echo "::endgroup::"
 
           if [ "$ret" -ne 0 ]; then
             echo "::warning title=yt-dlp failed when testing HTTP server,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py::yt-dlp returned $ret exit status"
           fi
 
-          if [[ "$script_response" != *"[pot:bgutil:http] Generating POT via HTTP server"* ]]; then
+          if [[ "$server_response" != *"[pot:bgutil:http] Generating POT via HTTP server"* ]]; then
             echo "::error title=BgUtilHTTP was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py::\
           BgUtilHTTP was not invoked"
             [ "$exit_code" -eq 0 ] && exit_code=1
           fi
 
           {
-            po_token=$(echo "$script_response" | grep -m1 '^\[debug\]\ \[GetPOT\]\ [pot:bgutil:http]:\ Generated\ POT:\ ' | sed 's/^\[debug\]\ \[GetPOT\]\ BgUtilHTTP:\ Generated\ POT:\ //')
+            po_token=$(echo "$server_response" | grep -m1 '^\[debug\]\ \[GetPOT\]\ [pot:bgutil:http]:\ Generated\ POT:\ ' | sed 's/^\[debug\]\ \[GetPOT\]\ BgUtilHTTP:\ Generated\ POT:\ //')
           } || true
           echo "POT: $po_token"
           if [[ "$po_token" == "None" || -z "$po_token" ]]; then
