@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import json
 import time
 
@@ -7,10 +8,8 @@ from yt_dlp.extractor.youtube.pot.builtin.utils import get_webpo_content_binding
 from yt_dlp.networking.common import Request
 from yt_dlp.networking.exceptions import HTTPError, TransportError
 
-try:
+with contextlib.suppress(ImportError):
     from yt_dlp_plugins.extractor.getpot_bgutil import BgUtilPTPBase
-except ImportError:
-    pass
 
 from yt_dlp.extractor.youtube.pot.provider import (
     PoTokenProviderError,

@@ -2,16 +2,10 @@ from __future__ import annotations
 
 __version__ = '0.8.2'
 
-import typing
-
-if typing.TYPE_CHECKING:
-    from yt_dlp import YoutubeDL
-
 import abc
 
 import yt_dlp.extractor.youtube.pot.provider as provider
 from yt_dlp.extractor.youtube.pot.builtin.utils import WEBPO_CLIENTS
-from yt_dlp.networking.common import Features
 
 
 class BgUtilPTPBase(provider.PoTokenProvider, abc.ABC):

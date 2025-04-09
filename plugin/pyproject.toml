@@ -15,7 +15,10 @@ maintainers = [
   { name = "Brainicism", email = "brainicism@gmail.com" },
   { name = "grqz" },
 ]
-dependencies = []
+dependencies = [
+  # temporary
+  "yt-dlp @ git+https://github.com/coletdjnz/yt-dlp-dev@feat/youtube/pot-provider-framework",
+]
 
 [tool.hatch.env.default]
 installer = "uv"

@@ -1,22 +1,17 @@
 from __future__ import annotations
 
+import contextlib
 import functools
 import json
 import os.path
 import shutil
 import subprocess
-import typing
+
 from yt_dlp.extractor.youtube.pot.builtin.utils import get_webpo_content_binding
-
-if typing.TYPE_CHECKING:
-    from yt_dlp import YoutubeDL
-
 from yt_dlp.utils import Popen, classproperty
 
-try:
+with contextlib.suppress(ImportError):
     from yt_dlp_plugins.extractor.getpot_bgutil import BgUtilPTPBase
-except ImportError:
-    pass
 
 from yt_dlp.extractor.youtube.pot.provider import (
     PoTokenProviderError,
@@ -96,12 +91,12 @@ class BgUtilScriptPTP(BgUtilPTPBase):
             if node_vsn >= self._MIN_NODE_VSN:
                 return node_vsn
             raise RuntimeError
-        except RuntimeError as e:
+        except RuntimeError:
             min_vsn_str = 'v' + '.'.join(str(v) for v in self._MIN_NODE_VSN)
             self.logger.warning(
                 f'Node version too low. '
                 f'(got {stdout}, but at least {min_vsn_str} is required)')
-        except (subprocess.TimeoutExpired, ValueError) as e:
+        except (subprocess.TimeoutExpired, ValueError):
             self.logger.warning(
                 f'Failed to check node version. '
                 f'Node returned {returncode} exit status. '
