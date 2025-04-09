@@ -60,12 +60,16 @@ node build/main.js
 
 - `-p, --port <PORT>`: The port on which the server listens.
 
+**Environment Variables**
+
+- **TOKEN_TTL**: The time in hours for a PO token to be considered valid. While there are no definitive answers on how long a token is valid, it has been observed to be valid for atleast a couple of days (Default: 6).
+
 </details>
 
 #### (b) Generation Script Option
 
 > [!IMPORTANT]
-> This method is not recommended for high concurrency usage. Every yt-dlp call incurs the overhead of spawning a new node process to run the script.
+> This method is not recommended for high concurrency usage. Every yt-dlp call incurs the overhead of spawning a new node process to run the script. This method also handles cache concurrency poorly.
 
 1. Transpile the generation script to Javascript:
 
@@ -118,7 +122,8 @@ If you installed the script in a different location, pass it as the extractor ar
 
 ---
 
-PO Tokens are automatically cached and invalidated by yt-dlp's built-in POT provider framework, as controlled by the (`youtubepot-memory:max_size`)[https://github.com/yt-dlp/yt-dlp/blob/master/README.md#youtubepot-memory] extractor-arg.
+We use a cache internally for all generated tokens. You can change the TTL (time to live) for the token cache with the environment variable `TOKEN_TTL`. It's currently impossible to use different TTLs for different token contexts (can be `gvs` or `player`, see [Technical Details](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide#technical-details) in the PO Token Guide). The environment variable is in hours and defaults to 6.  
+When using the script method, the environment variables will be passed down to the script. You can pass a `TOKEN_TTL` to yt-dlp to use a custom TTL.
 
 ---
 

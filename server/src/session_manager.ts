@@ -11,6 +11,10 @@ interface YoutubeSessionData {
     generatedAt: Date;
 }
 
+export interface YoutubeSessionDataCaches {
+    [visitIdentifier: string]: YoutubeSessionData;
+}
+
 class Logger {
     private shouldLog: boolean;
 
@@ -37,10 +41,49 @@ class Logger {
 }
 
 export class SessionManager {
+    private youtubeSessionDataCaches: YoutubeSessionDataCaches = {};
+    private TOKEN_TTL_HOURS: number;
     private logger: Logger;
 
-    constructor(shouldLog = true) {
+    constructor(
+        shouldLog = true,
+        youtubeSessionDataCaches: YoutubeSessionDataCaches = {},
+    ) {
         this.logger = new Logger(shouldLog);
+        this.setYoutubeSessionDataCaches(youtubeSessionDataCaches);
+        this.TOKEN_TTL_HOURS = process.env.TOKEN_TTL
+            ? parseInt(process.env.TOKEN_TTL)
+            : 6;
+    }
+
+    invalidateCaches() {
+        this.setYoutubeSessionDataCaches();
+    }
+
+    cleanupCaches() {
+        for (const visitIdentifier in this.youtubeSessionDataCaches) {
+            const sessionData = this.youtubeSessionDataCaches[visitIdentifier];
+            if (
+                sessionData &&
+                sessionData.generatedAt <
+                    new Date(
+                        new Date().getTime() -
+                            this.TOKEN_TTL_HOURS * 60 * 60 * 1000,
+                    )
+            )
+                delete this.youtubeSessionDataCaches[visitIdentifier];
+        }
+    }
+
+    getYoutubeSessionDataCaches(cleanup = false) {
+        if (cleanup) this.cleanupCaches();
+        return this.youtubeSessionDataCaches;
+    }
+
+    setYoutubeSessionDataCaches(
+        youtubeSessionData: YoutubeSessionDataCaches = {},
+    ) {
+        this.youtubeSessionDataCaches = youtubeSessionData || {};
     }
 
     getProxyDispatcher(proxy: string | undefined): Agent | undefined {
@@ -89,6 +132,20 @@ export class SessionManager {
         contentBinding: string,
         proxy: string = "",
     ): Promise<YoutubeSessionData> {
+        this.logger.log(`Generating POT for ${contentBinding}`);
+        this.cleanupCaches();
+        const sessionData = this.youtubeSessionDataCaches[contentBinding];
+        if (sessionData) {
+            this.logger.log(
+                `POT for ${contentBinding} still fresh, returning cached token`,
+            );
+            return sessionData;
+        }
+
+        this.logger.log(
+            `POT for ${contentBinding} stale or not yet generated, generating...`,
+        );
+
         // hardcoded API key that has been used by youtube for years
         const requestKey = "O43z0dpjhgX20SCx4KAo";
         const dom = new JSDOM();
@@ -189,6 +246,8 @@ export class SessionManager {
             poToken: poToken,
             generatedAt: new Date(),
         };
+
+        this.youtubeSessionDataCaches[contentBinding] = youtubeSessionData;
 
         return youtubeSessionData;
     }
