@@ -20,7 +20,7 @@ class BgUtilPTPBase(provider.PoTokenProvider, abc.ABC):
     _GETPOT_TIMEOUT = 20.0
     _GET_VSN_TIMEOUT = 5.0
     _MIN_NODE_VSN = (18, 0, 0)
-    _MIN_YTDLP_VSN = (2025, 4, 31)  # TODO: finalize required version
+    _MIN_YTDLP_VSN = (2025, 1, 1)  # TODO: finalize required version
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
