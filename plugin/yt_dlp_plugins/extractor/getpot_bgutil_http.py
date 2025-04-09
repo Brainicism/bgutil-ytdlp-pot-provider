@@ -110,7 +110,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
                 'Server did not respond with a po_token')
 
         po_token = response_json['po_token']
-        self.logger.trace(f'Generated POT: {po_token}')
+        self.logger.info(f'Generated POT: {po_token}')
         return PoTokenResponse(po_token=po_token)
 
 
