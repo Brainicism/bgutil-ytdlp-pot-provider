@@ -171,7 +171,7 @@ jobs:
           fi
 
           {
-            po_token=$(echo "$server_response" | grep -m1 '^\[youtube\]\ \[GetPOT\]\ [pot:bgutil:http]:\ Generated\ POT:\ ' | sed 's/^\[youtube\]\ \[GetPOT\]\ BgUtilHTTP:\ Generated\ POT:\ //')
+            po_token=$(echo "$server_response" | grep -m1 '^\[youtube\]\ [pot:bgutil:http]:\ Generated\ POT:\ ' | sed 's/^\[youtube\]\ \[GetPOT\]\ BgUtilHTTP:\ Generated\ POT:\ //')
           } || true
           echo "POT: $po_token"
           if [[ "$po_token" == "None" || -z "$po_token" ]]; then
