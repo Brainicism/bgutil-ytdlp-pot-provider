@@ -82,7 +82,7 @@ jobs:
           fi
 
           echo "$script_response"
-          pot_response=$(echo "$script_response" | grep -A1 -m1 '^\[youtube\] \[pot:bgutil:script\] stdout:$' | tail -n1 | jq -C '.poToken')
+          pot_response=$(echo "$script_response" | grep -A1 -m1 '^\[youtube\] \[pot:bgutil:script\] TRACE: stdout:$' | tail -n1 | jq -C '.poToken')
 
 
           echo "POT: $pot_response"
@@ -174,7 +174,7 @@ jobs:
           fi
 
           {
-            po_token=$(echo "$server_response" | grep -m1 '^\[youtube\] \[pot:bgutil:http\] Generated POT: ' | sed 's/^\[youtube\] \[pot:bgutil:http\] Generated POT: //')
+            po_token=$(echo "$server_response" | grep -m1 '^\[youtube\] \[pot:bgutil:http\] TRACE: Generated POT: ' | sed 's/^\[youtube\] \[pot:bgutil:http\] Generated POT: //')
           } || true
           echo "POT: $po_token"
           if [[ "$po_token" == "None" || -z "$po_token" ]]; then
