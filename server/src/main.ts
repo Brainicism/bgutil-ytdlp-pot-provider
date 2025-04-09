@@ -4,7 +4,7 @@ import { Command } from "@commander-js/extra-typings";
 import express from "express";
 import bodyParser from "body-parser";
 
-const program = new Command().option("-p, --port <PORT>").option("--verbose");
+const program = new Command().option("-p, --port <PORT>");
 
 program.parse();
 const options = program.opts();
@@ -21,7 +21,7 @@ httpServer.listen({
 
 console.log(`Started POT server on port ${PORT_NUMBER}`);
 
-const sessionManager = new SessionManager(options.verbose || false);
+const sessionManager = new SessionManager();
 httpServer.post("/get_pot", async (request, response) => {
     const proxy: string = request.body.proxy;
     const contentBinding = (request.body.content_binding ||
@@ -61,7 +61,6 @@ httpServer.post("/invalidate_caches", async (request, response) => {
 
 httpServer.get("/ping", async (request, response) => {
     response.send({
-        logging: options.verbose ? "verbose" : "normal",
         token_ttl_hours: process.env.TOKEN_TTL || 6,
         server_uptime: process.uptime(),
         version: VERSION,

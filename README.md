@@ -45,8 +45,8 @@ docker run --name bgutil-provider -d -p 4416:4416 brainicism/bgutil-ytdlp-pot-pr
 **Native:**
 
 ```shell
-# Replace 0.8.0 with the latest version or the one that matches the plugin
-git clone --single-branch --branch 0.8.0 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
+# Replace 0.8.2 with the latest version or the one that matches the plugin
+git clone --single-branch --branch 0.8.2 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
 cd bgutil-ytdlp-pot-provider/server/
 yarn install --frozen-lockfile
 npx tsc
@@ -57,22 +57,8 @@ node build/main.js
   <summary>Server Command Line Options/Endpoints/Environment Variables</summary>
 
 **Options**
+
 - `-p, --port <PORT>`: The port on which the server listens.
-- `--verbose`: Use verbose logging
-
-**Endpoints**
-
-- **POST /get_pot**: Generate a new POT.
-  - The request data should be a JSON including:
-    - `content_binding`: [Content binding](#content-binding) (required).
-    - `proxy`: A string indicating the proxy to use for the requests (optional).
-  - Returns a JSON:
-    - `po_token`: The POT.
-- **GET /ping**: Ping the server. The response includes:
-  - `logging`: Logging verbosity(`normal` or `verbose`).
-  - `token_ttl_hours`: The current applied `TOKEN_TTL` value, defaults to 6.
-  - `server_uptime`: Uptime of the server process in seconds.
-  - `version`: Current server version.
 
 **Environment Variables**
 
@@ -82,6 +68,9 @@ node build/main.js
 
 #### (b) Generation Script Option
 
+> [!IMPORTANT]
+> This method is not recommended for high concurrency usage. Every yt-dlp call incurs the overhead of spawning a new node process to run the script. This method also handles cache concurrency poorly.
+
 1. Transpile the generation script to Javascript:
 
 ```shell
@@ -89,30 +78,14 @@ node build/main.js
 # on each yt-dlp invocation, clone/extract the source code into your home directory.
 # Replace `~` with `%USERPROFILE%` if using Windows
 cd ~
-# Replace 0.8.0 with the latest version or the one that matches the plugin
-git clone --single-branch --branch 0.8.0 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
+# Replace 0.8.2 with the latest version or the one that matches the plugin
+git clone --single-branch --branch 0.8.2 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
 cd bgutil-ytdlp-pot-provider/server/
 yarn install --frozen-lockfile
 npx tsc
 ```
 
 2. Make sure `node` is available in your `PATH`.
-
-<details>
-  <summary>Script Options/Environment Variables</summary>
-
-**Options**
-
-- `-c, --content-binding <content-binding>`: The [content binding](#content-binding), required.
-- `-p, --proxy <proxy-all>`: The proxy to use for the requests, optional.
-- `--version`: Print the script version and exit.
-- `--verbose`: Use verbose logging.
-
-**Environment Variables**
-
-- **TOKEN_TTL**: The time in hours for a PO token to be considered valid. While there are no definitive answers on how long a token is valid, it has been observed to be valid for atleast a couple of days (Default: 6).
-
-</details>
 
 ### 2. Install the plugin
 
@@ -156,18 +129,10 @@ When using the script method, the environment variables will be passed down to t
 
 If both methods are available for use, the option (b) script will be prioritized.
 
-### Content Binding
-
-Content binding refers to the data used to generate a PO Token.
-
-GVS tokens (See [PO Tokens for GVS](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide#po-tokens-for-gvs) from the PO Token Guide) are all session-bound so the content binding for a GVS token is either a Visitor ID (also known as `visitorData`, `VISITOR_INFO1_LIVE`, used when not logged in) or the account Session ID (first part of the Data Sync ID, used when logged in).
-
-Player tokens are mostly content-bound and their content bindings are the video IDs. Note that the `web_music` client uses the session token instead of video ID to generate player tokens.
-
 ### Verification
 
 To check if the plugin was installed correctly, you should see the `bgutil` providers in yt-dlp's verbose output: `yt-dlp -v YOUTUBE_URL`.
 
 ```
-[debug] [youtube] [pot] PO Token Providers: bgutil:http-0.8.0 (external), bgutil:script-0.8.0 (external)
+[debug] [youtube] [pot] PO Token Providers: bgutil:http-0.8.2 (external), bgutil:script-0.8.2 (external)
 ```

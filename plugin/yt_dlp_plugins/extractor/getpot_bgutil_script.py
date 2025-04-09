@@ -18,7 +18,13 @@ try:
 except ImportError:
     pass
 
-from yt_dlp.extractor.youtube.pot.provider import register_provider, PoTokenRequest, PoTokenProviderError, PoTokenResponse, register_preference
+from yt_dlp.extractor.youtube.pot.provider import (
+    PoTokenProviderError,
+    PoTokenRequest,
+    PoTokenResponse,
+    register_preference,
+    register_provider,
+)
 
 
 @register_provider
@@ -28,8 +34,8 @@ class BgUtilScriptPTP(BgUtilPTPBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._check_script = functools.cache(self._check_script_impl)
-        self.script_path = self.get_setting(
-            'script_path', casesense=True, default=[self._default_script_path])[0]
+        self.script_path = os.path.expandvars(self.get_setting(
+            'script_path', casesense=True, default=[self._default_script_path])[0])
 
     def is_available(self):
         return self._check_script(self.script_path)

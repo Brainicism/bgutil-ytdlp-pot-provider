@@ -11,7 +11,7 @@
             "name": "grqz"
         }
     ],
-    "version": "0.8.0",
+    "version": "0.8.2",
     "scripts": {
         "lint": "npx eslint --max-warnings=0 src/",
         "lint-fix": "npx eslint --fix --max-warnings=0 src/",
@@ -26,11 +26,11 @@
         "express": "^4.21.2",
         "https-proxy-agent": "^7.0.6",
         "jsdom": "^25.0.1",
-        "socks-proxy-agent": "^8.0.5",
-        "youtubei.js": "^12.2.0"
+        "socks-proxy-agent": "^8.0.5"
     },
     "devDependencies": {
         "@eslint/js": "^9.17.0",
+        "@types/body-parser": "^1.19.5",
         "@types/express": "^5.0.0",
         "@types/jsdom": "^21.1.7",
         "@types/node": "^22.10.2",
