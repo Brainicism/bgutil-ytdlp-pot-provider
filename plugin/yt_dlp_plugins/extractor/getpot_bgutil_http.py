@@ -116,7 +116,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
 
 @register_preference(BgUtilHTTPPTP)
 def bgutil_HTTP_getpot_preference(provider, request):
-    return 1
+    return 100
 
 
 __all__ = [BgUtilHTTPPTP.__class__.__name__,

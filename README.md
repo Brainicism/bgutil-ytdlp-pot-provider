@@ -122,7 +122,7 @@ PO Tokens are automatically cached and invalidated by yt-dlp's built-in POT prov
 
 ---
 
-If both methods are available for use, the option (b) script will be prioritized.
+If both methods are available for use, the option (a) HTTP server method will be prioritized.
 
 ### Verification
 
