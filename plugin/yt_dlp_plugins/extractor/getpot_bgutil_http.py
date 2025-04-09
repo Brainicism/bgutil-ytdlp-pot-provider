@@ -39,7 +39,8 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
 
         self._last_server_check = time.time()
         try:
-            self.logger.trace('Checking server availability')
+            self.logger.trace(
+                f'Checking server availability at {self.base_url}/ping')
             response = json.load(self._urlopen(ctx, Request(
                 f'{self.base_url}/ping', extensions={'timeout': self._GET_VSN_TIMEOUT}, proxies={'all': None})))
         except TransportError as e:
