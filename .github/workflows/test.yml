@@ -81,7 +81,7 @@ jobs:
             [ "$exit_code" -eq 0 ] && exit_code=1
           fi
 
-          echo test1
+          echo "$script_response"
           pot_response=$(echo "$script_response" | grep -A1 -m1 '^\^\[youtube\] \[pot:bgutil:script\] BgUtilScript:\ stdout:$' | tail -n1 | jq -C '.poToken')
 
           echo test2
