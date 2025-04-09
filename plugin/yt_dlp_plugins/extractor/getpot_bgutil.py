@@ -18,7 +18,7 @@ class BgUtilPTPBase(provider.PoTokenProvider, abc.ABC):
                            provider.PoTokenContext.PLAYER)
     BUG_REPORT_LOCATION = 'https://github.com/Brainicism/bgutil-ytdlp-pot-provider/issues'
     _GETPOT_TIMEOUT = 20.0
-    _GET_VSN_TIMEOUT = 5.0
+    _GET_SERVER_VSN_TIMEOUT = 5.0
     _MIN_NODE_VSN = (18, 0, 0)
     _MIN_YTDLP_VSN = (2025, 1, 1)  # TODO: finalize required version
 

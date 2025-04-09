@@ -65,7 +65,7 @@ class BgUtilScriptPTP(BgUtilPTPBase):
             return False
         stdout, stderr, returncode = Popen.run(
             [self._node_path, script_path, '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-            timeout=self._GET_VSN_TIMEOUT)
+            timeout=self._GET_SERVER_VSN_TIMEOUT)
         if returncode:
             self.logger.warning(
                 f'Failed to check script version. '
@@ -82,7 +82,7 @@ class BgUtilScriptPTP(BgUtilPTPBase):
         try:
             stdout, stderr, returncode = Popen.run(
                 [node_path, '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-                timeout=self._GET_VSN_TIMEOUT)
+                timeout=self._GET_SERVER_VSN_TIMEOUT)
             stdout = stdout.strip()
             mobj = re.match(r'v(\d+)\.(\d+)\.(\d+)', stdout)
             if returncode or not mobj:
