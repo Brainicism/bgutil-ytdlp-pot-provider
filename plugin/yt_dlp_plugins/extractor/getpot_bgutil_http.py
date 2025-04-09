@@ -25,13 +25,32 @@ from yt_dlp.extractor.youtube.pot.provider import (
 class BgUtilHTTPPTP(BgUtilPTPBase):
 
     PROVIDER_NAME = 'bgutil:http'
+    DEFAULT_BASE_URL = 'http://127.0.0.1:4416'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._last_server_check = 0
         self._server_available = True
-        self.base_url = self.get_setting(
-            'base_url', default=['http://127.0.0.1:4416'])[0]
+        base_url = self.get_setting(
+            'base_url', default=[None])[0]
+
+        # check deprecated arg
+        if not base_url:
+            deprecated_base_url = self.ie._configuration_arg(
+                ie_key='youtube', key='getpot_bgutil_baseurl', default=[None])[0]
+
+            if deprecated_base_url:
+                self.logger.warning(
+                    "'youtube:getpot_bgutil_baseurl' extractor arg is deprecated, use 'youtubepot-bgutilhttp:base_url' instead")
+
+            base_url = deprecated_base_url
+
+        # default if no arg was passed
+        if not base_url:
+            self.logger.debug(
+                f'No base_url passed, defaulting to {self.DEFAULT_BASE_URL}')
+            base_url = self.DEFAULT_BASE_URL
+        self.base_url = base_url
 
     def _check_server_availability(self, ctx: PoTokenRequest):
         if self._last_server_check + 60 > time.time():

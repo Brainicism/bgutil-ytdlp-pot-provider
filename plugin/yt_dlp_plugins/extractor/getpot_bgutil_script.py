@@ -29,8 +29,26 @@ class BgUtilScriptPTP(BgUtilPTPBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._check_script = functools.cache(self._check_script_impl)
-        self.script_path = os.path.expandvars(self.get_setting(
-            'script_path', casesense=True, default=[self._default_script_path])[0])
+        script_path = self.get_setting(
+            'script_path', casesense=True, default=[None])[0]
+
+        # check deprecated arg
+        if not script_path:
+            deprecated_script_path = self.ie._configuration_arg(
+                ie_key='youtube', key='getpot_bgutil_script', default=[None])[0]
+
+            if deprecated_script_path:
+                self.logger.warning(
+                    "'youtube:getpot_bgutil_script' extractor arg is deprecated, use 'youtubepot-bgutilscript:script_path' instead")
+
+            script_path = deprecated_script_path
+
+        # default if no arg was passed
+        if not script_path:
+            self.logger.debug(
+                f'No script path passed, defaulting to {self._default_script_path}')
+            script_path = self._default_script_path
+        self.script_path = os.path.expandvars(script_path)
 
     def is_available(self):
         return self._check_script(self.script_path)
