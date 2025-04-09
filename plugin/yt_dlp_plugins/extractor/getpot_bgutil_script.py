@@ -130,7 +130,7 @@ class BgUtilScriptPTP(BgUtilPTPBase):
         msg = f'stdout:\n{stdout.strip()}'
         if stderr.strip():  # Empty strings are falsy
             msg += f'\nstderr:\n{stderr.strip()}'
-        self.logger.info(msg)
+        self.logger.trace(msg)
         if returncode:
             raise PoTokenProviderError(
                 f'_get_pot_via_script failed with returncode {returncode}')
