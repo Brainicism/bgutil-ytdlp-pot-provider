@@ -7,7 +7,7 @@ import os.path
 import shutil
 import subprocess
 
-from yt_dlp.extractor.youtube.pot.builtin.utils import get_webpo_content_binding
+from yt_dlp.extractor.youtube.pot.utils import get_webpo_content_binding
 from yt_dlp.utils import Popen, classproperty
 
 with contextlib.suppress(ImportError):
@@ -29,7 +29,7 @@ class BgUtilScriptPTP(BgUtilPTPBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._check_script = functools.cache(self._check_script_impl)
-        script_path = self.get_setting(
+        script_path = self._configuration_arg(
             'script_path', casesense=True, default=[None])[0]
 
         # check deprecated arg

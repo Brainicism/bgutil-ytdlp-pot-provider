@@ -4,7 +4,7 @@ import contextlib
 import json
 import time
 
-from yt_dlp.extractor.youtube.pot.builtin.utils import get_webpo_content_binding
+from yt_dlp.extractor.youtube.pot.utils import get_webpo_content_binding
 from yt_dlp.networking.common import Request
 from yt_dlp.networking.exceptions import HTTPError, TransportError
 
@@ -30,7 +30,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
         super().__init__(*args, **kwargs)
         self._last_server_check = 0
         self._server_available = True
-        base_url = self.get_setting(
+        base_url = self._configuration_arg(
             'base_url', default=[None])[0]
 
         # check deprecated arg

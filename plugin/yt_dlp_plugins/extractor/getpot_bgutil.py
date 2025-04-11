@@ -5,7 +5,7 @@ __version__ = '0.8.2'
 import abc
 
 import yt_dlp.extractor.youtube.pot.provider as provider
-from yt_dlp.extractor.youtube.pot.builtin.utils import WEBPO_CLIENTS
+from yt_dlp.extractor.youtube.pot.utils import WEBPO_CLIENTS
 
 
 class BgUtilPTPBase(provider.PoTokenProvider, abc.ABC):
