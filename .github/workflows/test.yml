@@ -82,10 +82,7 @@ jobs:
             [ "$exit_code" -eq 0 ] && exit_code=1
           fi
 
-          echo "$script_response"
           pot_response=$(echo "$script_response" | grep -A1 -m1 '\[youtube\] \[pot:bgutil:script\] TRACE: stdout:' | tail -n1 | jq -r '.poToken')
-
-
           echo "POT: $pot_response"
           if [[ "$pot_response" == "null" || -z "$pot_response" || "$pot_response" == '""' ]]; then
              echo "::error title=Failed to generate POT,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::\

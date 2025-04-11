@@ -23,7 +23,6 @@ from yt_dlp.extractor.youtube.pot.provider import (
 
 @register_provider
 class BgUtilHTTPPTP(BgUtilPTPBase):
-
     PROVIDER_NAME = 'bgutil:http'
     DEFAULT_BASE_URL = 'http://127.0.0.1:4416'
 
