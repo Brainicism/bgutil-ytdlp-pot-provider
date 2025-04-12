@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  TEST_ARGS: -vF --color always -f "b*" -S "filesize:10M" --extractor-args "youtube:pot_debug=true"
+  TEST_ARGS: -vF --color always -f "b*" -S "filesize:10M" --extractor-args "youtube:pot_log_level=TRACE"
 
 jobs:
   lint-format:
