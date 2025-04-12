@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import functools
 import json
 import time
 
@@ -30,26 +31,27 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
         super().__init__(*args, **kwargs)
         self._last_server_check = 0
         self._server_available = True
+
+    @functools.cached_property
+    def _base_url(self):
         base_url = self._configuration_arg(
             'base_url', default=[None])[0]
 
+        if base_url:
+            return base_url
+
         # check deprecated arg
-        if not base_url:
-            deprecated_base_url = self.ie._configuration_arg(
-                ie_key='youtube', key='getpot_bgutil_baseurl', default=[None])[0]
-
-            if deprecated_base_url:
-                self.logger.warning(
-                    "'youtube:getpot_bgutil_baseurl' extractor arg is deprecated, use 'youtubepot-bgutilhttp:base_url' instead")
-
-            base_url = deprecated_base_url
+        deprecated_base_url = self.ie._configuration_arg(
+            ie_key='youtube', key='getpot_bgutil_baseurl', default=[None])[0]
+        if deprecated_base_url:
+            self.logger.warning(
+                "'youtube:getpot_bgutil_baseurl' extractor arg is deprecated, use 'youtubepot-bgutilhttp:base_url' instead")
+            return deprecated_base_url
 
         # default if no arg was passed
-        if not base_url:
-            self.logger.debug(
-                f'No base_url passed, defaulting to {self.DEFAULT_BASE_URL}')
-            base_url = self.DEFAULT_BASE_URL
-        self.base_url = base_url
+        self.logger.debug(
+            f'No base_url provided, defaulting to {self.DEFAULT_BASE_URL}')
+        return self.DEFAULT_BASE_URL
 
     def _check_server_availability(self, ctx: PoTokenRequest):
         if self._last_server_check + 60 > time.time():
@@ -58,14 +60,14 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
         self._last_server_check = time.time()
         try:
             self.logger.trace(
-                f'Checking server availability at {self.base_url}/ping')
+                f'Checking server availability at {self._base_url}/ping')
             response = json.load(self._urlopen(ctx, Request(
-                f'{self.base_url}/ping', extensions={'timeout': self._GET_SERVER_VSN_TIMEOUT}, proxies={'all': None})))
+                f'{self._base_url}/ping', extensions={'timeout': self._GET_SERVER_VSN_TIMEOUT}, proxies={'all': None})))
         except TransportError as e:
             # the server may be down
             self._server_available = False
             self._warn_and_raise(
-                f'Error reaching GET /ping {self.base_url}/ping (caused by {e.__class__.__name__})')
+                f'Error reaching GET /ping {self._base_url}/ping (caused by {e.__class__.__name__})')
             return
         except HTTPError as e:
             # may be an old server, don't raise
@@ -106,7 +108,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
 
         try:
             response = self._urlopen(ctx, Request(
-                f'{self.base_url}/get_pot', data=json.dumps({
+                f'{self._base_url}/get_pot', data=json.dumps({
                     'content_binding': get_webpo_content_binding(ctx)[0],
                     'proxy': proxy,
                 }).encode(), headers={'Content-Type': 'application/json'},
