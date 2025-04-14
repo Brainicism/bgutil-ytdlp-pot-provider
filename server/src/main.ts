@@ -24,6 +24,7 @@ console.log(`Started POT server on port ${PORT_NUMBER}`);
 const sessionManager = new SessionManager();
 httpServer.post("/get_pot", async (request, response) => {
     const proxy: string = request.body.proxy;
+    const bypassCache = request.body.bypass_cache || false;
     const contentBinding = (request.body.content_binding ||
         request.body.data_sync_id ||
         request.body.visitor_data) as string;
@@ -41,6 +42,7 @@ httpServer.post("/get_pot", async (request, response) => {
         const sessionData = await sessionManager.generatePoToken(
             contentBinding,
             proxy,
+            bypassCache,
         );
 
         response.send({

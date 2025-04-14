@@ -111,6 +111,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
                 f'{self._base_url}/get_pot', data=json.dumps({
                     'content_binding': get_webpo_content_binding(ctx)[0],
                     'proxy': proxy,
+                    'bypass_cache': ctx.bypass_cache,
                 }).encode(), headers={'Content-Type': 'application/json'},
                 extensions={'timeout': self._GETPOT_TIMEOUT}, proxies={'all': None}))
         except Exception as e:
