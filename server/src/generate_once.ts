@@ -36,8 +36,16 @@ const program = new Command()
     .option("-b, --bypass-cache")
     .option("--version")
     .option("--verbose")
-    .exitOverride()
-    .parse();
+    .exitOverride();
+
+try {
+    program.parse();
+} catch (err) {
+    if (err.code === "commander.unknownOption") {
+        console.log();
+        program.outputHelp();
+    }
+}
 
 const options = program.opts();
 
