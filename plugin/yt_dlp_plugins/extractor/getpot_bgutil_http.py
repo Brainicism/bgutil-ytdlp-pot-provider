@@ -57,7 +57,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
         if self._last_server_check + 60 > time.time():
             return self._server_available
 
-        self._last_server_check = time.time()
+        self._server_available = False
         try:
             self.logger.trace(
                 f'Checking server availability at {self._base_url}/ping')
@@ -65,31 +65,29 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
                 f'{self._base_url}/ping', extensions={'timeout': self._GET_SERVER_VSN_TIMEOUT}, proxies={'all': None})))
         except TransportError as e:
             # the server may be down
-            self._server_available = False
             self._warn_and_raise(
                 f'Error reaching GET /ping {self._base_url}/ping (caused by {e.__class__.__name__})')
             return
         except HTTPError as e:
             # may be an old server, don't raise
-            self._server_available = False
             self.logger.warning(
                 f'HTTP Error reaching GET /ping (caused by {e!r})', once=True)
             return
         except json.JSONDecodeError as e:
             # invalid server
-            self._server_available = False
             self._warn_and_raise(
                 f'Error parsing ping response JSON (caused by {e!r})')
             return
         except Exception as e:
-            self._server_available = False
             self._warn_and_raise(
                 f'Unknown error reaching GET /ping (caused by {e!r})', raise_from=e)
             return
-
-        self._check_version(response.get('version'), name='HTTP server')
-        self._server_available = True
-        return True
+        else:
+            self._check_version(response.get('version'), name='HTTP server')
+            self._server_available = True
+            return True
+        finally:
+            self._last_server_check = time.time()
 
     def is_available(self):
         return self._server_available or self._last_server_check + 60 < int(time.time())
