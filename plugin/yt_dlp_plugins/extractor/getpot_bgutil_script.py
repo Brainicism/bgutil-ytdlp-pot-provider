@@ -170,5 +170,5 @@ def bgutil_script_getpot_preference(provider, request):
     return 1
 
 
-__all__ = [BgUtilScriptPTP.__class__.__name__,
+__all__ = [BgUtilScriptPTP.__name__,
            bgutil_script_getpot_preference.__name__]

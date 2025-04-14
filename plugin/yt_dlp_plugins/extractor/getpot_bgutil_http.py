@@ -138,5 +138,5 @@ def bgutil_HTTP_getpot_preference(provider, request):
     return 100
 
 
-__all__ = [BgUtilHTTPPTP.__class__.__name__,
+__all__ = [BgUtilHTTPPTP.__name__,
            bgutil_HTTP_getpot_preference.__name__]
