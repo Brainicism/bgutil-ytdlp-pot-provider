@@ -33,10 +33,12 @@ const program = new Command()
     .option("-v, --visitor-data <visitordata>")
     .option("-d, --data-sync-id <data-sync-id>")
     .option("-p, --proxy <proxy-all>")
+    .option("-b, --bypass-cache")
     .option("--version")
-    .option("--verbose");
+    .option("--verbose")
+    .exitOverride()
+    .parse();
 
-program.parse();
 const options = program.opts();
 
 (async () => {
@@ -86,6 +88,7 @@ const options = program.opts();
         const sessionData = await sessionManager.generatePoToken(
             contentBinding,
             proxy,
+            options.bypassCache || false,
         );
 
         try {

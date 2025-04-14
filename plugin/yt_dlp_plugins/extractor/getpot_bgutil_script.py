@@ -128,8 +128,10 @@ class BgUtilScriptPTP(BgUtilPTPBase):
         command_args = [self._node_path, self._script_path]
         if proxy := ctx.request_proxy:
             command_args.extend(['-p', proxy])
-
         command_args.extend(['-v', get_webpo_content_binding(ctx)[0]])
+        if ctx.bypass_cache:
+            command_args.append('--bypass-cache')
+
         self.logger.debug(
             f'Executing command to get POT via script: {" ".join(command_args)}')
 

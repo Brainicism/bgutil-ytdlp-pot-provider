@@ -133,9 +133,8 @@ export class SessionManager {
         proxy: string = "",
         bypassCache = false,
     ): Promise<YoutubeSessionData> {
-        this.logger.log(`Generating POT for ${contentBinding}`);
+        this.cleanupCaches();
         if (!bypassCache) {
-            this.cleanupCaches();
             const sessionData = this.youtubeSessionDataCaches[contentBinding];
             if (sessionData) {
                 this.logger.log(
@@ -144,8 +143,7 @@ export class SessionManager {
                 return sessionData;
             }
         }
-
-        this.logger.log(`Generating POT for ${contentBinding} ...`);
+        this.logger.log(`Generating POT for ${contentBinding}`);
 
         // hardcoded API key that has been used by youtube for years
         const requestKey = "O43z0dpjhgX20SCx4KAo";

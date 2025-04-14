@@ -4,9 +4,8 @@ import { Command } from "@commander-js/extra-typings";
 import express from "express";
 import bodyParser from "body-parser";
 
-const program = new Command().option("-p, --port <PORT>");
+const program = new Command().option("-p, --port <PORT>").parse();
 
-program.parse();
 const options = program.opts();
 
 const PORT_NUMBER = options.port || 4416;
