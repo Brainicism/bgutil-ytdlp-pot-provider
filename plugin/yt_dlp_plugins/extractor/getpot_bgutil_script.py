@@ -8,7 +8,7 @@ import shutil
 import subprocess
 
 from yt_dlp.extractor.youtube.pot.utils import get_webpo_content_binding
-from yt_dlp.utils import Popen, classproperty
+from yt_dlp.utils import Popen
 
 with contextlib.suppress(ImportError):
     from yt_dlp_plugins.extractor.getpot_bgutil import BgUtilPTPBase
@@ -29,29 +29,34 @@ class BgUtilScriptPTP(BgUtilPTPBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._check_script = functools.cache(self._check_script_impl)
+
+    @functools.cached_property
+    def _script_path(self):
         script_path = self._configuration_arg(
             'script_path', casesense=True, default=[None])[0]
 
+        if script_path:
+            return script_path
+
         # check deprecated arg
-        if not script_path:
-            deprecated_script_path = self.ie._configuration_arg(
-                ie_key='youtube', key='getpot_bgutil_script', default=[None])[0]
+        deprecated_script_path = self.ie._configuration_arg(
+            ie_key='youtube', key='getpot_bgutil_script', default=[None])[0]
 
-            if deprecated_script_path:
-                self.logger.warning(
-                    "'youtube:getpot_bgutil_script' extractor arg is deprecated, use 'youtubepot-bgutilscript:script_path' instead")
-
-            script_path = deprecated_script_path
+        if deprecated_script_path:
+            self.logger.warning(
+                "'youtube:getpot_bgutil_script' extractor arg is deprecated, use 'youtubepot-bgutilscript:script_path' instead")
+            return deprecated_script_path
 
         # default if no arg was passed
-        if not script_path:
-            self.logger.debug(
-                f'No script path passed, defaulting to {self._default_script_path}')
-            script_path = self._default_script_path
-        self.script_path = os.path.expandvars(script_path)
+        home = os.path.expanduser('~')
+        default_path = os.path.join(
+            home, 'bgutil-ytdlp-pot-provider', 'server', 'build', 'generate_once.js')
+        self.logger.debug(
+            f'No script path passed, defaulting to {default_path}')
+        return os.path.expandvars(default_path)
 
     def is_available(self):
-        return self._check_script(self.script_path)
+        return self._check_script(self._script_path)
 
     @functools.cached_property
     def _node_path(self):
@@ -62,12 +67,6 @@ class BgUtilScriptPTP(BgUtilPTPBase):
         if vsn:
             self.logger.trace(f'Node version: {vsn}')
             return node_path
-
-    @classproperty(cache=True)
-    def _default_script_path(cls):
-        home = os.path.expanduser('~')
-        return os.path.join(
-            home, 'bgutil-ytdlp-pot-provider', 'server', 'build', 'generate_once.js')
 
     def _check_script_impl(self, script_path):
         if not os.path.isfile(script_path):
@@ -125,8 +124,8 @@ class BgUtilScriptPTP(BgUtilPTPBase):
         ctx: PoTokenRequest,
     ) -> PoTokenResponse:
         self.logger.debug(
-            f'Generating POT via script: {self.script_path}')
-        command_args = [self._node_path, self.script_path]
+            f'Generating POT via script: {self._script_path}')
+        command_args = [self._node_path, self._script_path]
         if proxy := ctx.request_proxy:
             command_args.extend(['-p', proxy])
 

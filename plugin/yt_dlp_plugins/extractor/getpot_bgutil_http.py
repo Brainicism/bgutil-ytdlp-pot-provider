@@ -34,8 +34,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
 
     @functools.cached_property
     def _base_url(self):
-        base_url = self._configuration_arg(
-            'base_url', default=[None])[0]
+        base_url = self._configuration_arg('base_url', default=[None])[0]
 
         if base_url:
             return base_url
