@@ -11,8 +11,14 @@ from yt_dlp.extractor.youtube.pot.utils import WEBPO_CLIENTS
 class BgUtilPTPBase(provider.PoTokenProvider, abc.ABC):
     _SUPPORTED_CLIENTS = WEBPO_CLIENTS
     PROVIDER_VERSION = __version__
-    _SUPPORTED_PROXY_SCHEMES = (
-        'http', 'https', 'socks4', 'socks4a', 'socks5', 'socks5h')
+    _SUPPORTED_EXTERNAL_REQEUST_FEATURES = (
+        provider.ExternalRequestFeature.PROXY_SCHEME_HTTP,
+        provider.ExternalRequestFeature.PROXY_SCHEME_HTTPS,
+        provider.ExternalRequestFeature.PROXY_SCHEME_SOCKS4,
+        provider.ExternalRequestFeature.PROXY_SCHEME_SOCKS4A,
+        provider.ExternalRequestFeature.PROXY_SCHEME_SOCKS5,
+        provider.ExternalRequestFeature.PROXY_SCHEME_SOCKS5H,
+    )
     _SUPPORTED_CONTEXTS = (provider.PoTokenContext.GVS,
                            provider.PoTokenContext.PLAYER)
     BUG_REPORT_LOCATION = 'https://github.com/Brainicism/bgutil-ytdlp-pot-provider/issues'
