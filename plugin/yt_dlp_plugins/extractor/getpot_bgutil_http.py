@@ -60,8 +60,9 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
         try:
             self.logger.trace(
                 f'Checking server availability at {self._base_url}/ping')
-            response = json.load(self._urlopen(ctx, Request(
-                f'{self._base_url}/ping', extensions={'timeout': self._GET_SERVER_VSN_TIMEOUT}, proxies={'all': None})))
+            response = json.load(self._request_webpage(Request(
+                f'{self._base_url}/ping', extensions={'timeout': self._GET_SERVER_VSN_TIMEOUT}, proxies={'all': None}),
+                note=False))
         except TransportError as e:
             # the server may be down
             self._warn_and_raise(
@@ -93,24 +94,26 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
 
     def _real_request_pot(
         self,
-        ctx: PoTokenRequest,
+        request: PoTokenRequest,
     ) -> PoTokenResponse:
 
-        self.logger.debug('Generating POT via HTTP server')
-        if not self._check_server_availability(ctx):
+        if not self._check_server_availability(request):
             raise PoTokenProviderRejectedRequest(
                 f'{self.PROVIDER_NAME} server is not available')
 
-        proxy = ctx.request_proxy
+        proxy = request.request_proxy
 
         try:
-            response = self._urlopen(ctx, Request(
-                f'{self._base_url}/get_pot', data=json.dumps({
-                    'content_binding': get_webpo_content_binding(ctx)[0],
-                    'proxy': proxy,
-                    'bypass_cache': ctx.bypass_cache,
-                }).encode(), headers={'Content-Type': 'application/json'},
-                extensions={'timeout': self._GETPOT_TIMEOUT}, proxies={'all': None}))
+            response = self._request_webpage(
+                request=Request(
+                    f'{self._base_url}/get_pot', data=json.dumps({
+                        'content_binding': get_webpo_content_binding(request)[0],
+                        'proxy': proxy,
+                        'bypass_cache': request.bypass_cache,
+                    }).encode(), headers={'Content-Type': 'application/json'},
+                    extensions={'timeout': self._GETPOT_TIMEOUT}, proxies={'all': None}),
+                note=f'Generating a {request.context.value} PO Token for {request.internal_client_name} client via HTTP server',
+            )
         except Exception as e:
             raise PoTokenProviderError(
                 f'Error reaching POST /get_pot (caused by {e!r})') from e
