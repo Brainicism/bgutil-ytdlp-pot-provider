@@ -11,7 +11,7 @@ from yt_dlp.extractor.youtube.pot.utils import WEBPO_CLIENTS
 class BgUtilPTPBase(provider.PoTokenProvider, abc.ABC):
     _SUPPORTED_CLIENTS = WEBPO_CLIENTS
     PROVIDER_VERSION = __version__
-    _SUPPORTED_EXTERNAL_REQEUST_FEATURES = (
+    _SUPPORTED_EXTERNAL_REQUEST_FEATURES = (
         provider.ExternalRequestFeature.PROXY_SCHEME_HTTP,
         provider.ExternalRequestFeature.PROXY_SCHEME_HTTPS,
         provider.ExternalRequestFeature.PROXY_SCHEME_SOCKS4,
