@@ -123,6 +123,7 @@ class BgUtilScriptPTP(BgUtilPTPBase):
         self,
         ctx: PoTokenRequest,
     ) -> PoTokenResponse:
+        # used for CI check
         self.logger.debug(
             f'Generating POT via script: {self._script_path}')
         command_args = [self._node_path, self._script_path]

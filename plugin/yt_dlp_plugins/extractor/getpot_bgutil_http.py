@@ -96,6 +96,8 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
         self,
         request: PoTokenRequest,
     ) -> PoTokenResponse:
+        # used for CI check
+        self.logger.debug('Generating POT via HTTP server')
 
         if not self._check_server_availability(request):
             raise PoTokenProviderRejectedRequest(
