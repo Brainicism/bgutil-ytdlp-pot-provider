@@ -49,23 +49,10 @@ const options = program.opts();
         process.exit(0);
     }
     const sessionManager = new SessionManager(verbose, cache);
-    let contentBinding =
+    const contentBinding =
         options.contentBinding || options.dataSyncId || options.visitorData;
     if (options.dataSyncId)
         console.warn("Data sync id is deprecated, use -c instead");
-    if (!contentBinding) {
-        console.error(
-            "No content binding provided, generating visitor data via Innertube...",
-        );
-        const visitorData = await sessionManager.generateVisitorData();
-        if (!visitorData) {
-            console.error("Unable to generate visitor data via Innertube");
-            process.exit(1);
-        }
-
-        contentBinding = visitorData;
-        console.log(`Generated visitor data: '${contentBinding}'`);
-    }
 
     if (fs.existsSync(CACHE_PATH)) {
         try {
