@@ -72,11 +72,11 @@ const options = program.opts();
         }
     }
 
+    const sessionManager = new SessionManager(verbose, cache);
     function log(msg: string) {
         if (verbose) console.log(msg);
     }
 
-    const sessionManager = new SessionManager(verbose, cache);
     log(`Received request for visitor data: '${contentBinding}'`);
 
     try {
