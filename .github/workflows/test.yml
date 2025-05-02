@@ -59,6 +59,20 @@ jobs:
 
           echo "script version: $(node server/build/generate_once.js --version)"
 
+          # check that the script is returning a POT
+          script_output=$(node server/build/generate_once.js)
+          echo "::group::POT response from the script"
+          echo "$script_output" | jq -C
+          echo "::endgroup::"
+
+          po_token=$(echo "$script_output" | jq -r '.poToken')
+          visit_identifier=$(echo "$script_output" | jq -r '.visitIdentifier')
+
+          if [[ "$po_token" == "null" || "$visit_identifier" == "null" ]]; then
+              echo "::error title=PoToken generation failed,file=server/src/session_manager.ts::'po_token' or 'visit_identifier' is null."
+              exit 1
+          fi
+
           # expect this to fail, but just make sure that the plugin is invoked
           {
             script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" dQw4w9WgXcQ 2>&1)
@@ -138,6 +152,19 @@ jobs:
           echo "::group::Response from HTTP server"
           echo "$PING_RESP" | jq -C
           echo "::endgroup::"
+
+          # check that the server is returning a POT
+          pot_response=$(curl -s -X POST "http://127.0.0.1:${{ env.PORT }}/get_pot")
+          echo "::group::Get pot response from the HTTP server"
+          echo "$pot_response" | jq -C
+          echo "::endgroup::"
+          po_token=$(echo "$pot_response" | jq -r '.po_token')
+          visit_identifier=$(echo "$pot_response" | jq -r '.visit_identifier')
+
+          if [[ "$po_token" == "null" || "$visit_identifier" == "null" ]]; then
+              echo "::error title=PoToken generation failed,file=server/src/session_manager.ts::'po_token' or 'visit_identifier' is null."
+              exit 1
+          fi
 
           # expect this to fail, but just make sure that the plugin is invoked
           {
