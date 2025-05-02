@@ -141,9 +141,23 @@ export class SessionManager {
     }
     // mostly copied from https://github.com/LuanRT/BgUtils/tree/main/examples/node
     async generatePoToken(
-        contentBinding: string,
+        contentBinding: string | undefined,
         proxy: string = "",
     ): Promise<YoutubeSessionData> {
+        if (!contentBinding) {
+            this.logger.error(
+                "No content binding provided, generating visitor data via Innertube...",
+            );
+            const visitorData = await this.generateVisitorData();
+            if (!visitorData) {
+                this.logger.error(
+                    "Unable to generate visitor data via Innertube",
+                );
+                throw new Error("Unable to generate visitor data");
+            }
+            contentBinding = visitorData;
+        }
+
         this.logger.log(`Generating POT for ${contentBinding}`);
         this.cleanupCaches();
         const sessionData = this.youtubeSessionDataCaches[contentBinding];

@@ -24,18 +24,14 @@ console.log(`Started POT server on port ${PORT_NUMBER}`);
 const sessionManager = new SessionManager();
 httpServer.post("/get_pot", async (request, response) => {
     const proxy: string = request.body.proxy;
-    const contentBinding = (request.body.content_binding ||
+    const contentBinding: string | undefined =
+        request.body.content_binding ||
         request.body.data_sync_id ||
-        request.body.visitor_data) as string;
+        request.body.visitor_data;
     if (request.body.data_sync_id)
         console.warn(
             "Passing data_sync_id is deprecated, use content_binding instead",
         );
-
-    if (!contentBinding) {
-        response.status(400).send({ error: "No content binding provided" });
-        return;
-    }
 
     try {
         const sessionData = await sessionManager.generatePoToken(
