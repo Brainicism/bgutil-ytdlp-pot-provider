@@ -40,20 +40,18 @@ program.parse();
 const options = program.opts();
 
 (async () => {
-    const cache: YoutubeSessionDataCaches = {};
-    const proxy = options.proxy || "";
-    const verbose = options.verbose || false;
-
     if (options.version) {
         console.log(VERSION);
         process.exit(0);
     }
-    const sessionManager = new SessionManager(verbose, cache);
     const contentBinding =
         options.contentBinding || options.dataSyncId || options.visitorData;
     if (options.dataSyncId)
         console.warn("Data sync id is deprecated, use -c instead");
 
+    const proxy = options.proxy || "";
+    const verbose = options.verbose || false;
+    const cache: YoutubeSessionDataCaches = {};
     if (fs.existsSync(CACHE_PATH)) {
         try {
             const parsedCaches = JSON.parse(
@@ -78,6 +76,7 @@ const options = program.opts();
         if (verbose) console.log(msg);
     }
 
+    const sessionManager = new SessionManager(verbose, cache);
     log(`Received request for visitor data: '${contentBinding}'`);
 
     try {
