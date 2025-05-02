@@ -25,7 +25,8 @@
         "express": "^4.21.2",
         "https-proxy-agent": "^7.0.6",
         "jsdom": "^25.0.1",
-        "socks-proxy-agent": "^8.0.5"
+        "socks-proxy-agent": "^8.0.5",
+        "youtubei.js": "^13.4.0"
     },
     "devDependencies": {
         "@commander-js/extra-typings": "github:commander-js/extra-typings.git#develop",

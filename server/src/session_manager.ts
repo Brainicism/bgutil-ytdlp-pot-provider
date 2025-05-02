@@ -4,6 +4,7 @@ import { HttpsProxyAgent } from "https-proxy-agent";
 import axios from "axios";
 import { Agent } from "https";
 import { SocksProxyAgent } from "socks-proxy-agent";
+import { Innertube } from "youtubei.js";
 
 interface YoutubeSessionData {
     poToken: string;
@@ -84,6 +85,17 @@ export class SessionManager {
         youtubeSessionData: YoutubeSessionDataCaches = {},
     ) {
         this.youtubeSessionDataCaches = youtubeSessionData || {};
+    }
+
+    async generateVisitorData(): Promise<string | null> {
+        const innertube = await Innertube.create({ retrieve_player: false });
+        const visitorData = innertube.session.context.client.visitorData;
+        if (!visitorData) {
+            this.logger.error("Unable to generate visitor data via Innertube");
+            return null;
+        }
+
+        return visitorData;
     }
 
     getProxyDispatcher(proxy: string | undefined): Agent | undefined {

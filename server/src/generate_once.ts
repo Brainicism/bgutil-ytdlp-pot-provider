@@ -40,21 +40,33 @@ program.parse();
 const options = program.opts();
 
 (async () => {
+    const cache: YoutubeSessionDataCaches = {};
+    const proxy = options.proxy || "";
+    const verbose = options.verbose || false;
+
     if (options.version) {
         console.log(VERSION);
         process.exit(0);
     }
-    const contentBinding =
+    const sessionManager = new SessionManager(verbose, cache);
+    let contentBinding =
         options.contentBinding || options.dataSyncId || options.visitorData;
     if (options.dataSyncId)
         console.warn("Data sync id is deprecated, use -c instead");
     if (!contentBinding) {
-        console.error("No content binding provided");
-        process.exit(1);
+        console.error(
+            "No content binding provided, generating visitor data via Innertube...",
+        );
+        const visitorData = await sessionManager.generateVisitorData();
+        if (!visitorData) {
+            console.error("Unable to generate visitor data via Innertube");
+            process.exit(1);
+        }
+
+        contentBinding = visitorData;
+        console.log(`Generated visitor data: '${contentBinding}'`);
     }
-    const proxy = options.proxy || "";
-    const verbose = options.verbose || false;
-    const cache: YoutubeSessionDataCaches = {};
+
     if (fs.existsSync(CACHE_PATH)) {
         try {
             const parsedCaches = JSON.parse(
@@ -75,7 +87,6 @@ const options = program.opts();
         }
     }
 
-    const sessionManager = new SessionManager(verbose, cache);
     function log(msg: string) {
         if (verbose) console.log(msg);
     }
