@@ -3,7 +3,6 @@ import { VERSION } from "./version";
 import { Command } from "commander";
 import express from "express";
 import bodyParser from "body-parser";
-import { generate } from "bgutils-js/dist/core/webPoClient";
 
 const program = new Command().option("-p, --port <PORT>");
 
