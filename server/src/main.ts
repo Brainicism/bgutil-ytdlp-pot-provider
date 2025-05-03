@@ -3,6 +3,7 @@ import { VERSION } from "./version";
 import { Command } from "commander";
 import express from "express";
 import bodyParser from "body-parser";
+import { generate } from "bgutils-js/dist/core/webPoClient";
 
 const program = new Command().option("-p, --port <PORT>");
 
@@ -41,6 +42,8 @@ httpServer.post("/get_pot", async (request, response) => {
 
         response.send({
             po_token: sessionData.poToken,
+            visit_identifier: sessionData.visitIdentifier,
+            generated_at: sessionData.generatedAt,
         });
     } catch (e) {
         console.error(
