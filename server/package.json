@@ -11,24 +11,25 @@
             "name": "grqz"
         }
     ],
-    "version": "0.8.2",
+    "version": "0.8.3",
     "scripts": {
         "lint": "npx eslint --max-warnings=0 src/",
         "lint-fix": "npx eslint --fix --max-warnings=0 src/",
         "format": "npx prettier --write 'src/**/*.{js,ts}'"
     },
     "dependencies": {
-        "@commander-js/extra-typings": "commander-js/extra-typings",
         "axios": "^1.7.9",
         "bgutils-js": "^3.1.1",
         "body-parser": "^1.20.3",
-        "commander": "^12.1.0",
+        "commander": "github:tj/commander.js.git#develop",
         "express": "^4.21.2",
         "https-proxy-agent": "^7.0.6",
         "jsdom": "^25.0.1",
-        "socks-proxy-agent": "^8.0.5"
+        "socks-proxy-agent": "^8.0.5",
+        "youtubei.js": "^13.4.0"
     },
     "devDependencies": {
+        "@commander-js/extra-typings": "github:commander-js/extra-typings.git#develop",
         "@eslint/js": "^9.17.0",
         "@types/body-parser": "^1.19.5",
         "@types/express": "^5.0.0",
@@ -43,5 +44,12 @@
         "ts-node": "^10.9.2",
         "typescript": "^5.7.2",
         "typescript-eslint": "^8.18.2"
+    },
+    "compilerOptions": {
+        "paths": {
+            "commander": [
+                "./types/commander.d.ts"
+            ]
+        }
     }
 }

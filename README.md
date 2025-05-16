@@ -45,8 +45,8 @@ docker run --name bgutil-provider -d -p 4416:4416 brainicism/bgutil-ytdlp-pot-pr
 **Native:**
 
 ```shell
-# Replace 0.8.2 with the latest version or the one that matches the plugin
-git clone --single-branch --branch 0.8.2 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
+# Replace 0.8.3 with the latest version or the one that matches the plugin
+git clone --single-branch --branch 0.8.3 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
 cd bgutil-ytdlp-pot-provider/server/
 yarn install --frozen-lockfile
 npx tsc
@@ -78,8 +78,8 @@ node build/main.js
 # on each yt-dlp invocation, clone/extract the source code into your home directory.
 # Replace `~` with `%USERPROFILE%` if using Windows
 cd ~
-# Replace 0.8.2 with the latest version or the one that matches the plugin
-git clone --single-branch --branch 0.8.2 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
+# Replace 0.8.3 with the latest version or the one that matches the plugin
+git clone --single-branch --branch 0.8.3 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
 cd bgutil-ytdlp-pot-provider/server/
 yarn install --frozen-lockfile
 npx tsc
@@ -88,6 +88,14 @@ npx tsc
 2. Make sure `node` is available in your `PATH`.
 
 ### 2. Install the plugin
+
+#### PyPI:
+
+```shell
+python3 -m pip install -U bgutil-ytdlp-pot-provider
+```
+
+This will automatically install [coletdjnz's POT plugin framework](https://github.com/coletdjnz/yt-dlp-get-pot) if haven't installed it yet.
 
 #### Manual:
 
@@ -134,5 +142,5 @@ If both methods are available for use, the option (a) HTTP server method will be
 To check if the plugin was installed correctly, you should see the `bgutil` providers in yt-dlp's verbose output: `yt-dlp -v YOUTUBE_URL`.
 
 ```
-[debug] [youtube] [pot] PO Token Providers: bgutil:http-0.8.2 (external), bgutil:script-0.8.2 (external)
+[debug] [youtube] [pot] PO Token Providers: bgutil:http-0.8.3 (external), bgutil:script-0.8.3 (external)
 ```

@@ -1,6 +1,6 @@
 import { SessionManager } from "./session_manager";
 import { VERSION } from "./version";
-import { Command } from "@commander-js/extra-typings";
+import { Command } from "commander";
 import express from "express";
 import bodyParser from "body-parser";
 
@@ -24,18 +24,14 @@ const sessionManager = new SessionManager();
 httpServer.post("/get_pot", async (request, response) => {
     const proxy: string = request.body.proxy;
     const bypassCache = request.body.bypass_cache || false;
-    const contentBinding = (request.body.content_binding ||
+    const contentBinding: string | undefined =
+        request.body.content_binding ||
         request.body.data_sync_id ||
-        request.body.visitor_data) as string;
+        request.body.visitor_data;
     if (request.body.data_sync_id)
         console.warn(
             "Passing data_sync_id is deprecated, use content_binding instead",
         );
-
-    if (!contentBinding) {
-        response.status(400).send({ error: "No content binding provided" });
-        return;
-    }
 
     try {
         const sessionData = await sessionManager.generatePoToken(
@@ -46,6 +42,8 @@ httpServer.post("/get_pot", async (request, response) => {
 
         response.send({
             po_token: sessionData.poToken,
+            visit_identifier: sessionData.visitIdentifier,
+            generated_at: sessionData.generatedAt,
         });
     } catch (e) {
         console.error(

@@ -4,6 +4,7 @@ import { HttpsProxyAgent } from "https-proxy-agent";
 import axios from "axios";
 import { Agent } from "https";
 import { SocksProxyAgent } from "socks-proxy-agent";
+import { Innertube } from "youtubei.js";
 
 interface YoutubeSessionData {
     poToken: string;
@@ -86,6 +87,17 @@ export class SessionManager {
         this.youtubeSessionDataCaches = youtubeSessionData || {};
     }
 
+    async generateVisitorData(): Promise<string | null> {
+        const innertube = await Innertube.create({ retrieve_player: false });
+        const visitorData = innertube.session.context.client.visitorData;
+        if (!visitorData) {
+            this.logger.error("Unable to generate visitor data via Innertube");
+            return null;
+        }
+
+        return visitorData;
+    }
+
     getProxyDispatcher(proxy: string | undefined): Agent | undefined {
         if (!proxy) return undefined;
         let protocol: string;
@@ -129,10 +141,25 @@ export class SessionManager {
     }
     // mostly copied from https://github.com/LuanRT/BgUtils/tree/main/examples/node
     async generatePoToken(
-        contentBinding: string,
+        contentBinding: string | undefined,
         proxy: string = "",
         bypassCache = false,
     ): Promise<YoutubeSessionData> {
+        if (!contentBinding) {
+            this.logger.error(
+                "No content binding provided, generating visitor data via Innertube...",
+            );
+            const visitorData = await this.generateVisitorData();
+            if (!visitorData) {
+                this.logger.error(
+                    "Unable to generate visitor data via Innertube",
+                );
+                throw new Error("Unable to generate visitor data");
+            }
+            contentBinding = visitorData;
+        }
+
+        this.logger.log(`Generating POT for ${contentBinding}`);
         this.cleanupCaches();
         if (!bypassCache) {
             const sessionData = this.youtubeSessionDataCaches[contentBinding];
@@ -143,6 +170,7 @@ export class SessionManager {
                 return sessionData;
             }
         }
+
         this.logger.log(`Generating POT for ${contentBinding}`);
 
         // hardcoded API key that has been used by youtube for years

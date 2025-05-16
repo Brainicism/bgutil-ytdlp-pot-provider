@@ -58,10 +58,7 @@ const options = program.opts();
         options.contentBinding || options.dataSyncId || options.visitorData;
     if (options.dataSyncId)
         console.warn("Data sync id is deprecated, use -c instead");
-    if (!contentBinding) {
-        console.error("No content binding provided");
-        process.exit(1);
-    }
+
     const proxy = options.proxy || "";
     const verbose = options.verbose || false;
     const cache: YoutubeSessionDataCaches = {};
