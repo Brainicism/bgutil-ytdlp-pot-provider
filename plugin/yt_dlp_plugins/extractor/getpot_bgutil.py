@@ -6,8 +6,12 @@ import typing
 
 if typing.TYPE_CHECKING:
     from yt_dlp import YoutubeDL
-# NOTE: this is internal only and may be moved in the future
-from yt_dlp.networking._helper import select_proxy
+
+try:
+    from yt_dlp.networking._helper import select_proxy
+except ImportError:
+    from yt_dlp.utils.networking import select_proxy
+
 from yt_dlp.networking.common import Features
 from yt_dlp.networking.exceptions import UnsupportedRequest
 from yt_dlp.utils import classproperty, remove_end
