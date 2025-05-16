@@ -173,7 +173,7 @@ class BgUtilScriptPTP(BgUtilPTPBase):
 
 @register_preference(BgUtilScriptPTP)
 def bgutil_script_getpot_preference(provider, request):
-    return 122
+    return 1
 
 
 __all__ = [BgUtilScriptPTP.__name__,
