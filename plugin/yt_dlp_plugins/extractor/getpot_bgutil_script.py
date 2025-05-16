@@ -124,7 +124,7 @@ class BgUtilScriptPTP(BgUtilPTPBase):
         ctx: PoTokenRequest,
     ) -> PoTokenResponse:
         # used for CI check
-        self.logger.debug(
+        self.logger.trace(
             f'Generating POT via script: {self._script_path}')
         command_args = [self._node_path, self._script_path]
         if proxy := ctx.request_proxy:

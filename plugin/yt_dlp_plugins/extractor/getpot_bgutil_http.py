@@ -97,12 +97,11 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
         request: PoTokenRequest,
     ) -> PoTokenResponse:
         # used for CI check
-        self.logger.debug('Generating POT via HTTP server')
-
         if not self._check_server_availability(request):
             raise PoTokenProviderRejectedRequest(
                 f'{self.PROVIDER_NAME} server is not available')
 
+        self.logger.trace('Generating POT via HTTP server')
         proxy = request.request_proxy
 
         try:
