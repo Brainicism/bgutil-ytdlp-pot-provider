@@ -113,7 +113,8 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
                         'bypass_cache': request.bypass_cache,
                     }).encode(), headers={'Content-Type': 'application/json'},
                     extensions={'timeout': self._GETPOT_TIMEOUT}, proxies={'all': None}),
-                note=f'Generating a {request.context.value} PO Token for {request.internal_client_name} client via HTTP server',
+                note=f'Generating a {request.context.value} PO Token for '
+                     f'{request.internal_client_name} client via bgutil HTTP server',
             )
         except Exception as e:
             raise PoTokenProviderError(

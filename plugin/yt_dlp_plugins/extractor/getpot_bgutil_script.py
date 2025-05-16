@@ -121,18 +121,22 @@ class BgUtilScriptPTP(BgUtilPTPBase):
 
     def _real_request_pot(
         self,
-        ctx: PoTokenRequest,
+        request: PoTokenRequest,
     ) -> PoTokenResponse:
         # used for CI check
         self.logger.trace(
             f'Generating POT via script: {self._script_path}')
         command_args = [self._node_path, self._script_path]
-        if proxy := ctx.request_proxy:
+        if proxy := request.request_proxy:
             command_args.extend(['-p', proxy])
-        command_args.extend(['-v', get_webpo_content_binding(ctx)[0]])
-        if ctx.bypass_cache:
+        command_args.extend(['-v', get_webpo_content_binding(request)[0]])
+        if request.bypass_cache:
             command_args.append('--bypass-cache')
 
+        self.logger.info(
+            f'Generating a {request.context.value} PO Token for '
+            f'{request.internal_client_name} client via bgutil script'
+        )
         self.logger.debug(
             f'Executing command to get POT via script: {" ".join(command_args)}')
 
@@ -169,7 +173,7 @@ class BgUtilScriptPTP(BgUtilPTPBase):
 
 @register_preference(BgUtilScriptPTP)
 def bgutil_script_getpot_preference(provider, request):
-    return 1
+    return 122
 
 
 __all__ = [BgUtilScriptPTP.__name__,
