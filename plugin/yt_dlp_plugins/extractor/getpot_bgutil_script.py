@@ -135,7 +135,7 @@ class BgUtilScriptPTP(BgUtilPTPBase):
 
         self.logger.info(
             f'Generating a {request.context.value} PO Token for '
-            f'{request.internal_client_name} client via bgutil script'
+            f'{request.internal_client_name} client via bgutil script',
         )
         self.logger.debug(
             f'Executing command to get POT via script: {" ".join(command_args)}')
