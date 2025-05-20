@@ -19,8 +19,11 @@ class BgUtilPTPBase(provider.PoTokenProvider, abc.ABC):
         provider.ExternalRequestFeature.PROXY_SCHEME_SOCKS5,
         provider.ExternalRequestFeature.PROXY_SCHEME_SOCKS5H,
     )
-    _SUPPORTED_CONTEXTS = (provider.PoTokenContext.GVS,
-                           provider.PoTokenContext.PLAYER)
+    _SUPPORTED_CONTEXTS = (
+        provider.PoTokenContext.GVS,
+        provider.PoTokenContext.PLAYER,
+        provider.PoTokenContext.SUBS,
+    )
     BUG_REPORT_LOCATION = 'https://github.com/Brainicism/bgutil-ytdlp-pot-provider/issues'
     _GETPOT_TIMEOUT = 20.0
     _GET_SERVER_VSN_TIMEOUT = 5.0
