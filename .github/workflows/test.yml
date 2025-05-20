@@ -44,10 +44,7 @@ jobs:
         with:
           python-version: "3.9" # keep in sync with yt-dlp's python requirement
       - name: Download yt-dlp
-        run: |
-          git clone -b feat/youtube/pot-provider-framework https://github.com/coletdjnz/yt-dlp-dev dev
-          chmod +x dev/yt-dlp.sh
-          # curl -L https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp -o yt-dlp && chmod +x ./yt-dlp
+        run: curl -L https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp -o yt-dlp && chmod +x ./yt-dlp
       - name: Install and build server dependencies
         run: cd server/ && yarn install --frozen-lockfile && npx tsc
       - name: Install plugin
@@ -77,8 +74,7 @@ jobs:
 
           # expect this to fail, but just make sure that the plugin is invoked
           {
-            # TODO: revert to nightly binary
-            script_response=$(bash dev/yt-dlp.sh ${{ env.TEST_ARGS }} --extractor-args "youtubepot-bgutilscript:script_path=server/build/generate_once.js" dQw4w9WgXcQ 2>&1)
+            script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtubepot-bgutilscript:script_path=server/build/generate_once.js" dQw4w9WgXcQ 2>&1)
             ret=$?
           } || true
 
@@ -120,14 +116,10 @@ jobs:
         with:
           python-version: "3.9" # keep in sync with yt-dlp's python requirement
       - name: Download yt-dlp
-        run: |
-          git clone -b feat/youtube/pot-provider-framework https://github.com/coletdjnz/yt-dlp-dev dev
-          chmod +x dev/yt-dlp.sh
-          # curl -L https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp -o yt-dlp && chmod +x ./yt-dlp
+        run: curl -L https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp -o yt-dlp && chmod +x ./yt-dlp
       - name: Install plugin
         run: |
           mkdir -p ~/yt-dlp-plugins/bgutil-ytdlp-pot-provider/
-          (cd plugin/ ; pip install .) # temporary, install specific yt-dlp branch
           cp -r plugin/ ~/yt-dlp-plugins/
       - name: Build Docker image
         uses: docker/build-push-action@v6
@@ -174,8 +166,7 @@ jobs:
 
           # expect this to fail, but just make sure that the plugin is invoked
           {
-            # TODO: revert to nightly binary
-            server_response=$(bash dev/yt-dlp.sh ${{ env.TEST_ARGS }} --extractor-args "youtubepot-bgutilhttp:base_url=http://127.0.0.1:${{ env.PORT }}" dQw4w9WgXcQ 2>&1)
+            server_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtubepot-bgutilhttp:base_url=http://127.0.0.1:${{ env.PORT }}" dQw4w9WgXcQ 2>&1)
             ret=$?
           } || true
 
