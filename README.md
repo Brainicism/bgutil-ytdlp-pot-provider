@@ -8,7 +8,7 @@
 [![PyPI - Version](https://img.shields.io/pypi/v/bgutil-ytdlp-pot-provider?style=for-the-badge)](https://pypi.org/project/bgutil-ytdlp-pot-provider/)
 [![CI Status](https://img.shields.io/github/actions/workflow/status/Brainicism/bgutil-ytdlp-pot-provider/test.yml?branch=master&label=Tests&style=for-the-badge)](https://github.com/Brainicism/bgutil-ytdlp-pot-provider/actions/workflows/test.yml)
 
-A proof-of-origin token (POT) provider to be used alongside [coletdjnz's POT plugin framework](https://github.com/coletdjnz/yt-dlp-get-pot). We use [LuanRT's Botguard interfacing library](https://github.com/LuanRT/BgUtils) to generate the token.
+A proof-of-origin token (POT) provider yt-dlp. We use [LuanRT's Botguard interfacing library](https://github.com/LuanRT/BgUtils) to generate the token.
 
 This is used to bypass the 'Sign in to confirm you're not a bot' message when invoking yt-dlp from an IP address flagged by YouTube. See _[PO Token Guide](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide)_ for more details.
 
@@ -23,7 +23,7 @@ The provider comes in two parts:
 
 ### Base Requirements
 
-1. Requires yt-dlp `2024.09.27` or above.
+1. Requires yt-dlp `2025.XX.XX` or above.
 
 2. If using Docker image for option (a) for the provider, the Docker runtime is required.  
    Otherwise, Node.js (>= 18) and Yarn are required. You will also need git to clone the repository.
@@ -74,7 +74,7 @@ node build/main.js
 1. Transpile the generation script to Javascript:
 
 ```shell
-# If you want to use this method without specifying `getpot_bgutil_script` extractor argument
+# If you want to use this method without specifying `script_path` extractor argument
 # on each yt-dlp invocation, clone/extract the source code into your home directory.
 # Replace `~` with `%USERPROFILE%` if using Windows
 cd ~
@@ -95,12 +95,10 @@ npx tsc
 python3 -m pip install -U bgutil-ytdlp-pot-provider
 ```
 
-This will automatically install [coletdjnz's POT plugin framework](https://github.com/coletdjnz/yt-dlp-get-pot) if haven't installed it yet.
-
 #### Manual:
 
-1. Make sure you have [coletdjnz's POT plugin framework](https://github.com/coletdjnz/yt-dlp-get-pot) installed already (must be at least version 0.1.1 or newer).
-2. Download the latest release zip from [releases](https://github.com/Brainicism/bgutil-ytdlp-pot-provider/releases). Install it by placing the zip into one of the [plugin folders](https://github.com/yt-dlp/yt-dlp#installing-plugins).
+1. Download the latest release zip from [releases](https://github.com/Brainicism/bgutil-ytdlp-pot-provider/releases).
+2. Install it by placing the zip into one of the [plugin folders](https://github.com/yt-dlp/yt-dlp#installing-plugins).
 
 ## Usage
 
@@ -112,25 +110,21 @@ If you want to change the port number used by the provider server, use the `--po
 node build/main.js --port 8080
 ```
 
-If changing the port or IP used for the provider server, pass it to yt-dlp via `getpot_bgutil_baseurl`
+If changing the port or IP used for the provider server, pass it to yt-dlp via `base_url`
 
 ```shell
---extractor-args "youtube:getpot_bgutil_baseurl=http://127.0.0.1:8080"
+--extractor-args "youtubepot-bgutilhttp:base_url=http://127.0.0.1:8080"
 ```
 
 ---
 
 If using option (b) script for the provider, with the default script location in your home directory (i.e: `~/bgutil-ytdlp-pot-provider` or `%USERPROFILE%\bgutil-ytdlp-pot-provider`), you can also use yt-dlp like normal.
 
-If you installed the script in a different location, pass it as the extractor argument `getpot_bgutil_script` to `youtube` for each yt-dlp call.
+If you installed the script in a different location, pass it as the extractor argument `script_path` to `youtube-bgutilscript` for each yt-dlp call.
 
 ```shell
---extractor-args "youtube:getpot_bgutil_script=$WORKSPACE/bgutil-ytdlp-pot-provider/server/build/generate_once.js"
+--extractor-args "youtubepot-bgutilscript:script_path=/path/to/bgutil-ytdlp-pot-provider/server/build/generate_once.js"
 ```
-
-Note that if you want to pass multiple arguments to the `youtube` extractor, use a `;` seperated list.
-
-For example, you can use `--extractor-args "youtube:player_client=web;getpot_bgutil_script=/path/to/bgutil-ytdlp-pot-provider/server/build/generate_once.js"` if you want to set the youtube player client to web and use a custom script path.
 
 ---
 
@@ -139,12 +133,12 @@ When using the script method, the environment variables will be passed down to t
 
 ---
 
-If both methods are available for use, the option (b) script will be prioritized.
+If both methods are available for use, the option (a) HTTP server method will be prioritized.
 
 ### Verification
 
 To check if the plugin was installed correctly, you should see the `bgutil` providers in yt-dlp's verbose output: `yt-dlp -v YOUTUBE_URL`.
 
 ```
-[debug] [GetPOT] PO Token Providers: BgUtilHTTP-0.8.5, BgUtilScript-0.8.5
+[debug] [youtube] [pot] PO Token Providers: bgutil:http-0.8.5 (external), bgutil:script-0.8.5 (external)
 ```

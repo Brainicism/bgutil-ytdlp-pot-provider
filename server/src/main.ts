@@ -4,9 +4,8 @@ import { Command } from "commander";
 import express from "express";
 import bodyParser from "body-parser";
 
-const program = new Command().option("-p, --port <PORT>");
+const program = new Command().option("-p, --port <PORT>").parse();
 
-program.parse();
 const options = program.opts();
 
 const PORT_NUMBER = options.port || 4416;
@@ -24,26 +23,24 @@ console.log(`Started POT server on port ${PORT_NUMBER}`);
 const sessionManager = new SessionManager();
 httpServer.post("/get_pot", async (request, response) => {
     const proxy: string = request.body.proxy;
+    const bypassCache = request.body.bypass_cache || false;
     const contentBinding: string | undefined =
         request.body.content_binding ||
         request.body.data_sync_id ||
         request.body.visitor_data;
     if (request.body.data_sync_id)
-        console.warn(
-            "Passing data_sync_id is deprecated, use content_binding instead",
-        );
+        console.warn("data_sync_id is deprecated, use content_binding instead");
+    if (request.body.visitor_data)
+        console.warn("visitor_data is deprecated, use content_binding instead");
 
     try {
         const sessionData = await sessionManager.generatePoToken(
             contentBinding,
             proxy,
+            bypassCache,
         );
 
-        response.send({
-            po_token: sessionData.poToken,
-            visit_identifier: sessionData.visitIdentifier,
-            generated_at: sessionData.generatedAt,
-        });
+        response.send(sessionData);
     } catch (e) {
         console.error(
             `Failed while generating POT. err.name = ${e.name}. err.message = ${e.message}. err.stack = ${e.stack}`,

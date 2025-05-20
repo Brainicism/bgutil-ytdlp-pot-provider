@@ -104,11 +104,12 @@ jobs:
 
       - name: Build
         run: |
-          cd plugin/
-          rm -rf dist/**
           printf '%s\n\n' \
             "Official repository: <${{ github.server_url }}/${{ github.repository }}>" > ./README.md.new
-          cat ../README.md >> ./README.md.new && mv -f ./README.md.new ./README.md
+          cat ./README.md >> ./README.md.new
+          mv -f ./README.md.new ./README.md
+          cd plugin/
+          rm -rf dist/**
           python -m build --no-isolation .
 
       - name: Publish to PyPI

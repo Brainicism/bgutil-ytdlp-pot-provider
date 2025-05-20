@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  TEST_ARGS: -vF --print-traffic --no-simulate --color always -f "b*" -S "filesize:10M" --exec "rm -f"
+  TEST_ARGS: -vF --color always -f "b*" -S "filesize:10M" --extractor-args "youtube:pot_trace=true"
 
 jobs:
   lint-format:
@@ -50,7 +50,6 @@ jobs:
       - name: Install plugin
         run: |
           mkdir -p ~/yt-dlp-plugins/bgutil-ytdlp-pot-provider/
-          curl -L "https://github.com/coletdjnz/yt-dlp-get-pot/releases/download/v0.1.1/yt-dlp-get-pot.zip" -o ~/yt-dlp-plugins/yt-dlp-get-pot.zip
           cp -r plugin/ ~/yt-dlp-plugins/
       - name: Test script method
         shell: bash
@@ -75,7 +74,7 @@ jobs:
 
           # expect this to fail, but just make sure that the plugin is invoked
           {
-            script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtube:getpot_bgutil_script=server/build/generate_once.js" dQw4w9WgXcQ 2>&1)
+            script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtubepot-bgutilscript:script_path=server/build/generate_once.js" dQw4w9WgXcQ 2>&1)
             ret=$?
           } || true
 
@@ -87,13 +86,13 @@ jobs:
             echo "::warning title=yt-dlp failed when testing script,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::yt-dlp returned $ret exit status"
           fi
 
-          if [[ "$script_response" != *"BgUtilScript: Generating POT via script: "* ]]; then
+          if [[ "$script_response" != *"[youtube] [pot:bgutil:script] TRACE: Generating POT via script: "* ]]; then
             echo "::error title=BgUtilScript was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::\
           BgUtilScript was not invoked"
             [ "$exit_code" -eq 0 ] && exit_code=1
           fi
 
-          pot_response=$(echo "$script_response" | grep -A1 -m1 '^\[debug\]\ \[GetPOT\]\ BgUtilScript:\ stdout:$' | tail -n1 | jq -C '.poToken')
+          pot_response=$(echo "$script_response" | grep -A1 -m1 '\[youtube\] \[pot:bgutil:script\] TRACE: stdout:' | tail -n1 | jq -r '.poToken')
           echo "POT: $pot_response"
           if [[ "$pot_response" == "null" || -z "$pot_response" || "$pot_response" == '""' ]]; then
              echo "::error title=Failed to generate POT,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::\
@@ -121,7 +120,6 @@ jobs:
       - name: Install plugin
         run: |
           mkdir -p ~/yt-dlp-plugins/bgutil-ytdlp-pot-provider/
-          curl -L "https://github.com/coletdjnz/yt-dlp-get-pot/releases/download/v0.1.1/yt-dlp-get-pot.zip" -o ~/yt-dlp-plugins/yt-dlp-get-pot.zip
           cp -r plugin/ ~/yt-dlp-plugins/
       - name: Build Docker image
         uses: docker/build-push-action@v6
@@ -158,17 +156,17 @@ jobs:
           echo "::group::Get pot response from the HTTP server"
           echo "$pot_response" | jq -C
           echo "::endgroup::"
-          po_token=$(echo "$pot_response" | jq -r '.po_token')
-          visit_identifier=$(echo "$pot_response" | jq -r '.visit_identifier')
+          poToken=$(echo "$pot_response" | jq -r '.poToken')
+          visitIdentifier=$(echo "$pot_response" | jq -r '.visitIdentifier')
 
-          if [[ "$po_token" == "null" || "$visit_identifier" == "null" ]]; then
-              echo "::error title=PoToken generation failed,file=server/src/session_manager.ts::'po_token' or 'visit_identifier' is null."
+          if [[ "$poToken" == "null" || "$visitIdentifier" == "null" ]]; then
+              echo "::error title=PoToken generation failed,file=server/src/session_manager.ts::'poToken' or 'visitIdentifier' is null."
               exit 1
           fi
 
           # expect this to fail, but just make sure that the plugin is invoked
           {
-            script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtube:getpot_bgutil_baseurl=http://127.0.0.1:${{ env.PORT }}" dQw4w9WgXcQ 2>&1)
+            server_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtubepot-bgutilhttp:base_url=http://127.0.0.1:${{ env.PORT }}" dQw4w9WgXcQ 2>&1)
             ret=$?
           } || true
 
@@ -179,21 +177,21 @@ jobs:
           echo "::endgroup::"
 
           echo "::group::Logs from yt-dlp"
-          printf "%s\n" "$script_response"
+          printf "%s\n" "$server_response"
           echo "::endgroup::"
 
           if [ "$ret" -ne 0 ]; then
             echo "::warning title=yt-dlp failed when testing HTTP server,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py::yt-dlp returned $ret exit status"
           fi
 
-          if [[ "$script_response" != *"BgUtilHTTP: Generating POT via HTTP server"* ]]; then
+          if [[ "$server_response" != *"[pot:bgutil:http] TRACE: Generating POT via HTTP server"* ]]; then
             echo "::error title=BgUtilHTTP was not invoked,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_http.py::\
           BgUtilHTTP was not invoked"
             [ "$exit_code" -eq 0 ] && exit_code=1
           fi
 
           {
-            po_token=$(echo "$script_response" | grep -m1 '^\[debug\]\ \[GetPOT\]\ BgUtilHTTP:\ Generated\ POT:\ ' | sed 's/^\[debug\]\ \[GetPOT\]\ BgUtilHTTP:\ Generated\ POT:\ //')
+            po_token=$(echo "$server_response" | grep -m1 '\[youtube\] \[pot:bgutil:http\] TRACE: Generated POT: ' | sed 's/.*Generated POT: //')
           } || true
           echo "POT: $po_token"
           if [[ "$po_token" == "None" || -z "$po_token" ]]; then

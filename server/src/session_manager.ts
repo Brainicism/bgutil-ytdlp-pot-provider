@@ -143,6 +143,7 @@ export class SessionManager {
     async generatePoToken(
         contentBinding: string | undefined,
         proxy: string = "",
+        bypassCache = false,
     ): Promise<YoutubeSessionData> {
         if (!contentBinding) {
             this.logger.error(
@@ -160,17 +161,17 @@ export class SessionManager {
 
         this.logger.log(`Generating POT for ${contentBinding}`);
         this.cleanupCaches();
-        const sessionData = this.youtubeSessionDataCaches[contentBinding];
-        if (sessionData) {
-            this.logger.log(
-                `POT for ${contentBinding} still fresh, returning cached token`,
-            );
-            return sessionData;
+        if (!bypassCache) {
+            const sessionData = this.youtubeSessionDataCaches[contentBinding];
+            if (sessionData) {
+                this.logger.log(
+                    `POT for ${contentBinding} still fresh, returning cached token`,
+                );
+                return sessionData;
+            }
         }
 
-        this.logger.log(
-            `POT for ${contentBinding} stale or not yet generated, generating...`,
-        );
+        this.logger.log(`Generating POT for ${contentBinding}`);
 
         // hardcoded API key that has been used by youtube for years
         const requestKey = "O43z0dpjhgX20SCx4KAo";

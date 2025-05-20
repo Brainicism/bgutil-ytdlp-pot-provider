@@ -33,10 +33,20 @@ const program = new Command()
     .option("-v, --visitor-data <visitordata>")
     .option("-d, --data-sync-id <data-sync-id>")
     .option("-p, --proxy <proxy-all>")
+    .option("-b, --bypass-cache")
     .option("--version")
-    .option("--verbose");
+    .option("--verbose")
+    .exitOverride();
 
-program.parse();
+try {
+    program.parse();
+} catch (err) {
+    if (err.code === "commander.unknownOption") {
+        console.log();
+        program.outputHelp();
+    }
+}
+
 const options = program.opts();
 
 (async () => {
@@ -47,7 +57,13 @@ const options = program.opts();
     const contentBinding =
         options.contentBinding || options.dataSyncId || options.visitorData;
     if (options.dataSyncId)
-        console.warn("Data sync id is deprecated, use -c instead");
+        console.warn(
+            "Data sync id is deprecated, use --content-binding instead",
+        );
+    if (options.visitorData)
+        console.warn(
+            "Visitor data is deprecated, use --content-binding instead",
+        );
 
     const proxy = options.proxy || "";
     const verbose = options.verbose || false;
@@ -83,6 +99,7 @@ const options = program.opts();
         const sessionData = await sessionManager.generatePoToken(
             contentBinding,
             proxy,
+            options.bypassCache || false,
         );
 
         try {
