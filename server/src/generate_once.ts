@@ -57,9 +57,13 @@ const options = program.opts();
     const contentBinding =
         options.contentBinding || options.dataSyncId || options.visitorData;
     if (options.dataSyncId)
-        console.warn("Data sync id is deprecated, use --content-binding instead");
+        console.warn(
+            "Data sync id is deprecated, use --content-binding instead",
+        );
     if (options.visitorData)
-        console.warn("Visitor data is deprecated, use --content-binding instead");
+        console.warn(
+            "Visitor data is deprecated, use --content-binding instead",
+        );
 
     const proxy = options.proxy || "";
     const verbose = options.verbose || false;
