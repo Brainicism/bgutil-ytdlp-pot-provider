@@ -96,20 +96,19 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
         self,
         request: PoTokenRequest,
     ) -> PoTokenResponse:
-        # used for CI check
         if not self._check_server_availability(request):
             raise PoTokenProviderRejectedRequest(
                 f'{self.PROVIDER_NAME} server is not available')
 
+        # used for CI check
         self.logger.trace('Generating POT via HTTP server')
-        proxy = request.request_proxy
 
         try:
             response = self._request_webpage(
                 request=Request(
                     f'{self._base_url}/get_pot', data=json.dumps({
                         'content_binding': get_webpo_content_binding(request)[0],
-                        'proxy': proxy,
+                        'proxy': request.request_proxy,
                         'bypass_cache': request.bypass_cache,
                     }).encode(), headers={'Content-Type': 'application/json'},
                     extensions={'timeout': self._GETPOT_TIMEOUT}, proxies={'all': None}),
@@ -128,11 +127,11 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
 
         if error_msg := response_json.get('error'):
             raise PoTokenProviderError(error_msg)
-        if 'po_token' not in response_json:
+        if 'poToken' not in response_json:
             raise PoTokenProviderError(
                 'Server did not respond with a po_token')
 
-        po_token = response_json['po_token']
+        po_token = response_json['poToken']
         self.logger.trace(f'Generated POT: {po_token}')
         return PoTokenResponse(po_token=po_token)
 

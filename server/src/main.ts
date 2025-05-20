@@ -3,6 +3,7 @@ import { VERSION } from "./version";
 import { Command } from "commander";
 import express from "express";
 import bodyParser from "body-parser";
+import { setDefaultAutoSelectFamily } from "node:net";
 
 const program = new Command().option("-p, --port <PORT>").parse();
 
@@ -40,11 +41,7 @@ httpServer.post("/get_pot", async (request, response) => {
             bypassCache,
         );
 
-        response.send({
-            po_token: sessionData.poToken,
-            visit_identifier: sessionData.visitIdentifier,
-            generated_at: sessionData.generatedAt,
-        });
+        response.send(sessionData);
     } catch (e) {
         console.error(
             `Failed while generating POT. err.name = ${e.name}. err.message = ${e.message}. err.stack = ${e.stack}`,

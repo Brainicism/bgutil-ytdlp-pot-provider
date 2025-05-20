@@ -126,6 +126,7 @@ class BgUtilScriptPTP(BgUtilPTPBase):
         # used for CI check
         self.logger.trace(
             f'Generating POT via script: {self._script_path}')
+
         command_args = [self._node_path, self._script_path]
         if proxy := request.request_proxy:
             command_args.extend(['-p', proxy])
