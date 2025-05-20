@@ -56,7 +56,7 @@ const options = program.opts();
     }
     const contentBinding =
         options.contentBinding || options.dataSyncId || options.visitorData;
-    if (options.dataSyncId)
+    if (options.dataSyncId || options.visitorData)
         console.warn("Data sync id is deprecated, use -c instead");
 
     const proxy = options.proxy || "";

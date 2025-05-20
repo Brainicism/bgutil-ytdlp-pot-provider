@@ -129,7 +129,7 @@ class BgUtilScriptPTP(BgUtilPTPBase):
         command_args = [self._node_path, self._script_path]
         if proxy := request.request_proxy:
             command_args.extend(['-p', proxy])
-        command_args.extend(['-v', get_webpo_content_binding(request)[0]])
+        command_args.extend(['-c', get_webpo_content_binding(request)[0]])
         if request.bypass_cache:
             command_args.append('--bypass-cache')
 
