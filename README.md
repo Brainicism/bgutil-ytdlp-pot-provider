@@ -74,7 +74,7 @@ node build/main.js
 1. Transpile the generation script to Javascript:
 
 ```shell
-# If you want to use this method without specifying `getpot_bgutil_script` extractor argument
+# If you want to use this method without specifying `script_path` extractor argument
 # on each yt-dlp invocation, clone/extract the source code into your home directory.
 # Replace `~` with `%USERPROFILE%` if using Windows
 cd ~
@@ -94,8 +94,6 @@ npx tsc
 ```shell
 python3 -m pip install -U bgutil-ytdlp-pot-provider
 ```
-
-This will automatically install [coletdjnz's POT plugin framework](https://github.com/coletdjnz/yt-dlp-get-pot) if haven't installed it yet.
 
 #### Manual:
 
@@ -125,7 +123,7 @@ If using option (b) script for the provider, with the default script location in
 If you installed the script in a different location, pass it as the extractor argument `script_path` to `youtube-bgutilscript` for each yt-dlp call.
 
 ```shell
---extractor-args "youtubepot-bgutilscript:script_path=$WORKSPACE/bgutil-ytdlp-pot-provider/server/build/generate_once.js"
+--extractor-args "youtubepot-bgutilscript:script_path=/path/to/bgutil-ytdlp-pot-provider/server/build/generate_once.js"
 ```
 
 ---
