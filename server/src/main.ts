@@ -3,7 +3,6 @@ import { VERSION } from "./version";
 import { Command } from "commander";
 import express from "express";
 import bodyParser from "body-parser";
-import { setDefaultAutoSelectFamily } from "node:net";
 
 const program = new Command().option("-p, --port <PORT>").parse();
 

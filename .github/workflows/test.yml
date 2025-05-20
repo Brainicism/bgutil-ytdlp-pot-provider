@@ -156,11 +156,11 @@ jobs:
           echo "::group::Get pot response from the HTTP server"
           echo "$pot_response" | jq -C
           echo "::endgroup::"
-          po_token=$(echo "$pot_response" | jq -r '.po_token')
-          visit_identifier=$(echo "$pot_response" | jq -r '.visit_identifier')
+          poToken=$(echo "$pot_response" | jq -r '.poToken')
+          visitIdentifier=$(echo "$pot_response" | jq -r '.visitIdentifier')
 
-          if [[ "$po_token" == "null" || "$visit_identifier" == "null" ]]; then
-              echo "::error title=PoToken generation failed,file=server/src/session_manager.ts::'po_token' or 'visit_identifier' is null."
+          if [[ "$poToken" == "null" || "$visitIdentifier" == "null" ]]; then
+              echo "::error title=PoToken generation failed,file=server/src/session_manager.ts::'poToken' or 'visitIdentifier' is null."
               exit 1
           fi
 
