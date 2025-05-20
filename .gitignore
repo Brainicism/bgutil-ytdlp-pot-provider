@@ -4,7 +4,6 @@ tsconfig.tsbuildinfo
 
 dist/
 __pycache__/
-plugin/README.md
 plugin/CHANGELOG.md
 **.pyc
 **.pyo
