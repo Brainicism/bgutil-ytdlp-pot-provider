@@ -66,7 +66,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
         except TransportError as e:
             # the server may be down
             script_path_provided = self.ie._configuration_arg(
-                ie_key='youtube', key='getpot_bgutil_script', default=[None])[0] is not None
+                ie_key='youtubepot-bgutilscript', key='script_path', default=[None])[0] is not None
 
             warning_base = f'Error reaching GET {self._base_url}/ping (caused by {e.__class__.__name__}). '
             if script_path_provided:  # server down is expected, log info
