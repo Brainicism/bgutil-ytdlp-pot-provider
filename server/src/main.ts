@@ -28,10 +28,19 @@ httpServer.post("/get_pot", async (request, response) => {
         request.body.content_binding ||
         request.body.data_sync_id ||
         request.body.visitor_data;
-    if (request.body.data_sync_id)
-        console.warn("data_sync_id is deprecated, use content_binding instead");
-    if (request.body.visitor_data)
-        console.warn("visitor_data is deprecated, use content_binding instead");
+    if (request.body.data_sync_id) {
+        console.error(
+            "data_sync_id is deprecated, use content_binding instead",
+        );
+        process.exit(1);
+    }
+
+    if (request.body.visitor_data) {
+        console.error(
+            "visitor_data is deprecated, use content_binding instead",
+        );
+        process.exit(1);
+    }
 
     try {
         const sessionData = await sessionManager.generatePoToken(

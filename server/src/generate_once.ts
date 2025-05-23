@@ -30,8 +30,8 @@ const CACHE_PATH = path.resolve(cachedir, "cache.json");
 
 const program = new Command()
     .option("-c, --content-binding <content-binding>")
-    .option("-v, --visitor-data <visitordata>")
-    .option("-d, --data-sync-id <data-sync-id>")
+    .option("-v, --visitor-data <visitordata>") // to be removed in a future version
+    .option("-d, --data-sync-id <data-sync-id>") // to be removed in a future version
     .option("-p, --proxy <proxy-all>")
     .option("-b, --bypass-cache")
     .option("--version")
@@ -56,14 +56,18 @@ const options = program.opts();
     }
     const contentBinding =
         options.contentBinding || options.dataSyncId || options.visitorData;
-    if (options.dataSyncId)
-        console.warn(
+    if (options.dataSyncId) {
+        console.error(
             "Data sync id is deprecated, use --content-binding instead",
         );
-    if (options.visitorData)
-        console.warn(
+        process.exit(1);
+    }
+    if (options.visitorData) {
+        console.error(
             "Visitor data is deprecated, use --content-binding instead",
         );
+        process.exit(1);
+    }
 
     const proxy = options.proxy || "";
     const verbose = options.verbose || false;
