@@ -43,7 +43,7 @@ class BgUtilScriptPTP(BgUtilPTPBase):
             ie_key='youtube', key='getpot_bgutil_script', default=[None])[0]
 
         if deprecated_script_path:
-            self._error_and_raise(
+            self._warn_and_raise(
                 "'youtube:getpot_bgutil_script' extractor arg is deprecated, use 'youtubepot-bgutilscript:script_path' instead")
 
         # default if no arg was passed
