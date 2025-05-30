@@ -41,6 +41,10 @@ class BgUtilPTPBase(provider.PoTokenProvider, abc.ABC):
         self.logger.warning(msg, once=once)
         raise provider.PoTokenProviderRejectedRequest(msg) from raise_from
 
+    def _error_and_raise(self, msg, once=True, raise_from=None):
+        self.logger.warning(msg, once=once)
+        raise provider.PoTokenProviderRejectedRequest(msg) from raise_from
+
     def _check_version(self, got_version, *, default='unknown', name):
         if got_version != self.PROVIDER_VERSION:
             self.logger.warning(

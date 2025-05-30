@@ -43,9 +43,8 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
         deprecated_base_url = self.ie._configuration_arg(
             ie_key='youtube', key='getpot_bgutil_baseurl', default=[None])[0]
         if deprecated_base_url:
-            self.logger.warning(
+            self._error_and_raise(
                 "'youtube:getpot_bgutil_baseurl' extractor arg is deprecated, use 'youtubepot-bgutilhttp:base_url' instead")
-            return deprecated_base_url
 
         # default if no arg was passed
         self.logger.debug(
