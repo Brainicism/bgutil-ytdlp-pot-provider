@@ -80,11 +80,17 @@ const options = program.opts();
             for (const visitIdentifier in parsedCaches) {
                 const parsedCache = parsedCaches[visitIdentifier];
                 if (parsedCache) {
-                    cache[visitIdentifier] = {
-                        poToken: parsedCache.poToken,
-                        generatedAt: new Date(parsedCache.generatedAt),
-                        visitIdentifier,
-                    };
+                    const expiry = new Date(parsedCache.expiry);
+                    if (expiry instanceof Date && !isNaN(expiry.getTime()))
+                        cache[visitIdentifier] = {
+                            poToken: parsedCache.poToken,
+                            expiry,
+                            visitIdentifier,
+                        };
+                    else
+                        console.warn(
+                            `Ignored cache entry: invalid expiry date for visitIdentifier '${visitIdentifier}' in cache.`,
+                        );
                 }
             }
         } catch (e) {
