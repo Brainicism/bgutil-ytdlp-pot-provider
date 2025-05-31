@@ -64,15 +64,7 @@ export class SessionManager {
     cleanupCaches() {
         for (const visitIdentifier in this.youtubeSessionDataCaches) {
             const sessionData = this.youtubeSessionDataCaches[visitIdentifier];
-            if (
-                sessionData &&
-                new Date() > sessionData.expiry
-                // sessionData.generatedAt <
-                //     new Date(
-                //         new Date().getTime() -
-                //             this.TOKEN_TTL_HOURS * 60 * 60 * 1000,
-                //     )
-            )
+            if (sessionData && new Date() > sessionData.expiry)
                 delete this.youtubeSessionDataCaches[visitIdentifier];
         }
     }
@@ -271,7 +263,9 @@ export class SessionManager {
         const youtubeSessionData = {
             visitIdentifier: contentBinding,
             poToken: poToken,
-            expiry: new Date(new Date().getTime() + this.TOKEN_TTL_HOURS * 60 * 60 * 1000),
+            expiry: new Date(
+                new Date().getTime() + this.TOKEN_TTL_HOURS * 60 * 60 * 1000,
+            ),
         };
 
         this.youtubeSessionDataCaches[contentBinding] = youtubeSessionData;
