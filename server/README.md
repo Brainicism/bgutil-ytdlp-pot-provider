@@ -2,6 +2,9 @@ If using the provider along with yt-dlp as intended, stop reading here. The serv
 
 If you are interested in using the script/server standalone for generating your own PO token, read onwards.
 
+> [!CAUTION] 
+> These endpoints and options are **unstable** and may change without notice.
+
 # Server
 
 **Endpoints**
