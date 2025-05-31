@@ -23,7 +23,7 @@ If you are interested in using the script/server standalone for generating your 
 
 **Options**
 
-- `-c, --content-binding <content-binding>`: The [content binding](#content-binding), required.
+- `-c, --content-binding <content-binding>`: The [content binding](#content-binding), optional.
 - `-p, --proxy <proxy-all>`: The proxy to use for the requests, optional.
 - `--version`: Print the script version and exit.
 - `--verbose`: Use verbose logging.
