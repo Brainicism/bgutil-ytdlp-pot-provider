@@ -81,7 +81,7 @@ const options = program.opts();
                 const parsedCache = parsedCaches[visitIdentifier];
                 if (parsedCache) {
                     const expiresAt = new Date(parsedCache.expiresAt);
-                    if (expiresAt instanceof Date && !isNaN(expiresAt.getTime()))
+                    if (!isNaN(expiresAt.getTime()))
                         cache[visitIdentifier] = {
                             poToken: parsedCache.poToken,
                             expiresAt,
