@@ -54,8 +54,6 @@ const options = program.opts();
         console.log(VERSION);
         process.exit(0);
     }
-    const contentBinding =
-        options.contentBinding || options.dataSyncId || options.visitorData;
     if (options.dataSyncId) {
         console.error(
             "Data sync id is deprecated, use --content-binding instead",
@@ -69,6 +67,7 @@ const options = program.opts();
         process.exit(1);
     }
 
+    const contentBinding = options.contentBinding;
     const proxy = options.proxy || "";
     const verbose = options.verbose || false;
     const cache: YoutubeSessionDataCaches = {};
@@ -77,19 +76,19 @@ const options = program.opts();
             const parsedCaches = JSON.parse(
                 fs.readFileSync(CACHE_PATH, "utf8"),
             );
-            for (const visitIdentifier in parsedCaches) {
-                const parsedCache = parsedCaches[visitIdentifier];
+            for (const contentBinding in parsedCaches) {
+                const parsedCache = parsedCaches[contentBinding];
                 if (parsedCache) {
                     const expiresAt = new Date(parsedCache.expiresAt);
                     if (!isNaN(expiresAt.getTime()))
-                        cache[visitIdentifier] = {
+                        cache[contentBinding] = {
                             poToken: parsedCache.poToken,
                             expiresAt,
-                            visitIdentifier,
+                            contentBinding: contentBinding,
                         };
                     else
                         console.warn(
-                            `Ignored cache entry: invalid expiresAt for visitIdentifier '${visitIdentifier}'.`,
+                            `Ignored cache entry: invalid expiresAt for content binding '${contentBinding}'.`,
                         );
                 }
             }
@@ -99,11 +98,6 @@ const options = program.opts();
     }
 
     const sessionManager = new SessionManager(verbose, cache);
-    function log(msg: string) {
-        if (verbose) console.log(msg);
-    }
-
-    log(`Received request for visitor data: '${contentBinding}'`);
 
     try {
         const sessionData = await sessionManager.generatePoToken(

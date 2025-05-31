@@ -64,11 +64,11 @@ jobs:
           echo "$script_output" | jq -C
           echo "::endgroup::"
 
-          po_token=$(echo "$script_output" | jq -r '.poToken')
-          visit_identifier=$(echo "$script_output" | jq -r '.visitIdentifier')
+          poToken=$(echo "$script_output" | jq -r '.poToken')
+          contentBinding=$(echo "$script_output" | jq -r '.contentBinding')
 
-          if [[ "$po_token" == "null" || "$visit_identifier" == "null" ]]; then
-              echo "::error title=PoToken generation failed,file=server/src/session_manager.ts::'po_token' or 'visit_identifier' is null."
+          if [[ "$poToken" == "null" || "$contentBinding" == "null" ]]; then
+              echo "::error title=PoToken generation failed,file=server/src/session_manager.ts::'poToken' or 'contentBinding' is null."
               exit 1
           fi
 
@@ -157,10 +157,10 @@ jobs:
           echo "$pot_response" | jq -C
           echo "::endgroup::"
           poToken=$(echo "$pot_response" | jq -r '.poToken')
-          visitIdentifier=$(echo "$pot_response" | jq -r '.visitIdentifier')
+          contentBinding=$(echo "$pot_response" | jq -r '.contentBinding')
 
-          if [[ "$poToken" == "null" || "$visitIdentifier" == "null" ]]; then
-              echo "::error title=PoToken generation failed,file=server/src/session_manager.ts::'poToken' or 'visitIdentifier' is null."
+          if [[ "$poToken" == "null" || "$contentBinding" == "null" ]]; then
+              echo "::error title=PoToken generation failed,file=server/src/session_manager.ts::'poToken' or 'contentBinding' is null."
               exit 1
           fi
 

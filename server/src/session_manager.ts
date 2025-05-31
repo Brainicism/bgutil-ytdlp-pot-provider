@@ -8,12 +8,12 @@ import { Innertube } from "youtubei.js";
 
 interface YoutubeSessionData {
     poToken: string;
-    visitIdentifier: string;
+    contentBinding: string;
     expiresAt: Date;
 }
 
 export interface YoutubeSessionDataCaches {
-    [visitIdentifier: string]: YoutubeSessionData;
+    [contentBinding: string]: YoutubeSessionData;
 }
 
 class Logger {
@@ -62,10 +62,10 @@ export class SessionManager {
     }
 
     cleanupCaches() {
-        for (const visitIdentifier in this.youtubeSessionDataCaches) {
-            const sessionData = this.youtubeSessionDataCaches[visitIdentifier];
+        for (const contentBinding in this.youtubeSessionDataCaches) {
+            const sessionData = this.youtubeSessionDataCaches[contentBinding];
             if (sessionData && new Date() > sessionData.expiresAt)
-                delete this.youtubeSessionDataCaches[visitIdentifier];
+                delete this.youtubeSessionDataCaches[contentBinding];
         }
     }
 
@@ -260,8 +260,8 @@ export class SessionManager {
         }
 
         this.logger.log(`poToken: ${poToken}`);
-        const youtubeSessionData = {
-            visitIdentifier: contentBinding,
+        const youtubeSessionData: YoutubeSessionData = {
+            contentBinding: contentBinding,
             poToken: poToken,
             expiresAt: new Date(
                 new Date().getTime() + this.TOKEN_TTL_HOURS * 60 * 60 * 1000,
