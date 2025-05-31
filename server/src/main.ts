@@ -18,7 +18,7 @@ httpServer.listen({
     port: PORT_NUMBER,
 });
 
-console.log(`Started POT server on port ${PORT_NUMBER}`);
+console.log(`Started POT server (v${VERSION}) on port ${PORT_NUMBER}`);
 
 const sessionManager = new SessionManager();
 httpServer.post("/get_pot", async (request, response) => {
