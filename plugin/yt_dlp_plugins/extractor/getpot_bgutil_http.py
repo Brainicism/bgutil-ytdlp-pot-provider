@@ -137,7 +137,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
             raise PoTokenProviderError(error_msg)
         if 'poToken' not in response_json:
             raise PoTokenProviderError(
-                'Server did not respond with a poToken')
+                f'Server did not respond with a poToken. Received response: {json.dumps(response_json)}')
 
         po_token = response_json['poToken']
         self.logger.trace(f'Generated POT: {po_token}')
