@@ -34,7 +34,7 @@ class BgUtilPTPBase(provider.PoTokenProvider, abc.ABC):
         self.yt_ie = None
 
     def _info_and_raise(self, msg, once=True, raise_from=None):
-        self.logger.info(msg, once=once)
+        self.logger.info(msg)
         raise provider.PoTokenProviderRejectedRequest(msg) from raise_from
 
     def _warn_and_raise(self, msg, once=True, raise_from=None):
