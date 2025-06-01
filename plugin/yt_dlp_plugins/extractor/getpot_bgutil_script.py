@@ -36,7 +36,7 @@ class BgUtilScriptPTP(BgUtilPTPBase):
             'script_path', casesense=True, default=[None])[0]
 
         if script_path:
-            return script_path
+            return os.path.expandvars(script_path)
 
         # check deprecated arg
         deprecated_script_path = self.ie._configuration_arg(
