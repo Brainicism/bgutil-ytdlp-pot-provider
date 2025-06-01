@@ -18,6 +18,8 @@ class BgUtilPTPBase(provider.PoTokenProvider, abc.ABC):
         provider.ExternalRequestFeature.PROXY_SCHEME_SOCKS4A,
         provider.ExternalRequestFeature.PROXY_SCHEME_SOCKS5,
         provider.ExternalRequestFeature.PROXY_SCHEME_SOCKS5H,
+        provider.ExternalRequestFeature.SOURCE_ADDRESS,
+        provider.ExternalRequestFeature.DISABLE_TLS_VERIFICATION,
     )
     _SUPPORTED_CONTEXTS = (
         provider.PoTokenContext.GVS,

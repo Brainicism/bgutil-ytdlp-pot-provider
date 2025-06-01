@@ -91,7 +91,11 @@ export class SessionManager {
         return visitorData;
     }
 
-    getProxyDispatcher(proxy: string | undefined): Agent | undefined {
+    getProxyDispatcher(
+        proxy: string | undefined,
+        sourceAddress: string | undefined,
+        verifyTls: boolean = true,
+    ): Agent | undefined {
         if (!proxy) return undefined;
         let protocol: string;
         try {
@@ -119,14 +123,19 @@ export class SessionManager {
             case "http":
             case "https":
                 this.logger.log(`Using HTTP/HTTPS proxy: ${loggedProxy}`);
-                return new HttpsProxyAgent(proxy);
+                return new HttpsProxyAgent(proxy, {
+                    rejectUnauthorized: verifyTls,
+                    localAddress: sourceAddress,
+                });
             case "socks":
             case "socks4":
             case "socks4a":
             case "socks5":
             case "socks5h":
                 this.logger.log(`Using SOCKS proxy: ${loggedProxy}`);
-                return new SocksProxyAgent(proxy);
+                return new SocksProxyAgent(proxy, {
+                    localAddress: sourceAddress,
+                });
             default:
                 this.logger.warn(`Unsupported proxy protocol: ${loggedProxy}`);
                 return undefined;
@@ -137,6 +146,8 @@ export class SessionManager {
         contentBinding: string | undefined,
         proxy: string = "",
         bypassCache = false,
+        sourceAddress: string | undefined = undefined,
+        verifyTls: boolean = true,
     ): Promise<YoutubeSessionData> {
         if (!contentBinding) {
             this.logger.error(
@@ -174,12 +185,18 @@ export class SessionManager {
 
         let dispatcher: Agent | undefined;
         if (proxy) {
-            dispatcher = this.getProxyDispatcher(proxy);
+            dispatcher = this.getProxyDispatcher(
+                proxy,
+                sourceAddress,
+                verifyTls,
+            );
         } else {
             dispatcher = this.getProxyDispatcher(
                 process.env.HTTPS_PROXY ||
                     process.env.HTTP_PROXY ||
                     process.env.ALL_PROXY,
+                sourceAddress,
+                verifyTls,
             );
         }
 
