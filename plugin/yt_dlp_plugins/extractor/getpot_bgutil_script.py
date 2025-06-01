@@ -133,7 +133,7 @@ class BgUtilScriptPTP(BgUtilPTPBase):
         if request.bypass_cache:
             command_args.append('--bypass-cache')
         if request.request_source_address:
-            command_args.append(
+            command_args.extend(
                 ['--source-address', request.request_source_address])
         if request.request_verify_tls is False:
             command_args.append('--disable-tls-verification')
