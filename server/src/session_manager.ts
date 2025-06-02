@@ -3,7 +3,7 @@ import { JSDOM } from "jsdom";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import axios from "axios";
 import { Agent } from "https";
-import { SocksProxyAgent } from "socks-proxy-agent";
+import { SocksProxyAgent } from "https-socks-proxy";
 import { Innertube } from "youtubei.js";
 interface YoutubeSessionData {
     poToken: string;
@@ -135,11 +135,13 @@ export class SessionManager {
             case "socks4":
             case "socks4a":
             case "socks5":
-            case "socks5h":
+            case "socks5h": {
                 this.logger.log(`Using SOCKS proxy: ${loggedProxy}`);
-                return new SocksProxyAgent(proxy, {
-                    localAddress: sourceAddress,
-                });
+                const agent = new SocksProxyAgent(proxy);
+                agent.options.localAddress = sourceAddress;
+                agent.options.rejectUnauthorized = !disableTlsVerification;
+                return agent;
+            }
             default:
                 this.logger.warn(`Unsupported proxy protocol: ${loggedProxy}`);
                 return undefined;
