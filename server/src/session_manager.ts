@@ -5,7 +5,6 @@ import axios from "axios";
 import { Agent } from "https";
 import { SocksProxyAgent } from "socks-proxy-agent";
 import { Innertube } from "youtubei.js";
-import * as https from "https";
 interface YoutubeSessionData {
     poToken: string;
     contentBinding: string;
@@ -97,7 +96,7 @@ export class SessionManager {
         disableTlsVerification: boolean = false,
     ): Agent | undefined {
         if (!proxy) {
-            return new https.Agent({
+            return new Agent({
                 localAddress: sourceAddress,
                 rejectUnauthorized: !disableTlsVerification,
             });
