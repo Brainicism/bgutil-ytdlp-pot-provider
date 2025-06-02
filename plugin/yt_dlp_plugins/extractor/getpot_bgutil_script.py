@@ -52,7 +52,7 @@ class BgUtilScriptPTP(BgUtilPTPBase):
             home, 'bgutil-ytdlp-pot-provider', 'server', 'build', 'generate_once.js')
         self.logger.debug(
             f'No script path passed, defaulting to {default_path}')
-        return os.path.expandvars(default_path)
+        return default_path
 
     def is_available(self):
         return self._check_script(self._script_path)
