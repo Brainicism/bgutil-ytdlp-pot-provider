@@ -38,7 +38,8 @@ httpServer.post("/get_pot", async (request, response) => {
     const proxy: string = request.body.proxy;
     const bypassCache: boolean = request.body.bypass_cache || false;
     const sourceAddress: string | undefined = request.body.source_address;
-    const verifyTls: boolean = request.body.verify_tls;
+    const disableTlsVerification: boolean =
+        request.body.disable_tls_verification;
 
     try {
         const sessionData = await sessionManager.generatePoToken(
@@ -46,7 +47,7 @@ httpServer.post("/get_pot", async (request, response) => {
             proxy,
             bypassCache,
             sourceAddress,
-            verifyTls,
+            disableTlsVerification,
         );
 
         response.send(sessionData);
