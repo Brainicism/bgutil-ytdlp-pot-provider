@@ -36,13 +36,18 @@ httpServer.post("/get_pot", async (request, response) => {
     }
     const contentBinding: string | undefined = request.body.content_binding;
     const proxy: string = request.body.proxy;
-    const bypassCache = request.body.bypass_cache || false;
+    const bypassCache: boolean = request.body.bypass_cache || false;
+    const sourceAddress: string | undefined = request.body.source_address;
+    const disableTlsVerification: boolean =
+        request.body.disable_tls_verification || false;
 
     try {
         const sessionData = await sessionManager.generatePoToken(
             contentBinding,
             proxy,
             bypassCache,
+            sourceAddress,
+            disableTlsVerification,
         );
 
         response.send(sessionData);

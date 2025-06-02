@@ -24,8 +24,8 @@
         "commander": "github:tj/commander.js.git#develop",
         "express": "^4.21.2",
         "https-proxy-agent": "^7.0.6",
+        "https-socks-proxy": "^2.2.0",
         "jsdom": "^25.0.1",
-        "socks-proxy-agent": "^8.0.5",
         "youtubei.js": "^13.4.0"
     },
     "devDependencies": {

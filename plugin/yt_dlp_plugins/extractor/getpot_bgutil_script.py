@@ -132,6 +132,11 @@ class BgUtilScriptPTP(BgUtilPTPBase):
         command_args.extend(['-c', get_webpo_content_binding(request)[0]])
         if request.bypass_cache:
             command_args.append('--bypass-cache')
+        if request.request_source_address:
+            command_args.extend(
+                ['--source-address', request.request_source_address])
+        if request.request_verify_tls is False:
+            command_args.append('--disable-tls-verification')
 
         self.logger.info(
             f'Generating a {request.context.value} PO Token for '

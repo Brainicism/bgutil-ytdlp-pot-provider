@@ -34,6 +34,8 @@ const program = new Command()
     .option("-d, --data-sync-id <data-sync-id>") // to be removed in a future version
     .option("-p, --proxy <proxy-all>")
     .option("-b, --bypass-cache")
+    .option("-s, --source-address <source-address>")
+    .option("--disable-tls-verification")
     .option("--version")
     .option("--verbose")
     .exitOverride();
@@ -104,6 +106,8 @@ const options = program.opts();
             contentBinding,
             proxy,
             options.bypassCache || false,
+            options.sourceAddress,
+            options.disableTlsVerification || false,
         );
 
         try {

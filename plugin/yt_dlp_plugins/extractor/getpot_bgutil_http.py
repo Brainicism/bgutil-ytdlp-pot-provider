@@ -118,6 +118,8 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
                         'content_binding': get_webpo_content_binding(request)[0],
                         'proxy': request.request_proxy,
                         'bypass_cache': request.bypass_cache,
+                        'source_address': request.request_source_address,
+                        'disable_tls_verification': not request.request_verify_tls,
                     }).encode(), headers={'Content-Type': 'application/json'},
                     extensions={'timeout': self._GETPOT_TIMEOUT}, proxies={'all': None}),
                 note=f'Generating a {request.context.value} PO Token for '

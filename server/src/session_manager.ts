@@ -3,9 +3,8 @@ import { JSDOM } from "jsdom";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import axios from "axios";
 import { Agent } from "https";
-import { SocksProxyAgent } from "socks-proxy-agent";
+import { SocksProxyAgent } from "https-socks-proxy";
 import { Innertube } from "youtubei.js";
-
 interface YoutubeSessionData {
     poToken: string;
     contentBinding: string;
@@ -91,8 +90,17 @@ export class SessionManager {
         return visitorData;
     }
 
-    getProxyDispatcher(proxy: string | undefined): Agent | undefined {
-        if (!proxy) return undefined;
+    getProxyDispatcher(
+        proxy: string | undefined,
+        sourceAddress: string | undefined,
+        disableTlsVerification: boolean = false,
+    ): Agent | undefined {
+        if (!proxy) {
+            return new Agent({
+                localAddress: sourceAddress,
+                rejectUnauthorized: !disableTlsVerification,
+            });
+        }
         let protocol: string;
         try {
             const parsedUrl = new URL(proxy);
@@ -119,14 +127,21 @@ export class SessionManager {
             case "http":
             case "https":
                 this.logger.log(`Using HTTP/HTTPS proxy: ${loggedProxy}`);
-                return new HttpsProxyAgent(proxy);
+                return new HttpsProxyAgent(proxy, {
+                    rejectUnauthorized: !disableTlsVerification,
+                    localAddress: sourceAddress,
+                });
             case "socks":
             case "socks4":
             case "socks4a":
             case "socks5":
-            case "socks5h":
+            case "socks5h": {
                 this.logger.log(`Using SOCKS proxy: ${loggedProxy}`);
-                return new SocksProxyAgent(proxy);
+                const agent = new SocksProxyAgent(proxy);
+                agent.options.localAddress = sourceAddress;
+                agent.options.rejectUnauthorized = !disableTlsVerification;
+                return agent;
+            }
             default:
                 this.logger.warn(`Unsupported proxy protocol: ${loggedProxy}`);
                 return undefined;
@@ -137,6 +152,8 @@ export class SessionManager {
         contentBinding: string | undefined,
         proxy: string = "",
         bypassCache = false,
+        sourceAddress: string | undefined = undefined,
+        disableTlsVerification: boolean = false,
     ): Promise<YoutubeSessionData> {
         if (!contentBinding) {
             this.logger.error(
@@ -174,12 +191,18 @@ export class SessionManager {
 
         let dispatcher: Agent | undefined;
         if (proxy) {
-            dispatcher = this.getProxyDispatcher(proxy);
+            dispatcher = this.getProxyDispatcher(
+                proxy,
+                sourceAddress,
+                disableTlsVerification,
+            );
         } else {
             dispatcher = this.getProxyDispatcher(
                 process.env.HTTPS_PROXY ||
                     process.env.HTTP_PROXY ||
                     process.env.ALL_PROXY,
+                sourceAddress,
+                disableTlsVerification,
             );
         }
 
