@@ -107,7 +107,7 @@ const options = program.opts();
             proxy,
             options.bypassCache || false,
             options.sourceAddress,
-            options.disableTlsVerification === true ? false : true,
+            options.disableTlsVerification || false,
         );
 
         try {

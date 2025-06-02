@@ -119,7 +119,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
                         'proxy': request.request_proxy,
                         'bypass_cache': request.bypass_cache,
                         'source_address': request.request_source_address,
-                        'verify_tls': request.request_verify_tls,
+                        'disable_tls_verification': not request.request_verify_tls,
                     }).encode(), headers={'Content-Type': 'application/json'},
                     extensions={'timeout': self._GETPOT_TIMEOUT}, proxies={'all': None}),
                 note=f'Generating a {request.context.value} PO Token for '

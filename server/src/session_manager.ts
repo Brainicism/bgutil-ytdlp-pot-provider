@@ -94,12 +94,12 @@ export class SessionManager {
     getProxyDispatcher(
         proxy: string | undefined,
         sourceAddress: string | undefined,
-        verifyTls: boolean = true,
+        disableTlsVerification: boolean = false,
     ): Agent | undefined {
         if (!proxy) {
             return new https.Agent({
                 localAddress: sourceAddress,
-                rejectUnauthorized: verifyTls,
+                rejectUnauthorized: !disableTlsVerification,
             });
         }
         let protocol: string;
@@ -129,7 +129,7 @@ export class SessionManager {
             case "https":
                 this.logger.log(`Using HTTP/HTTPS proxy: ${loggedProxy}`);
                 return new HttpsProxyAgent(proxy, {
-                    rejectUnauthorized: verifyTls,
+                    rejectUnauthorized: !disableTlsVerification,
                     localAddress: sourceAddress,
                 });
             case "socks":
@@ -152,7 +152,7 @@ export class SessionManager {
         proxy: string = "",
         bypassCache = false,
         sourceAddress: string | undefined = undefined,
-        verifyTls: boolean = true,
+        disableTlsVerification: boolean = false,
     ): Promise<YoutubeSessionData> {
         if (!contentBinding) {
             this.logger.error(
@@ -193,7 +193,7 @@ export class SessionManager {
             dispatcher = this.getProxyDispatcher(
                 proxy,
                 sourceAddress,
-                verifyTls,
+                disableTlsVerification,
             );
         } else {
             dispatcher = this.getProxyDispatcher(
@@ -201,7 +201,7 @@ export class SessionManager {
                     process.env.HTTP_PROXY ||
                     process.env.ALL_PROXY,
                 sourceAddress,
-                verifyTls,
+                disableTlsVerification,
             );
         }
 
