@@ -39,7 +39,7 @@ httpServer.post("/get_pot", async (request, response) => {
     const bypassCache: boolean = request.body.bypass_cache || false;
     const sourceAddress: string | undefined = request.body.source_address;
     const disableTlsVerification: boolean =
-        request.body.disable_tls_verification;
+        request.body.disable_tls_verification || false;
 
     try {
         const sessionData = await sessionManager.generatePoToken(
