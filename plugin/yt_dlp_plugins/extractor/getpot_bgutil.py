@@ -49,6 +49,7 @@ class BgUtilPTPBase(provider.PoTokenProvider, abc.ABC):
                 f'The provider plugin and the {name} are on different versions, '
                 f'this may cause compatibility issues. '
                 f'Please ensure they are on the same version. '
+                f'Otherwise, help will NOT be provided for any issues that arise. '
                 f'(plugin: {self.PROVIDER_VERSION}, {name}: {got_version or default})',
                 once=True)
 
