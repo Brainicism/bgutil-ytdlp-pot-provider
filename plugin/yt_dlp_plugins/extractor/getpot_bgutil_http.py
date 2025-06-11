@@ -91,7 +91,11 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
                 f'Unknown error reaching GET /ping (caused by {e!r})', raise_from=e)
             return
         else:
-            self._check_version(response.get('version'), name='HTTP server')
+            server_version = response.get('version', '')
+            self._check_version(server_version, name='HTTP server')
+            if not server_version or self.PROVIDER_VERSION.split('.', 1)[0] != server_version.split('.', 1)[0]:
+                self._warn_and_raise(
+                    'Mismatched major versions are not expected to work together.')
             self._server_available = True
             return True
         finally:
