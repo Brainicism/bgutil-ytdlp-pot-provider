@@ -56,8 +56,8 @@ class BgUtilPTPBase(provider.PoTokenProvider, abc.ABC):
                 once=True)
         if not got_version or _major(got_version) != _major(self.PROVIDER_VERSION):
             self._warn_and_raise(
-                'Plugin and server major versions are mismatched. '
-                'Update both the plugin and the server to the same version to proceed.')
+                f'Plugin and {name} major versions are mismatched. '
+                f'Update both the plugin and the {name} to the same version to proceed.')
 
 
 __all__ = ['__version__']
