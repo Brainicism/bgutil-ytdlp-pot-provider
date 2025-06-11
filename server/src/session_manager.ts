@@ -210,60 +210,72 @@ export class SessionManager {
 
     // Precondition: bgResp is valid
     private async genIT(doFetch: FetchFunction): Promise<void> {
-        const { snapshot, webPoSignalOutput } = this.bgResp as BGSnapshotResult;
-        // const payload = ;
-        const ITResp = await doFetch(buildURL("GenerateIT"), {
-            method: "POST",
-            headers: getHeaders(),
-            body: JSON.stringify([SessionManager.REQUEST_KEY, snapshot]),
-        });
-        const ITJson = (await ITResp.json()) as [
-            string,
-            number,
-            number,
-            string,
-        ];
-        const [
-            integrityToken,
-            estimatedTtlSecs,
-            mintRefreshThreshold,
-            websafeFallbackToken,
-        ] = ITJson;
-        const ITData = {
-            integrityToken,
-            estimatedTtlSecs,
-            mintRefreshThreshold,
-            websafeFallbackToken,
-        };
-        if (!integrityToken)
-            throw new Error(
-                `Unexpected empty IT, IT Response: ${JSON.stringify(ITData)}`,
-            );
-        this.integrityTokenCache = {
-            expiry: new Date(Date.now() + estimatedTtlSecs),
-            integrityToken,
-            minter: await BG.WebPoMinter.create(ITData, webPoSignalOutput),
-        };
+        try {
+            const { snapshot, webPoSignalOutput } = this.bgResp as BGSnapshotResult;
+            const ITResp = await doFetch(buildURL("GenerateIT"), {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify([SessionManager.REQUEST_KEY, snapshot]),
+            });
+            const ITJson = (await ITResp.json()) as [
+                string,
+                number,
+                number,
+                string,
+            ];
+            const [
+                integrityToken,
+                estimatedTtlSecs,
+                mintRefreshThreshold,
+                websafeFallbackToken,
+            ] = ITJson;
+            const ITData = {
+                integrityToken,
+                estimatedTtlSecs,
+                mintRefreshThreshold,
+                websafeFallbackToken,
+            };
+            if (!integrityToken)
+                throw new Error(
+                    `Unexpected empty IT, IT Response: ${JSON.stringify(ITData)}`,
+                );
+            this.integrityTokenCache = {
+                expiry: new Date(Date.now() + estimatedTtlSecs),
+                integrityToken,
+                minter: await BG.WebPoMinter.create(ITData, webPoSignalOutput),
+            };
+        } catch (e) {
+            throw new Error(`Failed to generate an IT: ${e.message}`, {
+                cause: e,
+            });
+        }
     }
 
     // Precondition: valid minter
     private async tryMintPOT(
         contentBinding: string,
     ): Promise<YoutubeSessionData> {
-        const minter = this.integrityTokenCache.minter as BG.WebPoMinter;
-        const poToken = await minter.mintAsWebsafeString(contentBinding);
-        if (poToken) {
-            this.logger.log(`poToken: ${poToken}`);
-            const youtubeSessionData: YoutubeSessionData = {
-                contentBinding,
-                poToken,
-                expiresAt: new Date(
-                    Date.now() + this.TOKEN_TTL_HOURS * 60 * 60 * 1000,
-                ),
-            };
-            this.youtubeSessionDataCaches[contentBinding] = youtubeSessionData;
-            return youtubeSessionData;
-        } else throw new Error("Unexpected empty POT");
+        try {
+            const minter = this.integrityTokenCache.minter as BG.WebPoMinter;
+            const poToken = await minter.mintAsWebsafeString(contentBinding);
+            if (poToken) {
+                this.logger.log(`poToken: ${poToken}`);
+                const youtubeSessionData: YoutubeSessionData = {
+                    contentBinding,
+                    poToken,
+                    expiresAt: new Date(
+                        Date.now() + this.TOKEN_TTL_HOURS * 60 * 60 * 1000,
+                    ),
+                };
+                this.youtubeSessionDataCaches[contentBinding] = youtubeSessionData;
+                return youtubeSessionData;
+            } else throw new Error("Unexpected empty POT");
+        } catch (e) {
+            throw new Error(
+                `Failed to mint POT for ${contentBinding}: ${e.message}`,
+                { cause: e },
+            );
+        }
     }
 
     async generatePoToken(
@@ -318,31 +330,11 @@ export class SessionManager {
                 this.logger.log(
                     `Integrity token is still fresh, minting POT for ${contentBinding}`,
                 );
-                try {
-                    return await this.tryMintPOT(contentBinding);
-                } catch (e) {
-                    throw new Error(
-                        `Failed to mint POT for ${contentBinding}: ${e.message}`,
-                        { cause: e },
-                    );
-                }
+                return await this.tryMintPOT(contentBinding);
             } else if (this.bgResp) {
                 this.logger.log("bgResp is available, generating a new IT");
-                try {
-                    await this.genIT(doFetch);
-                } catch (e) {
-                    throw new Error(`Failed to generate an IT: ${e.message}`, {
-                        cause: e,
-                    });
-                }
-                try {
-                    return await this.tryMintPOT(contentBinding);
-                } catch (e) {
-                    throw new Error(
-                        `Failed to mint POT for ${contentBinding}: ${e.message}`,
-                        { cause: e },
-                    );
-                }
+                await this.genIT(doFetch);
+                return await this.tryMintPOT(contentBinding);
             }
         }
 
@@ -374,7 +366,6 @@ export class SessionManager {
             new Function(interpreterJavascript)();
         } else throw new Error("Could not load VM");
 
-        // let poToken: string | undefined;
         try {
             const bgClient = await BG.BotGuardClient.create({
                 program: challenge.program,
@@ -391,20 +382,7 @@ export class SessionManager {
             );
         }
 
-        try {
-            await this.genIT(doFetch);
-        } catch (e) {
-            throw new Error(`Failed to generate an IT: ${e.message}`, {
-                cause: e,
-            });
-        }
-        try {
-            return await this.tryMintPOT(contentBinding);
-        } catch (e) {
-            throw new Error(
-                `Failed to mint POT for ${contentBinding}: ${e.message}`,
-                { cause: e },
-            );
-        }
+        await this.genIT(doFetch);
+        return await this.tryMintPOT(contentBinding);
     }
 }
