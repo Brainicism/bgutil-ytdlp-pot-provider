@@ -95,7 +95,8 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
             self._check_version(server_version, name='HTTP server')
             if not server_version or self.PROVIDER_VERSION.split('.', 1)[0] != server_version.split('.', 1)[0]:
                 self._warn_and_raise(
-                    'Mismatched major versions are not expected to work together.')
+                    'Plugin and server major versions are mismatched. '
+                    'Update both the plugin and the server to the same version to proceed.')
             self._server_available = True
             return True
         finally:
