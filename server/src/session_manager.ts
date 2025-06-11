@@ -237,12 +237,11 @@ export class SessionManager {
         };
         if (!integrityToken)
             throw new Error(
-                `Unexpected empty IT, ITData: ${JSON.stringify(ITData)}`,
+                `Unexpected empty IT, IT Response: ${JSON.stringify(ITData)}`,
             );
-        else this.logger.debug(`IT: ${JSON.stringify(ITData)}`);
         this.integrityTokenCache = {
             expiry: new Date(Date.now() + estimatedTtlSecs),
-            integrityToken: integrityToken,
+            integrityToken,
             minter: await BG.WebPoMinter.create(ITData, webPoSignalOutput),
         };
     }
