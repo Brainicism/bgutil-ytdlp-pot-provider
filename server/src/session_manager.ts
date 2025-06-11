@@ -1,10 +1,19 @@
-import { BG, BgConfig, DescrambledChallenge } from "bgutils-js";
+import {
+    BG,
+    BgConfig,
+    DescrambledChallenge,
+    WebPoSignalOutput,
+    FetchFunction,
+    buildURL,
+    getHeaders,
+} from "bgutils-js";
 import { JSDOM } from "jsdom";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import axios from "axios";
 import { Agent } from "https";
 import { SocksProxyAgent } from "https-socks-proxy";
 import { Innertube } from "youtubei.js";
+
 interface YoutubeSessionData {
     poToken: string;
     contentBinding: string;
@@ -15,28 +24,40 @@ export interface YoutubeSessionDataCaches {
     [contentBinding: string]: YoutubeSessionData;
 }
 
+type IntegrityTokenCache = {
+    expiry: Date;
+    integrityToken?: string;
+    minter?: BG.WebPoMinter;
+};
+
+type BGSnapshotResult = {
+    snapshot: string;
+    webPoSignalOutput: WebPoSignalOutput;
+};
+
 class Logger {
-    private shouldLog: boolean;
+    readonly debug: (msg: string) => void;
+    readonly log: (msg: string) => void;
+    readonly warn: (msg: string) => void;
+    readonly error: (msg: string) => void;
 
     constructor(shouldLog = true) {
-        this.shouldLog = shouldLog;
-    }
-
-    debug(msg: string) {
-        if (this.shouldLog) console.debug(msg);
-    }
-
-    log(msg: string) {
-        if (this.shouldLog) console.log(msg);
-    }
-
-    warn(msg: string) {
-        // stderr should always be shown
-        console.warn(msg);
-    }
-
-    error(msg: string) {
-        console.error(msg);
+        if (shouldLog) {
+            this.debug = (msg: string) => {
+                console.debug(msg);
+            };
+            this.log = (msg: string) => {
+                console.log(msg);
+            };
+        } else {
+            this.debug = this.log = () => {};
+        }
+        this.warn = (msg: string) => {
+            console.warn(msg);
+        };
+        this.error = (msg: string) => {
+            console.error(msg);
+        };
     }
 }
 
@@ -44,6 +65,10 @@ export class SessionManager {
     private youtubeSessionDataCaches: YoutubeSessionDataCaches = {};
     private TOKEN_TTL_HOURS: number;
     private logger: Logger;
+    private integrityTokenCache: IntegrityTokenCache = { expiry: new Date() };
+    private bgResp: BGSnapshotResult | undefined;
+    // hardcoded API key that has been used by youtube for years
+    private static readonly REQUEST_KEY = "O43z0dpjhgX20SCx4KAo";
 
     constructor(
         shouldLog = true,
@@ -54,6 +79,9 @@ export class SessionManager {
         this.TOKEN_TTL_HOURS = process.env.TOKEN_TTL
             ? parseInt(process.env.TOKEN_TTL)
             : 6;
+        const dom = new JSDOM();
+        globalThis.window = dom.window as any;
+        globalThis.document = dom.window.document;
     }
 
     invalidateCaches() {
@@ -90,7 +118,7 @@ export class SessionManager {
         return visitorData;
     }
 
-    getProxyDispatcher(
+    private getProxyDispatcher(
         proxy: string | undefined,
         sourceAddress: string | undefined,
         disableTlsVerification: boolean = false,
@@ -147,7 +175,98 @@ export class SessionManager {
                 return undefined;
         }
     }
-    // mostly copied from https://github.com/LuanRT/BgUtils/tree/main/examples/node
+
+    private getFetch(dispatcher: Agent | undefined): FetchFunction {
+        return async (url: any, options: any): Promise<any> => {
+            const maxRetries = 3;
+            for (let attempts = 1; attempts <= maxRetries; attempts++) {
+                try {
+                    const response = await axios.post(url, options.body, {
+                        headers: options.headers,
+                        httpsAgent: dispatcher,
+                    });
+
+                    return {
+                        ok: true,
+                        json: async () => {
+                            return response.data;
+                        },
+                    };
+                } catch (e) {
+                    if (attempts >= maxRetries) {
+                        return {
+                            ok: false,
+                            json: async () => {
+                                return null;
+                            },
+                            status: e.response?.status || e.code,
+                        };
+                    }
+                    await new Promise((resolve) => setTimeout(resolve, 5000));
+                }
+            }
+        };
+    }
+
+    // Precondition: bgResp is valid
+    private async genIT(doFetch: FetchFunction): Promise<void> {
+        const { snapshot, webPoSignalOutput } = this.bgResp as BGSnapshotResult;
+        // const payload = ;
+        const ITResp = await doFetch(buildURL("GenerateIT"), {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify([SessionManager.REQUEST_KEY, snapshot]),
+        });
+        const ITJson = (await ITResp.json()) as [
+            string,
+            number,
+            number,
+            string,
+        ];
+        const [
+            integrityToken,
+            estimatedTtlSecs,
+            mintRefreshThreshold,
+            websafeFallbackToken,
+        ] = ITJson;
+        const ITData = {
+            integrityToken,
+            estimatedTtlSecs,
+            mintRefreshThreshold,
+            websafeFallbackToken,
+        };
+        if (!integrityToken)
+            throw new Error(
+                `Unexpected empty IT, ITData: ${JSON.stringify(ITData)}`,
+            );
+        else this.logger.debug(`IT: ${JSON.stringify(ITData)}`);
+        this.integrityTokenCache = {
+            expiry: new Date(Date.now() + estimatedTtlSecs),
+            integrityToken: integrityToken,
+            minter: await BG.WebPoMinter.create(ITData, webPoSignalOutput),
+        };
+    }
+
+    // Precondition: valid minter
+    private async tryMintPOT(
+        contentBinding: string,
+    ): Promise<YoutubeSessionData> {
+        const minter = this.integrityTokenCache.minter as BG.WebPoMinter;
+        const poToken = await minter.mintAsWebsafeString(contentBinding);
+        if (poToken) {
+            this.logger.log(`poToken: ${poToken}`);
+            const youtubeSessionData: YoutubeSessionData = {
+                contentBinding,
+                poToken,
+                expiresAt: new Date(
+                    Date.now() + this.TOKEN_TTL_HOURS * 60 * 60 * 1000,
+                ),
+            };
+            this.youtubeSessionDataCaches[contentBinding] = youtubeSessionData;
+            return youtubeSessionData;
+        } else throw new Error("Unexpected empty POT");
+    }
+
     async generatePoToken(
         contentBinding: string | undefined,
         proxy: string = "",
@@ -170,26 +289,8 @@ export class SessionManager {
         }
 
         this.cleanupCaches();
-        if (!bypassCache) {
-            const sessionData = this.youtubeSessionDataCaches[contentBinding];
-            if (sessionData) {
-                this.logger.log(
-                    `POT for ${contentBinding} still fresh, returning cached token`,
-                );
-                return sessionData;
-            }
-        }
-
-        this.logger.log(`Generating POT for ${contentBinding}`);
-
-        // hardcoded API key that has been used by youtube for years
-        const requestKey = "O43z0dpjhgX20SCx4KAo";
-        const dom = new JSDOM();
-
-        globalThis.window = dom.window as any;
-        globalThis.document = dom.window.document;
-
         let dispatcher: Agent | undefined;
+
         if (proxy) {
             dispatcher = this.getProxyDispatcher(
                 proxy,
@@ -205,42 +306,54 @@ export class SessionManager {
                 disableTlsVerification,
             );
         }
+        const doFetch = this.getFetch(dispatcher);
+
+        if (!bypassCache) {
+            const sessionData = this.youtubeSessionDataCaches[contentBinding];
+            if (sessionData) {
+                this.logger.log(
+                    `POT for ${contentBinding} still fresh, returning cached token`,
+                );
+                return sessionData;
+            } else if (this.integrityTokenCache.expiry > new Date()) {
+                this.logger.log(
+                    `Integrity token is still fresh, minting POT for ${contentBinding}`,
+                );
+                try {
+                    return await this.tryMintPOT(contentBinding);
+                } catch (e) {
+                    throw new Error(
+                        `Failed to mint POT for ${contentBinding}: ${e.message}`,
+                        { cause: e },
+                    );
+                }
+            } else if (this.bgResp) {
+                this.logger.log("bgResp is available, generating a new IT");
+                try {
+                    await this.genIT(doFetch);
+                } catch (e) {
+                    throw new Error(`Failed to generate an IT: ${e.message}`, {
+                        cause: e,
+                    });
+                }
+                try {
+                    return await this.tryMintPOT(contentBinding);
+                } catch (e) {
+                    throw new Error(
+                        `Failed to mint POT for ${contentBinding}: ${e.message}`,
+                        { cause: e },
+                    );
+                }
+            }
+        }
+
+        this.logger.log(`Generating POT for ${contentBinding}`);
 
         const bgConfig: BgConfig = {
-            fetch: async (url: any, options: any): Promise<any> => {
-                const maxRetries = 3;
-                for (let attempts = 1; attempts <= maxRetries; attempts++) {
-                    try {
-                        const response = await axios.post(url, options.body, {
-                            headers: options.headers,
-                            httpsAgent: dispatcher,
-                        });
-
-                        return {
-                            ok: true,
-                            json: async () => {
-                                return response.data;
-                            },
-                        };
-                    } catch (e) {
-                        if (attempts >= maxRetries) {
-                            return {
-                                ok: false,
-                                json: async () => {
-                                    return null;
-                                },
-                                status: e.response?.status || e.code,
-                            };
-                        }
-                        await new Promise((resolve) =>
-                            setTimeout(resolve, 5000),
-                        );
-                    }
-                }
-            },
+            fetch: doFetch,
             globalObj: globalThis,
             identifier: contentBinding,
-            requestKey,
+            requestKey: SessionManager.REQUEST_KEY,
         };
 
         let challenge: DescrambledChallenge | undefined;
@@ -262,37 +375,37 @@ export class SessionManager {
             new Function(interpreterJavascript)();
         } else throw new Error("Could not load VM");
 
-        let poToken: string | undefined;
+        // let poToken: string | undefined;
         try {
-            const poTokenResult = await BG.PoToken.generate({
+            const bgClient = await BG.BotGuardClient.create({
                 program: challenge.program,
                 globalName: challenge.globalName,
-                bgConfig,
+                globalObj: bgConfig.globalObj,
             });
-
-            poToken = poTokenResult.poToken;
+            const webPoSignalOutput: WebPoSignalOutput = [];
+            const snapshot = await bgClient.snapshot({ webPoSignalOutput });
+            this.bgResp = { snapshot, webPoSignalOutput };
         } catch (e) {
             throw new Error(
-                `Error while trying to generate PO token. err.name = ${e.name}. err.message = ${e.message}. err.stack = ${e.stack}`,
+                `Failed to get botguard response. err.name = ${e.name}. err.message = ${e.message}. err.stack = ${e.stack}`,
                 { cause: e },
             );
         }
 
-        if (!poToken) {
-            throw new Error("poToken unexpected undefined");
+        try {
+            await this.genIT(doFetch);
+        } catch (e) {
+            throw new Error(`Failed to generate an IT: ${e.message}`, {
+                cause: e,
+            });
         }
-
-        this.logger.log(`poToken: ${poToken}`);
-        const youtubeSessionData: YoutubeSessionData = {
-            contentBinding: contentBinding,
-            poToken: poToken,
-            expiresAt: new Date(
-                new Date().getTime() + this.TOKEN_TTL_HOURS * 60 * 60 * 1000,
-            ),
-        };
-
-        this.youtubeSessionDataCaches[contentBinding] = youtubeSessionData;
-
-        return youtubeSessionData;
+        try {
+            return await this.tryMintPOT(contentBinding);
+        } catch (e) {
+            throw new Error(
+                `Failed to mint POT for ${contentBinding}: ${e.message}`,
+                { cause: e },
+            );
+        }
     }
 }
