@@ -211,7 +211,8 @@ export class SessionManager {
     // Precondition: bgResp is valid
     private async genIT(doFetch: FetchFunction): Promise<void> {
         try {
-            const { snapshot, webPoSignalOutput } = this.bgResp as BGSnapshotResult;
+            const { snapshot, webPoSignalOutput } = this
+                .bgResp as BGSnapshotResult;
             const ITResp = await doFetch(buildURL("GenerateIT"), {
                 method: "POST",
                 headers: getHeaders(),
@@ -267,7 +268,8 @@ export class SessionManager {
                         Date.now() + this.TOKEN_TTL_HOURS * 60 * 60 * 1000,
                     ),
                 };
-                this.youtubeSessionDataCaches[contentBinding] = youtubeSessionData;
+                this.youtubeSessionDataCaches[contentBinding] =
+                    youtubeSessionData;
                 return youtubeSessionData;
             } else throw new Error("Unexpected empty POT");
         } catch (e) {
