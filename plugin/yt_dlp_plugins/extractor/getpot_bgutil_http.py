@@ -91,12 +91,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
                 f'Unknown error reaching GET /ping (caused by {e!r})', raise_from=e)
             return
         else:
-            server_version = response.get('version', '')
-            self._check_version(server_version, name='HTTP server')
-            if not server_version or self.PROVIDER_VERSION.split('.', 1)[0] != server_version.split('.', 1)[0]:
-                self._warn_and_raise(
-                    'Plugin and server major versions are mismatched. '
-                    'Update both the plugin and the server to the same version to proceed.')
+            self._check_version(response.get('version', ''), name='HTTP server')
             self._server_available = True
             return True
         finally:
