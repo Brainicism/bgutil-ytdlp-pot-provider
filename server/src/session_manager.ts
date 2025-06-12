@@ -30,11 +30,6 @@ type IntegrityTokenCache = {
     minter?: BG.WebPoMinter;
 };
 
-type BGSnapshotResult = {
-    snapshot: string;
-    webPoSignalOutput: WebPoSignalOutput;
-};
-
 class Logger {
     readonly debug: (msg: string) => void;
     readonly log: (msg: string) => void;
@@ -66,7 +61,7 @@ export class SessionManager {
     private TOKEN_TTL_HOURS: number;
     private logger: Logger;
     private integrityTokenCache: IntegrityTokenCache = { expiry: new Date() };
-    private bgResp: BGSnapshotResult | undefined;
+    private bgClient: BG.BotGuardClient | undefined;
     // hardcoded API key that has been used by youtube for years
     private static readonly REQUEST_KEY = "O43z0dpjhgX20SCx4KAo";
 
@@ -208,15 +203,21 @@ export class SessionManager {
         };
     }
 
-    // Precondition: bgResp is valid
+    // Precondition: bgClient is valid
     private async genIT(doFetch: FetchFunction): Promise<void> {
         try {
-            const { snapshot, webPoSignalOutput } = this
-                .bgResp as BGSnapshotResult;
+            const bgClient = this.bgClient as BG.BotGuardClient;
+            const webPoSignalOutput: WebPoSignalOutput = [];
+            const botguardResponse = await bgClient.snapshot({
+                webPoSignalOutput,
+            });
             const ITResp = await doFetch(buildURL("GenerateIT"), {
                 method: "POST",
                 headers: getHeaders(),
-                body: JSON.stringify([SessionManager.REQUEST_KEY, snapshot]),
+                body: JSON.stringify([
+                    SessionManager.REQUEST_KEY,
+                    botguardResponse,
+                ]),
             });
             const ITJson = (await ITResp.json()) as [
                 string,
@@ -329,7 +330,7 @@ export class SessionManager {
                 );
                 return sessionData;
             }
-            if (this.bgResp) {
+            if (this.bgClient) {
                 if (new Date() >= this.integrityTokenCache.expiry) {
                     this.logger.log("IT expired");
                     await this.genIT(doFetch);
@@ -367,17 +368,14 @@ export class SessionManager {
         } else throw new Error("Could not load VM");
 
         try {
-            const bgClient = await BG.BotGuardClient.create({
+            this.bgClient = await BG.BotGuardClient.create({
                 program: challenge.program,
                 globalName: challenge.globalName,
                 globalObj: bgConfig.globalObj,
             });
-            const webPoSignalOutput: WebPoSignalOutput = [];
-            const snapshot = await bgClient.snapshot({ webPoSignalOutput });
-            this.bgResp = { snapshot, webPoSignalOutput };
         } catch (e) {
             throw new Error(
-                `Failed to get botguard response. err.name = ${e.name}. err.message = ${e.message}. err.stack = ${e.stack}`,
+                `Failed to create BG client. err.name = ${e.name}. err.message = ${e.message}. err.stack = ${e.stack}`,
                 { cause: e },
             );
         }
