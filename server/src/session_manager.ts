@@ -248,12 +248,11 @@ export class SessionManager {
     private async genIT(
         pxySpec: ProxySpec,
         bgClient: BG.BotGuardClient,
-        doFetch?: FetchFunction
+        doFetch?: FetchFunction,
     ): Promise<ITCacheEntry> {
         try {
             doFetch =
                 doFetch || this.getFetch(this.getProxyDispatcher(pxySpec));
-            // const bgClient = this.bgClient as BG.BotGuardClient;
             const webPoSignalOutput: WebPoSignalOutput = [];
             const botguardResponse = await bgClient.snapshot({
                 webPoSignalOutput,
@@ -298,7 +297,7 @@ export class SessionManager {
                     ),
                 },
                 doFetch,
-                bgClient
+                bgClient,
             };
             this.bgCacheTable.set(pxySpec.toString(), itCacheEntry);
             return itCacheEntry;
@@ -388,7 +387,9 @@ export class SessionManager {
                 return sessionData;
             }
             if (this.bgCacheTable.has(pxySpec.toString())) {
-                let itCacheEntry = this.bgCacheTable.get(pxySpec.toString()) as ITCacheEntry;
+                let itCacheEntry = this.bgCacheTable.get(
+                    pxySpec.toString(),
+                ) as ITCacheEntry;
                 if (new Date() >= itCacheEntry.itCache.expiry) {
                     this.logger.log("IT expired");
                     itCacheEntry = await this.genIT(
