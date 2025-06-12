@@ -64,6 +64,7 @@ type IntegrityTokenCache = {
 type ITCacheEntry = {
     doFetch: FetchFunction;
     itCache: IntegrityTokenCache;
+    bgClient: BG.BotGuardClient;
 };
 type ITCacheTable = Map<string, ITCacheEntry>;
 
@@ -97,8 +98,7 @@ export class SessionManager {
     private youtubeSessionDataCaches: YoutubeSessionDataCaches = {};
     private TOKEN_TTL_HOURS: number;
     private logger: Logger;
-    private itCacheTable: ITCacheTable = new Map();
-    private bgClient: BG.BotGuardClient | undefined;
+    private bgCacheTable: ITCacheTable = new Map();
     // hardcoded API key that has been used by youtube for years
     private static readonly REQUEST_KEY = "O43z0dpjhgX20SCx4KAo";
 
@@ -151,7 +151,7 @@ export class SessionManager {
     }
 
     public get ITcache(): ITCacheTable {
-        return this.itCacheTable;
+        return this.bgCacheTable;
     }
 
     private getProxyDispatcher({
@@ -247,12 +247,13 @@ export class SessionManager {
     // Precondition: bgClient is valid
     private async genIT(
         pxySpec: ProxySpec,
-        doFetch?: FetchFunction,
+        bgClient: BG.BotGuardClient,
+        doFetch?: FetchFunction
     ): Promise<ITCacheEntry> {
         try {
             doFetch =
                 doFetch || this.getFetch(this.getProxyDispatcher(pxySpec));
-            const bgClient = this.bgClient as BG.BotGuardClient;
+            // const bgClient = this.bgClient as BG.BotGuardClient;
             const webPoSignalOutput: WebPoSignalOutput = [];
             const botguardResponse = await bgClient.snapshot({
                 webPoSignalOutput,
@@ -297,8 +298,9 @@ export class SessionManager {
                     ),
                 },
                 doFetch,
+                bgClient
             };
-            this.itCacheTable.set(pxySpec.toString(), itCacheEntry);
+            this.bgCacheTable.set(pxySpec.toString(), itCacheEntry);
             return itCacheEntry;
         } catch (e) {
             throw new Error(`Failed to generate an IT: ${e.message}`, {
@@ -385,15 +387,13 @@ export class SessionManager {
                 );
                 return sessionData;
             }
-            if (this.bgClient) {
-                let itCacheEntry = this.itCacheTable.get(pxySpec.toString());
-                if (!itCacheEntry) {
-                    this.logger.log("IT cache miss");
-                    itCacheEntry = await this.genIT(pxySpec);
-                } else if (new Date() >= itCacheEntry.itCache.expiry) {
+            if (this.bgCacheTable.has(pxySpec.toString())) {
+                let itCacheEntry = this.bgCacheTable.get(pxySpec.toString()) as ITCacheEntry;
+                if (new Date() >= itCacheEntry.itCache.expiry) {
                     this.logger.log("IT expired");
                     itCacheEntry = await this.genIT(
                         pxySpec,
+                        itCacheEntry.bgClient,
                         itCacheEntry.doFetch,
                     );
                 }
@@ -432,8 +432,9 @@ export class SessionManager {
             new Function(interpreterJavascript)();
         } else throw new Error("Could not load VM");
 
+        let bgClient: BG.BotGuardClient;
         try {
-            this.bgClient = await BG.BotGuardClient.create({
+            bgClient = await BG.BotGuardClient.create({
                 program: challenge.program,
                 globalName: challenge.globalName,
                 globalObj: bgConfig.globalObj,
@@ -445,7 +446,7 @@ export class SessionManager {
             );
         }
 
-        const itRet = await this.genIT(pxySpec, bgConfig.fetch);
+        const itRet = await this.genIT(pxySpec, bgClient, bgConfig.fetch);
         return await this.tryMintPOT(contentBinding, itRet.itCache);
     }
 }
