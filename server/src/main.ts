@@ -71,3 +71,8 @@ httpServer.get("/ping", async (request, response) => {
         version: VERSION,
     });
 });
+
+httpServer.get("/itcache", async (request, response) => {
+    console.log(sessionManager.ITcache);
+    response.status(200).send();
+});

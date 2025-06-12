@@ -24,11 +24,48 @@ export interface YoutubeSessionDataCaches {
     [contentBinding: string]: YoutubeSessionData;
 }
 
+type ProxyOpt = {
+    proxy?: string,
+    sourceAddress?: string,
+    disableTlsVerification?: boolean
+};
+
+class ProxySpec {
+    proxy?: string;
+    sourceAddress?: string;
+    disableTlsVerification: boolean = false;
+
+    constructor({ proxy, sourceAddress, disableTlsVerification }: ProxyOpt) {
+        this.proxy = proxy;
+        this.sourceAddress = sourceAddress;
+        this.disableTlsVerification = disableTlsVerification || false;
+    }
+    equals(other: ProxySpec): boolean {
+        return (
+            this.proxy === other.proxy &&
+            this.sourceAddress === other.sourceAddress
+        );
+    }
+    toOpt(): ProxyOpt {
+        const { proxy, sourceAddress, disableTlsVerification } = this;
+        return { proxy, sourceAddress, disableTlsVerification };
+    }
+    toString(): string {
+        return JSON.stringify([this.proxy, this.sourceAddress]);
+    }
+};
+
 type IntegrityTokenCache = {
     expiry: Date;
-    integrityToken?: string;
-    minter?: BG.WebPoMinter;
+    integrityToken: string;
+    minter: BG.WebPoMinter;
 };
+
+type ITCacheEntry = {
+    doFetch: FetchFunction;
+    itCache: IntegrityTokenCache;
+};
+type ITCacheTable = Map<string, ITCacheEntry>;
 
 class Logger {
     readonly debug: (msg: string) => void;
@@ -60,7 +97,7 @@ export class SessionManager {
     private youtubeSessionDataCaches: YoutubeSessionDataCaches = {};
     private TOKEN_TTL_HOURS: number;
     private logger: Logger;
-    private integrityTokenCache: IntegrityTokenCache = { expiry: new Date() };
+    private itCacheTable: ITCacheTable = new Map();
     private bgClient: BG.BotGuardClient | undefined;
     // hardcoded API key that has been used by youtube for years
     private static readonly REQUEST_KEY = "O43z0dpjhgX20SCx4KAo";
@@ -113,11 +150,11 @@ export class SessionManager {
         return visitorData;
     }
 
-    private getProxyDispatcher(
-        proxy: string | undefined,
-        sourceAddress: string | undefined,
-        disableTlsVerification: boolean = false,
-    ): Agent | undefined {
+    public get ITcache() : ITCacheTable {
+        return this.itCacheTable;
+    }
+
+    private getProxyDispatcher({proxy, sourceAddress, disableTlsVerification}: ProxySpec): Agent | undefined {
         if (!proxy) {
             return new Agent({
                 localAddress: sourceAddress,
@@ -204,8 +241,9 @@ export class SessionManager {
     }
 
     // Precondition: bgClient is valid
-    private async genIT(doFetch: FetchFunction): Promise<void> {
+    private async genIT(pxySpec: ProxySpec, doFetch?: FetchFunction): Promise<ITCacheEntry> {
         try {
+            doFetch = doFetch || this.getFetch(this.getProxyDispatcher(pxySpec));
             const bgClient = this.bgClient as BG.BotGuardClient;
             const webPoSignalOutput: WebPoSignalOutput = [];
             const botguardResponse = await bgClient.snapshot({
@@ -241,11 +279,16 @@ export class SessionManager {
                 throw new Error(
                     `Unexpected empty IT, IT Response: ${JSON.stringify(ITData)}`,
                 );
-            this.integrityTokenCache = {
-                expiry: new Date(Date.now() + estimatedTtlSecs),
-                integrityToken,
-                minter: await BG.WebPoMinter.create(ITData, webPoSignalOutput),
+            const itCacheEntry: ITCacheEntry = {
+                itCache: {
+                    expiry: new Date(Date.now() + estimatedTtlSecs),
+                    integrityToken,
+                    minter: await BG.WebPoMinter.create(ITData, webPoSignalOutput),
+                },
+                doFetch
             };
+            this.itCacheTable.set(pxySpec.toString(), itCacheEntry);
+            return itCacheEntry;
         } catch (e) {
             throw new Error(`Failed to generate an IT: ${e.message}`, {
                 cause: e,
@@ -256,10 +299,10 @@ export class SessionManager {
     // Precondition: valid minter
     private async tryMintPOT(
         contentBinding: string,
+        itCache: IntegrityTokenCache,
     ): Promise<YoutubeSessionData> {
         try {
-            const minter = this.integrityTokenCache.minter as BG.WebPoMinter;
-            const poToken = await minter.mintAsWebsafeString(contentBinding);
+            const poToken = await itCache.minter.mintAsWebsafeString(contentBinding);
             if (poToken) {
                 this.logger.log(`poToken: ${poToken}`);
                 const youtubeSessionData: YoutubeSessionData = {
@@ -303,24 +346,23 @@ export class SessionManager {
         }
 
         this.cleanupCaches();
-        let dispatcher: Agent | undefined;
 
+        let pxySpec: ProxySpec;
         if (proxy) {
-            dispatcher = this.getProxyDispatcher(
+            pxySpec = new ProxySpec({
                 proxy,
                 sourceAddress,
-                disableTlsVerification,
-            );
+                disableTlsVerification
+            });
         } else {
-            dispatcher = this.getProxyDispatcher(
-                process.env.HTTPS_PROXY ||
+            pxySpec = new ProxySpec({
+                proxy: process.env.HTTPS_PROXY ||
                     process.env.HTTP_PROXY ||
                     process.env.ALL_PROXY,
                 sourceAddress,
-                disableTlsVerification,
-            );
+                disableTlsVerification
+            });
         }
-        const doFetch = this.getFetch(dispatcher);
 
         if (!bypassCache) {
             const sessionData = this.youtubeSessionDataCaches[contentBinding];
@@ -331,18 +373,23 @@ export class SessionManager {
                 return sessionData;
             }
             if (this.bgClient) {
-                if (new Date() >= this.integrityTokenCache.expiry) {
-                    this.logger.log("IT expired");
-                    await this.genIT(doFetch);
+                let itCacheEntry = this.itCacheTable.get(pxySpec.toString());
+                if (!itCacheEntry) {
+                    this.logger.log("IT cache miss");
+                    itCacheEntry = await this.genIT(pxySpec);
                 }
-                return await this.tryMintPOT(contentBinding);
+                else if (new Date() >= itCacheEntry.itCache.expiry) {
+                    this.logger.log("IT expired");
+                    itCacheEntry = await this.genIT(pxySpec, itCacheEntry.doFetch);
+                }
+                return await this.tryMintPOT(contentBinding, itCacheEntry.itCache);
             }
         }
 
         this.logger.log(`Generating POT for ${contentBinding}`);
 
         const bgConfig: BgConfig = {
-            fetch: doFetch,
+            fetch: this.getFetch(this.getProxyDispatcher(pxySpec)),
             globalObj: globalThis,
             identifier: contentBinding,
             requestKey: SessionManager.REQUEST_KEY,
@@ -380,7 +427,7 @@ export class SessionManager {
             );
         }
 
-        await this.genIT(doFetch);
-        return await this.tryMintPOT(contentBinding);
+        const itRet = await this.genIT(pxySpec, bgConfig.fetch);
+        return await this.tryMintPOT(contentBinding, itRet.itCache);
     }
 }
