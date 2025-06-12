@@ -328,14 +328,12 @@ export class SessionManager {
                     `POT for ${contentBinding} still fresh, returning cached token`,
                 );
                 return sessionData;
-            } else if (this.integrityTokenCache.expiry > new Date()) {
-                this.logger.log(
-                    `Integrity token is still fresh, minting POT for ${contentBinding}`,
-                );
-                return await this.tryMintPOT(contentBinding);
-            } else if (this.bgResp) {
-                this.logger.log("bgResp is available, generating a new IT");
-                await this.genIT(doFetch);
+            }
+            if (this.bgResp) {
+                if (new Date() >= this.integrityTokenCache.expiry) {
+                    this.logger.log("IT expired");
+                    await this.genIT(doFetch);
+                }
                 return await this.tryMintPOT(contentBinding);
             }
         }
