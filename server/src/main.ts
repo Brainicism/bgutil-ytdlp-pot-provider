@@ -61,7 +61,12 @@ httpServer.post("/get_pot", async (request, response) => {
 
 httpServer.post("/invalidate_caches", async (request, response) => {
     sessionManager.invalidateCaches();
-    response.send();
+    response.status(204).send();
+});
+
+httpServer.post("/invalidate_it", async (request, response) => {
+    sessionManager.invalidateIT();
+    response.status(204).send();
 });
 
 httpServer.get("/ping", async (request, response) => {
@@ -72,7 +77,7 @@ httpServer.get("/ping", async (request, response) => {
     });
 });
 
-httpServer.get("/itcache", async (request, response) => {
+httpServer.get("/bgcache", async (request, response) => {
     console.log(sessionManager.bgCache);
-    response.send();
+    response.send(Array.from(sessionManager.bgCache.keys()));
 });

@@ -42,17 +42,16 @@ class ProxySpec {
     }
 }
 
-type IntegrityTokenData = {
+type CachedTokenMinter = {
     expiry: Date;
     integrityToken: string;
     minter: BG.WebPoMinter;
 };
 
 type BGData = {
-    doFetch: FetchFunction;
     // IT doesn't seem to be IP-bound
     // TODO: make per-instance
-    integrityTokenData: IntegrityTokenData;
+    cachedTokenMinter: CachedTokenMinter;
     bgClient: BG.BotGuardClient;
 };
 type BGCache = Map<string, BGData>;
@@ -109,6 +108,12 @@ export class SessionManager {
     invalidateCaches() {
         this.setYoutubeSessionDataCaches();
         this._bgCache.clear();
+    }
+
+    invalidateIT() {
+        this._bgCache.forEach(bgData => {
+            bgData.cachedTokenMinter.expiry = new Date(0);
+        });
     }
 
     cleanupCaches() {
@@ -238,11 +243,9 @@ export class SessionManager {
     private async generateBotGuardData(
         pxySpec: ProxySpec,
         bgClient: BG.BotGuardClient,
-        doFetch?: FetchFunction,
     ): Promise<BGData> {
         try {
-            doFetch =
-                doFetch || this.getFetch(this.getProxyDispatcher(pxySpec));
+            const doFetch = this.getFetch(this.getProxyDispatcher(pxySpec));
             const webPoSignalOutput: WebPoSignalOutput = [];
             const botguardResponse = await bgClient.snapshot({
                 webPoSignalOutput,
@@ -280,15 +283,14 @@ export class SessionManager {
                     `Unexpected empty integrity token, response: ${JSON.stringify(integrityTokenData)}`,
                 );
             const bgData: BGData = {
-                integrityTokenData: {
-                    expiry: new Date(Date.now() + estimatedTtlSecs),
+                cachedTokenMinter: {
+                    expiry: new Date(Date.now() + estimatedTtlSecs * 1000),
                     integrityToken,
                     minter: await BG.WebPoMinter.create(
                         integrityTokenData,
                         webPoSignalOutput,
                     ),
                 },
-                doFetch,
                 bgClient,
             };
             this._bgCache.set(pxySpec.toString(), bgData);
@@ -305,12 +307,12 @@ export class SessionManager {
 
     private async tryMintPOT(
         contentBinding: string,
-        integrityTokenData: IntegrityTokenData,
+        cachedTokenMinter: CachedTokenMinter,
     ): Promise<YoutubeSessionData> {
         this.logger.log(`Generating POT for ${contentBinding}`);
         try {
             const poToken =
-                await integrityTokenData.minter.mintAsWebsafeString(
+                await cachedTokenMinter.minter.mintAsWebsafeString(
                     contentBinding,
                 );
             if (poToken) {
@@ -385,19 +387,18 @@ export class SessionManager {
             }
             let bgData = this._bgCache.get(pxySpec.toString());
             if (bgData) {
-                if (new Date() >= bgData.integrityTokenData.expiry) {
+                if (new Date() >= bgData.cachedTokenMinter.expiry) {
                     this.logger.log(
                         "Integrity token expired, generating new one",
                     );
                     bgData = await this.generateBotGuardData(
                         pxySpec,
                         bgData.bgClient,
-                        bgData.doFetch,
                     );
                 }
                 return await this.tryMintPOT(
                     contentBinding,
-                    bgData.integrityTokenData,
+                    bgData.cachedTokenMinter,
                 );
             }
         }
@@ -442,11 +443,7 @@ export class SessionManager {
             );
         }
 
-        const bgData = await this.generateBotGuardData(
-            pxySpec,
-            bgClient,
-            bgConfig.fetch,
-        );
-        return await this.tryMintPOT(contentBinding, bgData.integrityTokenData);
+        const bgData = await this.generateBotGuardData(pxySpec, bgClient);
+        return await this.tryMintPOT(contentBinding, bgData.cachedTokenMinter);
     }
 }
