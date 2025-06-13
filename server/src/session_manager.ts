@@ -48,7 +48,7 @@ class ProxySpec {
     }
 }
 
-type IntegrityTokenCache = {
+type IntegrityTokenData = {
     expiry: Date;
     integrityToken: string;
     minter: BG.WebPoMinter;
@@ -58,7 +58,7 @@ type BGData = {
     doFetch: FetchFunction;
     // IT doesn't seem to be IP-bound
     // TODO: make per-instance
-    integrityTokenCache: IntegrityTokenCache;
+    integrityTokenData: IntegrityTokenData;
     bgClient: BG.BotGuardClient;
 };
 type BGCache = Map<string, BGData>;
@@ -241,7 +241,7 @@ export class SessionManager {
         };
     }
 
-    private async generateIntegrityToken(
+    private async generateBotGuardData(
         pxySpec: ProxySpec,
         bgClient: BG.BotGuardClient,
         doFetch?: FetchFunction,
@@ -261,18 +261,18 @@ export class SessionManager {
                     botguardResponse,
                 ]),
             });
-            const integrityTokenJson = (await integrityTokenResp.json()) as [
-                string,
-                number,
-                number,
-                string,
-            ];
+
             const [
                 integrityToken,
                 estimatedTtlSecs,
                 mintRefreshThreshold,
                 websafeFallbackToken,
-            ] = integrityTokenJson;
+            ] = (await integrityTokenResp.json()) as [
+                string,
+                number,
+                number,
+                string,
+            ];
 
             const integrityTokenData = {
                 integrityToken,
@@ -280,12 +280,13 @@ export class SessionManager {
                 mintRefreshThreshold,
                 websafeFallbackToken,
             };
+
             if (!integrityToken)
                 throw new Error(
-                    `Unexpected empty IT, IT Response: ${JSON.stringify(integrityTokenData)}`,
+                    `Unexpected empty integrity token, response: ${JSON.stringify(integrityTokenData)}`,
                 );
             const bgData: BGData = {
-                integrityTokenCache: {
+                integrityTokenData: {
                     expiry: new Date(Date.now() + estimatedTtlSecs),
                     integrityToken,
                     minter: await BG.WebPoMinter.create(
@@ -299,19 +300,23 @@ export class SessionManager {
             this._bgCache.set(pxySpec.toString(), bgData);
             return bgData;
         } catch (e) {
-            throw new Error(`Failed to generate an IT: ${e.message}`, {
-                cause: e,
-            });
+            throw new Error(
+                `Failed to generate an integrity token: ${e.message}`,
+                {
+                    cause: e,
+                },
+            );
         }
     }
 
     private async tryMintPOT(
         contentBinding: string,
-        integrityTokenCache: IntegrityTokenCache,
+        integrityTokenData: IntegrityTokenData,
     ): Promise<YoutubeSessionData> {
+        this.logger.log(`Generating POT for ${contentBinding}`);
         try {
             const poToken =
-                await integrityTokenCache.minter.mintAsWebsafeString(
+                await integrityTokenData.minter.mintAsWebsafeString(
                     contentBinding,
                 );
             if (poToken) {
@@ -386,9 +391,11 @@ export class SessionManager {
             }
             let bgData = this._bgCache.get(pxySpec.toString());
             if (bgData) {
-                if (new Date() >= bgData.integrityTokenCache.expiry) {
-                    this.logger.log("IT expired");
-                    bgData = await this.generateIntegrityToken(
+                if (new Date() >= bgData.integrityTokenData.expiry) {
+                    this.logger.log(
+                        "Integrity token expired, generating new one",
+                    );
+                    bgData = await this.generateBotGuardData(
                         pxySpec,
                         bgData.bgClient,
                         bgData.doFetch,
@@ -396,12 +403,10 @@ export class SessionManager {
                 }
                 return await this.tryMintPOT(
                     contentBinding,
-                    bgData.integrityTokenCache,
+                    bgData.integrityTokenData,
                 );
             }
         }
-
-        this.logger.log(`Generating POT for ${contentBinding}`);
 
         const bgConfig: BgConfig = {
             fetch: this.getFetch(this.getProxyDispatcher(pxySpec)),
@@ -443,14 +448,11 @@ export class SessionManager {
             );
         }
 
-        const bgData = await this.generateIntegrityToken(
+        const bgData = await this.generateBotGuardData(
             pxySpec,
             bgClient,
             bgConfig.fetch,
         );
-        return await this.tryMintPOT(
-            contentBinding,
-            bgData.integrityTokenCache,
-        );
+        return await this.tryMintPOT(contentBinding, bgData.integrityTokenData);
     }
 }
