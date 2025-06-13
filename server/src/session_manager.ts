@@ -24,24 +24,18 @@ export interface YoutubeSessionDataCaches {
     [contentBinding: string]: YoutubeSessionData;
 }
 
-type ProxyOpt = {
-    proxy?: string;
-    sourceAddress?: string;
-    disableTlsVerification?: boolean;
-};
-
 class ProxySpec {
-    constructor(
-        public proxy?: string,
-        public sourceAddress?: string,
-        public disableTlsVerification: boolean = false,
-    ) {}
-    static create({
+    public proxy?: string;
+    public sourceAddress?: string;
+    public disableTlsVerification: boolean = false;
+    constructor({
         proxy,
         sourceAddress,
         disableTlsVerification,
-    }: Partial<ProxyOpt>): ProxySpec {
-        return new ProxySpec(proxy, sourceAddress, disableTlsVerification);
+    }: Partial<ProxySpec>) {
+        this.proxy = proxy;
+        this.sourceAddress = sourceAddress;
+        this.disableTlsVerification = disableTlsVerification || false;
     }
     toString(): string {
         return JSON.stringify([this.proxy, this.sourceAddress]);
@@ -365,13 +359,13 @@ export class SessionManager {
 
         let pxySpec: ProxySpec;
         if (proxy) {
-            pxySpec = ProxySpec.create({
+            pxySpec = new ProxySpec({
                 proxy,
                 sourceAddress,
                 disableTlsVerification,
             });
         } else {
-            pxySpec = ProxySpec.create({
+            pxySpec = new ProxySpec({
                 proxy:
                     process.env.HTTPS_PROXY ||
                     process.env.HTTP_PROXY ||
