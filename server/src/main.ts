@@ -73,6 +73,6 @@ httpServer.get("/ping", async (request, response) => {
 });
 
 httpServer.get("/itcache", async (request, response) => {
-    console.log(sessionManager.ITcache);
-    response.status(200).send();
+    console.log(sessionManager.bgCache);
+    response.send();
 });

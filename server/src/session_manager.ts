@@ -31,24 +31,17 @@ type ProxyOpt = {
 };
 
 class ProxySpec {
-    proxy?: string;
-    sourceAddress?: string;
-    disableTlsVerification: boolean = false;
-
-    constructor({ proxy, sourceAddress, disableTlsVerification }: ProxyOpt) {
-        this.proxy = proxy;
-        this.sourceAddress = sourceAddress;
-        this.disableTlsVerification = disableTlsVerification || false;
-    }
-    equals(other: ProxySpec): boolean {
-        return (
-            this.proxy === other.proxy &&
-            this.sourceAddress === other.sourceAddress
-        );
-    }
-    toOpt(): ProxyOpt {
-        const { proxy, sourceAddress, disableTlsVerification } = this;
-        return { proxy, sourceAddress, disableTlsVerification };
+    constructor(
+        public proxy?: string,
+        public sourceAddress?: string,
+        public disableTlsVerification: boolean = false,
+    ) {}
+    static create({
+        proxy,
+        sourceAddress,
+        disableTlsVerification,
+    }: Partial<ProxyOpt>): ProxySpec {
+        return new ProxySpec(proxy, sourceAddress, disableTlsVerification);
     }
     toString(): string {
         return JSON.stringify([this.proxy, this.sourceAddress]);
@@ -61,12 +54,14 @@ type IntegrityTokenCache = {
     minter: BG.WebPoMinter;
 };
 
-type ITCacheEntry = {
+type BGData = {
     doFetch: FetchFunction;
-    itCache: IntegrityTokenCache;
+    // IT doesn't seem to be IP-bound
+    // TODO: make per-instance
+    integrityTokenCache: IntegrityTokenCache;
     bgClient: BG.BotGuardClient;
 };
-type ITCacheTable = Map<string, ITCacheEntry>;
+type BGCache = Map<string, BGData>;
 
 class Logger {
     readonly debug: (msg: string) => void;
@@ -95,10 +90,11 @@ class Logger {
 }
 
 export class SessionManager {
+    // This needs to be reworked as POTs are IP-bound
+    private _bgCache: BGCache = new Map();
     private youtubeSessionDataCaches: YoutubeSessionDataCaches = {};
     private TOKEN_TTL_HOURS: number;
     private logger: Logger;
-    private bgCacheTable: ITCacheTable = new Map();
     // hardcoded API key that has been used by youtube for years
     private static readonly REQUEST_KEY = "O43z0dpjhgX20SCx4KAo";
 
@@ -118,6 +114,7 @@ export class SessionManager {
 
     invalidateCaches() {
         this.setYoutubeSessionDataCaches();
+        this._bgCache.clear();
     }
 
     cleanupCaches() {
@@ -150,11 +147,11 @@ export class SessionManager {
         return visitorData;
     }
 
-    public get ITcache(): ITCacheTable {
-        return this.bgCacheTable;
+    public get bgCache(): BGCache {
+        return this._bgCache;
     }
 
-    private getProxyDispatcher({
+    getProxyDispatcher({
         proxy,
         sourceAddress,
         disableTlsVerification,
@@ -244,12 +241,11 @@ export class SessionManager {
         };
     }
 
-    // Precondition: bgClient is valid
-    private async genIT(
+    private async generateIntegrityToken(
         pxySpec: ProxySpec,
         bgClient: BG.BotGuardClient,
         doFetch?: FetchFunction,
-    ): Promise<ITCacheEntry> {
+    ): Promise<BGData> {
         try {
             doFetch =
                 doFetch || this.getFetch(this.getProxyDispatcher(pxySpec));
@@ -257,7 +253,7 @@ export class SessionManager {
             const botguardResponse = await bgClient.snapshot({
                 webPoSignalOutput,
             });
-            const ITResp = await doFetch(buildURL("GenerateIT"), {
+            const integrityTokenResp = await doFetch(buildURL("GenerateIT"), {
                 method: "POST",
                 headers: getHeaders(),
                 body: JSON.stringify([
@@ -265,7 +261,7 @@ export class SessionManager {
                     botguardResponse,
                 ]),
             });
-            const ITJson = (await ITResp.json()) as [
+            const integrityTokenJson = (await integrityTokenResp.json()) as [
                 string,
                 number,
                 number,
@@ -276,8 +272,9 @@ export class SessionManager {
                 estimatedTtlSecs,
                 mintRefreshThreshold,
                 websafeFallbackToken,
-            ] = ITJson;
-            const ITData = {
+            ] = integrityTokenJson;
+
+            const integrityTokenData = {
                 integrityToken,
                 estimatedTtlSecs,
                 mintRefreshThreshold,
@@ -285,22 +282,22 @@ export class SessionManager {
             };
             if (!integrityToken)
                 throw new Error(
-                    `Unexpected empty IT, IT Response: ${JSON.stringify(ITData)}`,
+                    `Unexpected empty IT, IT Response: ${JSON.stringify(integrityTokenData)}`,
                 );
-            const itCacheEntry: ITCacheEntry = {
-                itCache: {
+            const bgData: BGData = {
+                integrityTokenCache: {
                     expiry: new Date(Date.now() + estimatedTtlSecs),
                     integrityToken,
                     minter: await BG.WebPoMinter.create(
-                        ITData,
+                        integrityTokenData,
                         webPoSignalOutput,
                     ),
                 },
                 doFetch,
                 bgClient,
             };
-            this.bgCacheTable.set(pxySpec.toString(), itCacheEntry);
-            return itCacheEntry;
+            this._bgCache.set(pxySpec.toString(), bgData);
+            return bgData;
         } catch (e) {
             throw new Error(`Failed to generate an IT: ${e.message}`, {
                 cause: e,
@@ -308,14 +305,15 @@ export class SessionManager {
         }
     }
 
-    // Precondition: valid minter
     private async tryMintPOT(
         contentBinding: string,
-        itCache: IntegrityTokenCache,
+        integrityTokenCache: IntegrityTokenCache,
     ): Promise<YoutubeSessionData> {
         try {
             const poToken =
-                await itCache.minter.mintAsWebsafeString(contentBinding);
+                await integrityTokenCache.minter.mintAsWebsafeString(
+                    contentBinding,
+                );
             if (poToken) {
                 this.logger.log(`poToken: ${poToken}`);
                 const youtubeSessionData: YoutubeSessionData = {
@@ -362,13 +360,13 @@ export class SessionManager {
 
         let pxySpec: ProxySpec;
         if (proxy) {
-            pxySpec = new ProxySpec({
+            pxySpec = ProxySpec.create({
                 proxy,
                 sourceAddress,
                 disableTlsVerification,
             });
         } else {
-            pxySpec = new ProxySpec({
+            pxySpec = ProxySpec.create({
                 proxy:
                     process.env.HTTPS_PROXY ||
                     process.env.HTTP_PROXY ||
@@ -386,21 +384,19 @@ export class SessionManager {
                 );
                 return sessionData;
             }
-            if (this.bgCacheTable.has(pxySpec.toString())) {
-                let itCacheEntry = this.bgCacheTable.get(
-                    pxySpec.toString(),
-                ) as ITCacheEntry;
-                if (new Date() >= itCacheEntry.itCache.expiry) {
+            let bgData = this._bgCache.get(pxySpec.toString());
+            if (bgData) {
+                if (new Date() >= bgData.integrityTokenCache.expiry) {
                     this.logger.log("IT expired");
-                    itCacheEntry = await this.genIT(
+                    bgData = await this.generateIntegrityToken(
                         pxySpec,
-                        itCacheEntry.bgClient,
-                        itCacheEntry.doFetch,
+                        bgData.bgClient,
+                        bgData.doFetch,
                     );
                 }
                 return await this.tryMintPOT(
                     contentBinding,
-                    itCacheEntry.itCache,
+                    bgData.integrityTokenCache,
                 );
             }
         }
@@ -447,7 +443,14 @@ export class SessionManager {
             );
         }
 
-        const itRet = await this.genIT(pxySpec, bgClient, bgConfig.fetch);
-        return await this.tryMintPOT(contentBinding, itRet.itCache);
+        const bgData = await this.generateIntegrityToken(
+            pxySpec,
+            bgClient,
+            bgConfig.fetch,
+        );
+        return await this.tryMintPOT(
+            contentBinding,
+            bgData.integrityTokenCache,
+        );
     }
 }
