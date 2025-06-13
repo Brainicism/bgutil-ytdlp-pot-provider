@@ -111,7 +111,7 @@ export class SessionManager {
     }
 
     invalidateIT() {
-        this._bgCache.forEach(bgData => {
+        this._bgCache.forEach((bgData) => {
             bgData.cachedTokenMinter.expiry = new Date(0);
         });
     }
