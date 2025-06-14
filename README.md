@@ -39,7 +39,7 @@ The provider is a Node.js HTTP server. You have two options for running it: as a
 **Docker:**
 
 ```shell
-docker run --name bgutil-provider -d -p 4416:4416 brainicism/bgutil-ytdlp-pot-provider
+docker run --name bgutil-provider -d -p 4416:4416 --init brainicism/bgutil-ytdlp-pot-provider
 ```
 
 **Native:**
