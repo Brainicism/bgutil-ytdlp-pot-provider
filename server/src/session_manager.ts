@@ -336,7 +336,7 @@ export class SessionManager {
                 );
             const bgData: BGData = {
                 cachedTokenMinter: {
-                    expiry: new Date(Date.now() + estimatedTtlSecs * 1000 * 0),
+                    expiry: new Date(Date.now() + estimatedTtlSecs * 1000),
                     integrityToken,
                     minter: await BG.WebPoMinter.create(
                         integrityTokenData,
