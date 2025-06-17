@@ -104,14 +104,14 @@ class Logger {
 }
 
 export class SessionManager {
-    // This needs to be reworked as POTs are IP-bound
-    private _bgCache: BGCache = new Map();
-    private youtubeSessionDataCaches: YoutubeSessionDataCaches = {};
-    private TOKEN_TTL_HOURS: number;
-    private logger: Logger;
     // hardcoded API key that has been used by youtube for years
     private static readonly REQUEST_KEY = "O43z0dpjhgX20SCx4KAo";
     private static hasDom = false;
+    private _bgCache: BGCache = new Map();
+    // This needs to be reworked as POTs are IP-bound
+    private youtubeSessionDataCaches: YoutubeSessionDataCaches = {};
+    private TOKEN_TTL_HOURS: number;
+    private logger: Logger;
 
     constructor(
         shouldLog = true,
@@ -148,19 +148,19 @@ export class SessionManager {
         }
     }
 
-    invalidateCaches() {
+    public invalidateCaches() {
         this.setYoutubeSessionDataCaches();
         this._bgCache.clear();
     }
 
-    invalidateIT() {
+    public invalidateIT() {
         this._bgCache.forEach((bgData) => {
             bgData.cachedTokenMinter.expiry = new Date(0);
             bgData.bgClient = undefined;
         });
     }
 
-    cleanupCaches() {
+    public cleanupCaches() {
         for (const contentBinding in this.youtubeSessionDataCaches) {
             const sessionData = this.youtubeSessionDataCaches[contentBinding];
             if (sessionData && new Date() > sessionData.expiresAt)
@@ -168,18 +168,18 @@ export class SessionManager {
         }
     }
 
-    getYoutubeSessionDataCaches(cleanup = false) {
+    public getYoutubeSessionDataCaches(cleanup = false) {
         if (cleanup) this.cleanupCaches();
         return this.youtubeSessionDataCaches;
     }
 
-    setYoutubeSessionDataCaches(
+    public setYoutubeSessionDataCaches(
         youtubeSessionData: YoutubeSessionDataCaches = {},
     ) {
         this.youtubeSessionDataCaches = youtubeSessionData || {};
     }
 
-    async generateVisitorData(): Promise<string | null> {
+    public async generateVisitorData(): Promise<string | null> {
         const innertube = await Innertube.create({ retrieve_player: false });
         const visitorData = innertube.session.context.client.visitorData;
         if (!visitorData) {
@@ -194,7 +194,7 @@ export class SessionManager {
         return this._bgCache;
     }
 
-    getProxyDispatcher({
+    private getProxyDispatcher({
         proxy,
         sourceAddress,
         disableTlsVerification,
@@ -252,7 +252,7 @@ export class SessionManager {
         }
     }
 
-    private getFetch(dispatcher: Agent | undefined): FetchFunction {
+    private getFetch(proxySpec: ProxySpec): FetchFunction {
         return async (url: any, options: any): Promise<any> => {
             const maxRetries = 3;
             const method = (options?.method || "GET").toUpperCase();
@@ -261,7 +261,7 @@ export class SessionManager {
                     const axiosOpt: AxiosRequestConfig = {
                         headers: options?.headers,
                         params: options?.params,
-                        httpsAgent: dispatcher,
+                        httpsAgent: this.getProxyDispatcher(proxySpec),
                     };
                     const response = await (method === "GET"
                         ? axios.get(url, axiosOpt)
@@ -293,7 +293,7 @@ export class SessionManager {
         refresh?: boolean,
     ): Promise<BGData> {
         try {
-            const doFetch = this.getFetch(this.getProxyDispatcher(pxySpec));
+            const doFetch = this.getFetch(pxySpec);
             const webPoSignalOutput: WebPoSignalOutput = [];
             const botguardResponse = await bgClient.snapshot({
                 webPoSignalOutput,
@@ -512,7 +512,7 @@ export class SessionManager {
         }
 
         const bgConfig: BgConfig = {
-            fetch: this.getFetch(this.getProxyDispatcher(pxySpec)),
+            fetch: this.getFetch(pxySpec),
             globalObj: globalThis,
             identifier: contentBinding,
             requestKey: SessionManager.REQUEST_KEY,
