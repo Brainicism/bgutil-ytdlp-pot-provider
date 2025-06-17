@@ -279,7 +279,7 @@ export class SessionManager {
                 } catch (e) {
                     if (attempts >= maxRetries)
                         throw new Error(
-                            `Error reaching ${method} ${url}: All ${attempts} retries failed`,
+                            `Error reaching ${method} ${url}: All ${attempts} retries failed: ${e}`,
                         );
                     await new Promise((resolve) => setTimeout(resolve, 5000));
                 }
@@ -398,6 +398,7 @@ export class SessionManager {
             const { privateDoNotAccessOrElseTrustedResourceUrlWrappedValue } =
                 attestation.interpreterUrl;
             // TODO: cache JS
+            void bypassCache;
             const interpreterJSResponse = await bgConfig.fetch(
                 `https:${privateDoNotAccessOrElseTrustedResourceUrlWrappedValue}`,
             );
