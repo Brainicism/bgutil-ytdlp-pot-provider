@@ -156,17 +156,23 @@ class BgUtilScriptPTP(BgUtilPTPBase):
             raise PoTokenProviderError(
                 f'_get_pot_via_script failed: Unable to run script (caused by {e!r})') from e
 
-        msg = f'stdout:\n{stdout.strip()}'
-        if stderr.strip():  # Empty strings are falsy
-            msg += f'\nstderr:\n{stderr.strip()}'
-        self.logger.trace(msg)
+        msg = ''
+        if stdout_extra := stdout.strip().splitlines()[:-1]:
+            msg = f'stdout:\n{stdout_extra}\n'
+        if stderr_stripped := stderr.strip():  # Empty strings are falsy
+            msg += f'stderr:\n{stderr_stripped}\n'
+        msg = msg.strip()
+        if msg:
+            self.logger.trace(msg)
         if returncode:
             raise PoTokenProviderError(
                 f'_get_pot_via_script failed with returncode {returncode}')
 
         try:
+            json_resp = stdout.splitlines()[-1]
+            self.logger.trace(f'JSON response:\n{json_resp}')
             # The JSON response is always the last line
-            script_data_resp = json.loads(stdout.splitlines()[-1])
+            script_data_resp = json.loads(json_resp)
         except json.JSONDecodeError as e:
             raise PoTokenProviderError(
                 f'Error parsing JSON response from _get_pot_via_script (caused by {e!r})') from e
