@@ -1,17 +1,10 @@
 from __future__ import annotations
 
-import contextlib
 import functools
 import json
 import os.path
 import shutil
 import subprocess
-
-from yt_dlp.extractor.youtube.pot.utils import get_webpo_content_binding
-from yt_dlp.utils import Popen
-
-with contextlib.suppress(ImportError):
-    from yt_dlp_plugins.extractor.getpot_bgutil import BgUtilPTPBase
 
 from yt_dlp.extractor.youtube.pot.provider import (
     PoTokenProviderError,
@@ -20,6 +13,10 @@ from yt_dlp.extractor.youtube.pot.provider import (
     register_preference,
     register_provider,
 )
+from yt_dlp.extractor.youtube.pot.utils import get_webpo_content_binding
+from yt_dlp.utils import Popen
+
+from yt_dlp_plugins.extractor.getpot_bgutil import BgUtilPTPBase
 
 
 @register_provider

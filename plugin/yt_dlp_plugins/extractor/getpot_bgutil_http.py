@@ -1,16 +1,8 @@
 from __future__ import annotations
 
-import contextlib
 import functools
 import json
 import time
-
-from yt_dlp.extractor.youtube.pot.utils import get_webpo_content_binding
-from yt_dlp.networking.common import Request
-from yt_dlp.networking.exceptions import HTTPError, TransportError
-
-with contextlib.suppress(ImportError):
-    from yt_dlp_plugins.extractor.getpot_bgutil import BgUtilPTPBase
 
 from yt_dlp.extractor.youtube.pot.provider import (
     PoTokenProviderError,
@@ -20,6 +12,11 @@ from yt_dlp.extractor.youtube.pot.provider import (
     register_preference,
     register_provider,
 )
+from yt_dlp.extractor.youtube.pot.utils import get_webpo_content_binding
+from yt_dlp.networking.common import Request
+from yt_dlp.networking.exceptions import HTTPError, TransportError
+
+from yt_dlp_plugins.extractor.getpot_bgutil import BgUtilPTPBase
 
 
 @register_provider
@@ -100,31 +97,6 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
     def is_available(self):
         return self._server_available or self._last_server_check + 60 < int(time.time())
 
-    def _get_attestation(self, request: PoTokenRequest):
-        raw_challenge_data = self.ie._search_regex(
-            r'''(?sx)window\.ytAtR\s*=\s*(?P<raw_cd>(?P<q>['"])
-                (?:
-                    \\.|
-                    (?!(?P=q)).
-                )*
-            (?P=q))\s*;''',
-            request.video_webpage, 'raw challenge data', default=None, group='raw_cd')
-        if raw_challenge_data:
-            return {'raw_challenge': raw_challenge_data}
-        else:
-            self.logger.warning('Failed to extract initial attestation from the webpage, falling back to Innertube endpoint')
-        with self._request_webpage(Request(
-                self._ATT_GET_URL, data=json.dumps({
-                    'context': request.innertube_context,
-                    'engagementType': 'ENGAGEMENT_TYPE_UNBOUND',
-                }).encode(), headers={
-                    'Content-Type': 'application/json',
-                }, extensions={'timeout': 5.0}), pot_request=request,
-                note='Downloading attestation from API') as att_response:
-            if challenge_data := json.load(att_response).get('bgChallenge'):
-                return {'challenge': challenge_data}
-        return {}
-
     def _real_request_pot(
         self,
         request: PoTokenRequest,
@@ -165,7 +137,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
             raise PoTokenProviderError(error_msg)
         if 'poToken' not in response_json:
             raise PoTokenProviderError(
-                f'Server did not respond with a poToken. Received response: {json.dumps(response_json)}')
+                f'Server did not respond with a poToken. Received response: {response}')
 
         po_token = response_json['poToken']
         self.logger.trace(f'Generated POT: {po_token}')
