@@ -30,6 +30,7 @@ class BgUtilPTPBase(provider.PoTokenProvider, abc.ABC):
     _GETPOT_TIMEOUT = 20.0
     _GET_SERVER_VSN_TIMEOUT = 5.0
     _MIN_NODE_VSN = (18, 0, 0)
+    _ATT_GET_URL = r'https://www.youtube.com/youtubei/v1/att/get?prettyPrint=false'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

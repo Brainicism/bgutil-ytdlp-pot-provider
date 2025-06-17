@@ -1,4 +1,4 @@
-import { SessionManager } from "./session_manager";
+import { SessionManager, ChallengeData } from "./session_manager";
 import { VERSION } from "./version";
 import { Command } from "commander";
 import express from "express";
@@ -40,6 +40,16 @@ httpServer.post("/get_pot", async (request, response) => {
     const sourceAddress: string | undefined = request.body.source_address;
     const disableTlsVerification: boolean =
         request.body.disable_tls_verification || false;
+    let attestation: ChallengeData | undefined;
+    if (request.body.raw_challenge) {
+        console.debug('Using attestation from window.ytAtR');
+        attestation = JSON.parse(eval(request.body.raw_challenge)).bgChallenge;
+    } else if (request.body.challenge) {
+        console.debug('Using attestation from /att/get');
+        attestation = request.body.challenge;
+    } else {
+        console.debug('Cannot get attestation! Falling back to the /Create endpoint');
+    }
 
     try {
         const sessionData = await sessionManager.generatePoToken(
@@ -48,6 +58,7 @@ httpServer.post("/get_pot", async (request, response) => {
             bypassCache,
             sourceAddress,
             disableTlsVerification,
+            attestation,
         );
 
         response.send(sessionData);
