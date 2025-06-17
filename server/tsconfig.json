@@ -18,7 +18,12 @@
         "esModuleInterop": true,
         "sourceMap": true,
         "skipLibCheck": true,
-        "noUncheckedIndexedAccess": true
+        "noUncheckedIndexedAccess": true,
+        "paths": {
+            "commander": [
+                "./types/commander.d.ts"
+            ]
+        }
     },
     "include": ["./src/**/*"]
 }

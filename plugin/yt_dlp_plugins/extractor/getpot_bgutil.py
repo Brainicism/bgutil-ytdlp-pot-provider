@@ -44,13 +44,20 @@ class BgUtilPTPBase(provider.PoTokenProvider, abc.ABC):
         raise provider.PoTokenProviderRejectedRequest(msg) from raise_from
 
     def _check_version(self, got_version, *, default='unknown', name):
+        def _major(version):
+            return version.split('.', 1)[0]
         if got_version != self.PROVIDER_VERSION:
             self.logger.warning(
                 f'The provider plugin and the {name} are on different versions, '
                 f'this may cause compatibility issues. '
                 f'Please ensure they are on the same version. '
+                f'Otherwise, help will NOT be provided for any issues that arise. '
                 f'(plugin: {self.PROVIDER_VERSION}, {name}: {got_version or default})',
                 once=True)
+        if not got_version or _major(got_version) != _major(self.PROVIDER_VERSION):
+            self._warn_and_raise(
+                f'Plugin and {name} major versions are mismatched. '
+                f'Update both the plugin and the {name} to the same version to proceed.')
 
 
 __all__ = ['__version__']
