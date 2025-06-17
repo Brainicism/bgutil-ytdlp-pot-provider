@@ -390,15 +390,12 @@ export class SessionManager {
 
     private async getAttestation(
         bgConfig: BgConfig,
-        bypassCache: boolean = false,
         attestation?: ChallengeData,
     ): Promise<AttestationResult> {
         if (attestation) {
             const { program, globalName, interpreterHash } = attestation;
             const { privateDoNotAccessOrElseTrustedResourceUrlWrappedValue } =
                 attestation.interpreterUrl;
-            // TODO: cache JS
-            void bypassCache;
             const interpreterJSResponse = await bgConfig.fetch(
                 `https:${privateDoNotAccessOrElseTrustedResourceUrlWrappedValue}`,
             );
@@ -436,12 +433,10 @@ export class SessionManager {
 
     private async getBGClient(
         bgConfig: BgConfig,
-        bypassCache: boolean = false,
         attestation?: ChallengeData,
     ): Promise<BGClientResult> {
         const { challenge, refresh } = await this.getAttestation(
             bgConfig,
-            bypassCache,
             attestation,
         );
 
@@ -537,7 +532,6 @@ export class SessionManager {
                         );
                         const bgClientResult = await this.getBGClient(
                             bgConfig,
-                            false,
                             attestation,
                         );
                         bgData.bgClient = bgClientResult.bgClient;
@@ -559,7 +553,6 @@ export class SessionManager {
 
         const { bgClient, refresh } = await this.getBGClient(
             bgConfig,
-            bypassCache,
             attestation,
         );
 
