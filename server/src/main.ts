@@ -42,13 +42,15 @@ httpServer.post("/get_pot", async (request, response) => {
         request.body.disable_tls_verification || false;
     let attestation: ChallengeData | undefined;
     if (request.body.raw_challenge) {
-        console.debug('Using attestation from window.ytAtR');
+        console.debug("Using attestation from window.ytAtR");
         attestation = JSON.parse(eval(request.body.raw_challenge)).bgChallenge;
     } else if (request.body.challenge) {
-        console.debug('Using attestation from /att/get');
+        console.debug("Using attestation from /att/get");
         attestation = request.body.challenge;
     } else {
-        console.debug('Cannot get attestation! Falling back to the /Create endpoint');
+        console.debug(
+            "Cannot get attestation! Falling back to the /Create endpoint",
+        );
     }
 
     try {

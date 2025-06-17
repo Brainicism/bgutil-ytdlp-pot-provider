@@ -108,7 +108,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
                     (?!(?P=q)).
                 )*
             (?P=q))\s*;''',
-            request.video_webpage, 'raw challenge data',  default=None, group='raw_cd')
+            request.video_webpage, 'raw challenge data', default=None, group='raw_cd')
         if raw_challenge_data:
             return {'raw_challenge': raw_challenge_data}
         else:

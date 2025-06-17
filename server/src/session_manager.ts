@@ -330,7 +330,10 @@ export class SessionManager {
                 throw new Error(
                     `Unexpected empty integrity token, response: ${JSON.stringify(integrityTokenData)}`,
                 );
-            if (refresh) console.debug('refresh is true, bgClient is going to be undefined');
+            if (refresh)
+                console.debug(
+                    "refresh is true, bgClient is going to be undefined",
+                );
             const bgData: BGData = {
                 cachedTokenMinter: {
                     expiry: new Date(Date.now() + estimatedTtlSecs * 1000 * 0),
@@ -451,7 +454,7 @@ export class SessionManager {
         } else throw new Error("Could not load VM");
 
         try {
-            let bgClient = await BG.BotGuardClient.create({
+            const bgClient = await BG.BotGuardClient.create({
                 program,
                 globalName,
                 globalObj: bgConfig.globalObj,
@@ -522,7 +525,7 @@ export class SessionManager {
                 );
                 return sessionData;
             }
-            let bgData = this._bgCache.get(pxySpec.toString());
+            const bgData = this._bgCache.get(pxySpec.toString());
             if (bgData) {
                 let cachedTokenMinter = bgData.cachedTokenMinter;
                 if (new Date() >= bgData.cachedTokenMinter.expiry) {
