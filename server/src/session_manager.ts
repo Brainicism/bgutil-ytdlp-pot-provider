@@ -331,7 +331,7 @@ export class SessionManager {
                     `Unexpected empty integrity token, response: ${JSON.stringify(integrityTokenData)}`,
                 );
             if (refresh)
-                console.debug(
+                this.logger.debug(
                     "refresh is true, bgClient is going to be undefined",
                 );
             const bgData: BGData = {
