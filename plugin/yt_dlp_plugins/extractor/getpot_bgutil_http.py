@@ -121,7 +121,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
                     'Content-Type': 'application/json',
                 }, extensions={'timeout': 5.0}), pot_request=request,
                 note='Downloading attestation from API') as att_response:
-            if challenge_data := json.load(att_response)['bgChallenge']:
+            if challenge_data := json.load(att_response).get('bgChallenge'):
                 return {'challenge': challenge_data}
         return {}
 
