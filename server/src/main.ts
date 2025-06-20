@@ -90,7 +90,7 @@ httpServer.get("/ping", async (request, response) => {
     });
 });
 
-httpServer.get("/bgcache", async (request, response) => {
-    console.log(sessionManager.bgCache);
-    response.send(Array.from(sessionManager.bgCache.keys()));
+httpServer.get("/minter_cache", async (request, response) => {
+    console.log(sessionManager.minterCache);
+    response.send(Array.from(sessionManager.minterCache.keys()));
 });

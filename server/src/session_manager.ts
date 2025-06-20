@@ -49,13 +49,7 @@ type CachedTokenMinter = {
     minter: BG.WebPoMinter;
 };
 
-type BGData = {
-    // IT doesn't seem to be IP-bound
-    // TODO: make per-instance
-    cachedTokenMinter: CachedTokenMinter;
-    bgClient?: BG.BotGuardClient;
-};
-type BGCache = Map<string, BGData>;
+type MinterCache = Map<string, CachedTokenMinter>;
 
 export type ChallengeData = {
     interpreterUrl: {
@@ -65,16 +59,6 @@ export type ChallengeData = {
     program: string;
     globalName: string;
     clientExperimentsStateBlob: string;
-};
-
-type AttestationResult = {
-    refresh?: boolean;
-    challenge: DescrambledChallenge;
-};
-
-type BGClientResult = {
-    refresh?: boolean;
-    bgClient: BG.BotGuardClient;
 };
 
 class Logger {
@@ -107,7 +91,7 @@ export class SessionManager {
     // hardcoded API key that has been used by youtube for years
     private static readonly REQUEST_KEY = "O43z0dpjhgX20SCx4KAo";
     private static hasDom = false;
-    private _bgCache: BGCache = new Map();
+    private _minterCache: MinterCache = new Map();
     // This needs to be reworked as POTs are IP-bound
     private youtubeSessionDataCaches: YoutubeSessionDataCaches = {};
     private TOKEN_TTL_HOURS: number;
@@ -150,13 +134,12 @@ export class SessionManager {
 
     public invalidateCaches() {
         this.setYoutubeSessionDataCaches();
-        this._bgCache.clear();
+        this._minterCache.clear();
     }
 
     public invalidateIT() {
-        this._bgCache.forEach((bgData) => {
-            bgData.cachedTokenMinter.expiry = new Date(0);
-            bgData.bgClient = undefined;
+        this._minterCache.forEach((minterCache) => {
+            minterCache.expiry = new Date(0);
         });
     }
 
@@ -190,8 +173,8 @@ export class SessionManager {
         return visitorData;
     }
 
-    public get bgCache(): BGCache {
-        return this._bgCache;
+    public get minterCache(): MinterCache {
+        return this._minterCache;
     }
 
     private getProxyDispatcher({
@@ -287,11 +270,10 @@ export class SessionManager {
         };
     }
 
-    private async generateBotGuardData(
+    private async generateTokenMinter(
         pxySpec: ProxySpec,
         bgClient: BG.BotGuardClient,
-        refresh?: boolean,
-    ): Promise<BGData> {
+    ): Promise<CachedTokenMinter> {
         try {
             const doFetch = this.getFetch(pxySpec);
             const webPoSignalOutput: WebPoSignalOutput = [];
@@ -330,23 +312,20 @@ export class SessionManager {
                 throw new Error(
                     `Unexpected empty integrity token, response: ${JSON.stringify(integrityTokenData)}`,
                 );
-            if (refresh)
-                this.logger.debug(
-                    "refresh is true, bgClient is going to be undefined",
-                );
-            const bgData: BGData = {
-                cachedTokenMinter: {
-                    expiry: new Date(Date.now() + estimatedTtlSecs * 1000),
-                    integrityToken,
-                    minter: await BG.WebPoMinter.create(
-                        integrityTokenData,
-                        webPoSignalOutput,
-                    ),
-                },
-                bgClient: refresh ? undefined : bgClient,
+            this.logger.debug(
+                `Generated IntegrityToken: ${JSON.stringify(integrityTokenData)}`,
+            );
+
+            const cachedTokenMinter: CachedTokenMinter = {
+                expiry: new Date(Date.now() + estimatedTtlSecs * 1000),
+                integrityToken,
+                minter: await BG.WebPoMinter.create(
+                    integrityTokenData,
+                    webPoSignalOutput,
+                ),
             };
-            this._bgCache.set(pxySpec.toString(), bgData);
-            return bgData;
+            this._minterCache.set(pxySpec.toString(), cachedTokenMinter);
+            return cachedTokenMinter;
         } catch (e) {
             throw new Error(
                 `Failed to generate an integrity token: ${e.message}`,
@@ -391,7 +370,7 @@ export class SessionManager {
     private async getAttestation(
         bgConfig: BgConfig,
         attestation?: ChallengeData,
-    ): Promise<AttestationResult> {
+    ): Promise<DescrambledChallenge> {
         if (attestation) {
             const { program, globalName, interpreterHash } = attestation;
             const { privateDoNotAccessOrElseTrustedResourceUrlWrappedValue } =
@@ -401,44 +380,34 @@ export class SessionManager {
             );
             const interpreterJS = await interpreterJSResponse.text();
             return {
-                challenge: {
-                    program,
-                    globalName,
-                    interpreterHash,
-                    interpreterJavascript: {
-                        privateDoNotAccessOrElseSafeScriptWrappedValue:
-                            interpreterJS,
-                        privateDoNotAccessOrElseTrustedResourceUrlWrappedValue,
-                    },
+                program,
+                globalName,
+                interpreterHash,
+                interpreterJavascript: {
+                    privateDoNotAccessOrElseSafeScriptWrappedValue:
+                        interpreterJS,
+                    privateDoNotAccessOrElseTrustedResourceUrlWrappedValue,
                 },
             };
         } else {
-            let challenge: DescrambledChallenge | undefined;
             try {
-                challenge = await BG.Challenge.create(bgConfig);
+                const challenge = await BG.Challenge.create(bgConfig);
+                if (challenge) return challenge;
             } catch (e) {
                 throw new Error(
                     `Error while attempting to retrieve BG challenge. err = ${JSON.stringify(e)}`,
                     { cause: e },
                 );
             }
-            if (!challenge) throw new Error("Could not get Botguard challenge");
-
-            return {
-                challenge,
-                refresh: true,
-            };
+            throw new Error("Could not get Botguard challenge");
         }
     }
 
     private async getBGClient(
         bgConfig: BgConfig,
         attestation?: ChallengeData,
-    ): Promise<BGClientResult> {
-        const { challenge, refresh } = await this.getAttestation(
-            bgConfig,
-            attestation,
-        );
+    ): Promise<BG.BotGuardClient> {
+        const challenge = await this.getAttestation(bgConfig, attestation);
 
         const { program, globalName } = challenge;
         const interpreterJavascript =
@@ -450,12 +419,11 @@ export class SessionManager {
         } else throw new Error("Could not load VM");
 
         try {
-            const bgClient = await BG.BotGuardClient.create({
+            return await BG.BotGuardClient.create({
                 program,
                 globalName,
                 globalObj: bgConfig.globalObj,
             });
-            return { refresh, bgClient };
         } catch (e) {
             throw new Error(
                 `Failed to create BG client. err.name = ${e.name}. err.message = ${e.message}. err.stack = ${e.stack}`,
@@ -521,46 +489,30 @@ export class SessionManager {
                 );
                 return sessionData;
             }
-            const bgData = this._bgCache.get(pxySpec.toString());
-            if (bgData) {
-                let cachedTokenMinter = bgData.cachedTokenMinter;
-                if (new Date() >= bgData.cachedTokenMinter.expiry) {
-                    let refresh: boolean | undefined = false;
-                    if (!bgData.bgClient) {
-                        this.logger.log(
-                            "BotGuard client not cached, getting a new one",
-                        );
-                        const bgClientResult = await this.getBGClient(
-                            bgConfig,
-                            attestation,
-                        );
-                        bgData.bgClient = bgClientResult.bgClient;
-                        refresh = bgClientResult.refresh;
-                    }
-                    this.logger.log(
-                        "Integrity token expired, generating a new one",
+            let cachedTokenMinter = this._minterCache.get(pxySpec.toString());
+            if (cachedTokenMinter) {
+                // Replace minter if expired
+                if (new Date() >= cachedTokenMinter.expiry) {
+                    this.logger.log("POT minter expired, getting a new one");
+                    const bgClient = await this.getBGClient(
+                        bgConfig,
+                        attestation,
                     );
-                    const newBGData = await this.generateBotGuardData(
+                    cachedTokenMinter = await this.generateTokenMinter(
                         pxySpec,
-                        bgData.bgClient,
-                        refresh,
+                        bgClient,
                     );
-                    cachedTokenMinter = newBGData.cachedTokenMinter;
                 }
                 return await this.tryMintPOT(contentBinding, cachedTokenMinter);
             }
         }
 
-        const { bgClient, refresh } = await this.getBGClient(
-            bgConfig,
-            attestation,
-        );
+        const bgClient = await this.getBGClient(bgConfig, attestation);
 
-        const bgData = await this.generateBotGuardData(
+        const cachedTokenMinter = await this.generateTokenMinter(
             pxySpec,
             bgClient,
-            refresh,
         );
-        return await this.tryMintPOT(contentBinding, bgData.cachedTokenMinter);
+        return await this.tryMintPOT(contentBinding, cachedTokenMinter);
     }
 }
