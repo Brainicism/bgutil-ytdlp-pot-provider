@@ -112,7 +112,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
             response = self._request_webpage(
                 request=Request(
                     f'{self._base_url}/get_pot', data=json.dumps({
-                        **self._get_attestation(request),
+                        'challenge': self._get_attestation(request).get('bgChallenge'),
                         'content_binding': get_webpo_content_binding(request)[0],
                         'proxy': request.request_proxy,
                         'bypass_cache': request.bypass_cache,

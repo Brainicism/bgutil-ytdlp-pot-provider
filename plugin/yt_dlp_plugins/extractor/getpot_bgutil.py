@@ -13,6 +13,7 @@ from yt_dlp.extractor.youtube.pot.provider import (
     PoTokenRequest,
 )
 from yt_dlp.extractor.youtube.pot.utils import WEBPO_CLIENTS
+from yt_dlp.jsinterp import JSInterpreter
 from yt_dlp.networking.common import Request
 
 
@@ -74,7 +75,9 @@ class BgUtilPTPBase(PoTokenProvider, abc.ABC):
             (?P=q))\s*;''',
             request.video_webpage, 'raw challenge data', default=None, group='raw_cd')
         if raw_challenge_data:
-            return {'raw_challenge': raw_challenge_data}
+            jsi = JSInterpreter(raw_challenge_data)
+            ytatr = jsi.interpret_expression(raw_challenge_data, {}, 100)
+            return json.loads(ytatr)
         else:
             self.logger.warning('Failed to extract initial attestation from the webpage, falling back to Innertube endpoint')
         with self._request_webpage(Request(
@@ -85,8 +88,7 @@ class BgUtilPTPBase(PoTokenProvider, abc.ABC):
                     'Content-Type': 'application/json',
                 }, extensions={'timeout': 5.0}), pot_request=request,
                 note='Downloading attestation from API') as att_response:
-            if challenge_data := json.load(att_response).get('bgChallenge'):
-                return {'challenge': challenge_data}
+            return json.load(att_response)
         return {}
 
 
