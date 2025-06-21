@@ -3,6 +3,7 @@ from __future__ import annotations
 import functools
 import json
 import os.path
+import re
 import shutil
 import subprocess
 
@@ -91,7 +92,6 @@ class BgUtilScriptPTP(BgUtilPTPBase):
             return True
 
     def _check_node_version(self, node_path):
-        import re
         try:
             stdout, stderr, returncode = Popen.run(
                 [node_path, '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
