@@ -1,4 +1,4 @@
-import { SessionManager, ChallengeData } from "./session_manager";
+import { SessionManager } from "./session_manager";
 import { VERSION } from "./version";
 import { Command } from "commander";
 import express from "express";

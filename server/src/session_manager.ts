@@ -240,7 +240,7 @@ export class SessionManager {
         attestation?: ChallengeData,
     ): Promise<DescrambledChallenge> {
         if (attestation) {
-            this.logger.debug('Using attestation from Innertube');
+            this.logger.debug("Using attestation from Innertube");
             const { program, globalName, interpreterHash } = attestation;
             const { privateDoNotAccessOrElseTrustedResourceUrlWrappedValue } =
                 attestation.interpreterUrl;
@@ -259,7 +259,7 @@ export class SessionManager {
                 },
             };
         } else {
-            this.logger.debug('Using attestation from the /Create endpoint');
+            this.logger.debug("Using attestation from the /Create endpoint");
             try {
                 const challenge = await BG.Challenge.create(bgConfig);
                 if (challenge) return challenge;
