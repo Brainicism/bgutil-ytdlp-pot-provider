@@ -235,15 +235,15 @@ export class SessionManager {
         return this._minterCache;
     }
 
-    private async getAttestation(
+    private async getDescrambledChallenge(
         bgConfig: BgConfig,
-        attestation?: ChallengeData,
+        challenge?: ChallengeData,
     ): Promise<DescrambledChallenge> {
-        if (attestation) {
-            this.logger.debug("Using attestation from Innertube");
-            const { program, globalName, interpreterHash } = attestation;
+        if (challenge) {
+            this.logger.debug("Using challenge from Innertube");
+            const { program, globalName, interpreterHash } = challenge;
             const { privateDoNotAccessOrElseTrustedResourceUrlWrappedValue } =
-                attestation.interpreterUrl;
+                challenge.interpreterUrl;
             const interpreterJSResponse = await bgConfig.fetch(
                 `https:${privateDoNotAccessOrElseTrustedResourceUrlWrappedValue}`,
             );
@@ -259,7 +259,7 @@ export class SessionManager {
                 },
             };
         } else {
-            this.logger.debug("Using attestation from the /Create endpoint");
+            this.logger.debug("Using challenge from the /Create endpoint");
             try {
                 const challenge = await BG.Challenge.create(bgConfig);
                 if (challenge) return challenge;
@@ -276,13 +276,16 @@ export class SessionManager {
     private async generateTokenMinter(
         pxySpec: ProxySpec,
         bgConfig: BgConfig,
-        attestation?: ChallengeData,
+        challenge?: ChallengeData,
     ): Promise<CachedTokenMinter> {
-        const challenge = await this.getAttestation(bgConfig, attestation);
+        const descrambledChallenge = await this.getDescrambledChallenge(
+            bgConfig,
+            challenge,
+        );
 
-        const { program, globalName } = challenge;
+        const { program, globalName } = descrambledChallenge;
         const interpreterJavascript =
-            challenge.interpreterJavascript
+            descrambledChallenge.interpreterJavascript
                 .privateDoNotAccessOrElseSafeScriptWrappedValue;
 
         if (interpreterJavascript) {
@@ -444,7 +447,7 @@ export class SessionManager {
         bypassCache = false,
         sourceAddress: string | undefined = undefined,
         disableTlsVerification: boolean = false,
-        attestation: ChallengeData | undefined = undefined,
+        challenge: ChallengeData | undefined = undefined,
     ): Promise<YoutubeSessionData> {
         if (!contentBinding) {
             this.logger.error(
@@ -503,7 +506,7 @@ export class SessionManager {
                     cachedTokenMinter = await this.generateTokenMinter(
                         pxySpec,
                         bgConfig,
-                        attestation,
+                        challenge,
                     );
                 }
                 return await this.tryMintPOT(contentBinding, cachedTokenMinter);
@@ -513,7 +516,7 @@ export class SessionManager {
         const tokenMinter = await this.generateTokenMinter(
             pxySpec,
             bgConfig,
-            attestation,
+            challenge,
         );
         return await this.tryMintPOT(contentBinding, tokenMinter);
     }
