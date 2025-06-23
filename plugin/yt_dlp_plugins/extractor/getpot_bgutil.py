@@ -13,7 +13,7 @@ from yt_dlp.extractor.youtube.pot.provider import (
     PoTokenRequest,
 )
 from yt_dlp.extractor.youtube.pot.utils import WEBPO_CLIENTS
-from yt_dlp.networking.common import Request, Response
+from yt_dlp.networking.common import Request
 from yt_dlp.utils import js_to_json
 from yt_dlp.utils.traversal import traverse_obj
 
