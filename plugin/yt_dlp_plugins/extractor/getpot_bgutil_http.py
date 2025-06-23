@@ -15,7 +15,6 @@ from yt_dlp.extractor.youtube.pot.provider import (
 from yt_dlp.extractor.youtube.pot.utils import get_webpo_content_binding
 from yt_dlp.networking.common import Request
 from yt_dlp.networking.exceptions import HTTPError, TransportError
-from yt_dlp.utils.traversal import traverse_obj
 
 from yt_dlp_plugins.extractor.getpot_bgutil import BgUtilPTPBase
 
@@ -113,12 +112,12 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
             response = self._request_webpage(
                 request=Request(
                     f'{self._base_url}/get_pot', data=json.dumps({
-                        'challenge': traverse_obj(self._get_attestation(request), ({json.loads}, 'bgChallenge')),
-                        'content_binding': get_webpo_content_binding(request)[0],
-                        'proxy': request.request_proxy,
                         'bypass_cache': request.bypass_cache,
-                        'source_address': request.request_source_address,
+                        'challenge': self._get_attestation(request),
+                        'content_binding': get_webpo_content_binding(request)[0],
                         'disable_tls_verification': not request.request_verify_tls,
+                        'proxy': request.request_proxy,
+                        'source_address': request.request_source_address,
                     }).encode(), headers={'Content-Type': 'application/json'},
                     extensions={'timeout': self._GETPOT_TIMEOUT}, proxies={'all': None}),
                 note=f'Generating a {request.context.value} PO Token for '
