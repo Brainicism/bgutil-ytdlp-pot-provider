@@ -21,6 +21,7 @@
         "axios": "^1.7.9",
         "bgutils-js": "^3.1.1",
         "body-parser": "^1.20.3",
+        "canvas": "^3.1.1",
         "commander": "github:tj/commander.js.git#develop",
         "express": "^4.21.2",
         "https-proxy-agent": "^7.0.6",
