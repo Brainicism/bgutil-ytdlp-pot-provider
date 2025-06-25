@@ -10,10 +10,10 @@ import {
 } from "bgutils-js";
 import { JSDOM } from "jsdom";
 import { HttpsProxyAgent } from "https-proxy-agent";
-import axios from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 import { Agent } from "https";
 import { SocksProxyAgent } from "https-socks-proxy";
-import { Innertube } from "youtubei.js";
+import { Innertube, Context as InnertubeContext } from "youtubei.js";
 
 interface YoutubeSessionData {
     poToken: string;
@@ -24,38 +24,6 @@ interface YoutubeSessionData {
 export interface YoutubeSessionDataCaches {
     [contentBinding: string]: YoutubeSessionData;
 }
-
-class ProxySpec {
-    public proxy?: string;
-    public sourceAddress?: string;
-    public disableTlsVerification: boolean = false;
-    constructor({
-        proxy,
-        sourceAddress,
-        disableTlsVerification,
-    }: Partial<ProxySpec>) {
-        this.proxy = proxy;
-        this.sourceAddress = sourceAddress;
-        this.disableTlsVerification = disableTlsVerification || false;
-    }
-    toString(): string {
-        return JSON.stringify([this.proxy, this.sourceAddress]);
-    }
-}
-
-type CachedTokenMinter = {
-    expiry: Date;
-    integrityToken: string;
-    minter: BG.WebPoMinter;
-};
-
-type BGData = {
-    // IT doesn't seem to be IP-bound
-    // TODO: make per-instance
-    cachedTokenMinter: CachedTokenMinter;
-    bgClient: BG.BotGuardClient;
-};
-type BGCache = Map<string, BGData>;
 
 class Logger {
     readonly debug: (msg: string) => void;
@@ -83,15 +51,118 @@ class Logger {
     }
 }
 
+class ProxySpec {
+    public proxy?: string;
+    public sourceAddress?: string;
+    public disableTlsVerification: boolean = false;
+    constructor({
+        proxy,
+        sourceAddress,
+        disableTlsVerification,
+    }: Partial<ProxySpec>) {
+        this.proxy = proxy;
+        this.sourceAddress = sourceAddress;
+        this.disableTlsVerification = disableTlsVerification || false;
+    }
+    public asDispatcher(logger: Logger): Agent | undefined {
+        const { proxy, sourceAddress, disableTlsVerification } = this;
+        let sanitizedProxy = proxy;
+        if (!sanitizedProxy) {
+            return new Agent({
+                localAddress: sourceAddress,
+                rejectUnauthorized: !disableTlsVerification,
+            });
+        }
+        let protocol: string;
+        try {
+            const parsedUrl = new URL(sanitizedProxy);
+            protocol = parsedUrl.protocol.replace(":", "");
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (e) {
+            // assume http if no protocol was passed
+            protocol = "http";
+            sanitizedProxy = `http://${sanitizedProxy}`;
+        }
+
+        let loggedProxy: string = sanitizedProxy;
+        try {
+            const parsedUrl = new URL(sanitizedProxy);
+            if (parsedUrl.password) {
+                loggedProxy = sanitizedProxy.replace(
+                    parsedUrl.password,
+                    "****",
+                );
+            }
+        } catch (e) {
+            logger.warn(`Fail to parse proxy url ${sanitizedProxy}: ${e}`);
+            return undefined;
+        }
+
+        switch (protocol) {
+            case "http":
+            case "https":
+                logger.log(`Using HTTP/HTTPS proxy: ${loggedProxy}`);
+                return new HttpsProxyAgent(sanitizedProxy, {
+                    rejectUnauthorized: !disableTlsVerification,
+                    localAddress: sourceAddress,
+                });
+            case "socks":
+            case "socks4":
+            case "socks4a":
+            case "socks5":
+            case "socks5h": {
+                logger.log(`Using SOCKS proxy: ${loggedProxy}`);
+                const agent = new SocksProxyAgent(sanitizedProxy);
+                agent.options.localAddress = sourceAddress;
+                agent.options.rejectUnauthorized = !disableTlsVerification;
+                return agent;
+            }
+            default:
+                logger.warn(`Unsupported proxy protocol: ${loggedProxy}`);
+                return undefined;
+        }
+    }
+}
+
+class CacheSpec {
+    constructor(
+        public pxySpec: ProxySpec,
+        public ip: string | null,
+    ) {}
+    public get key(): string {
+        return JSON.stringify(
+            this.ip || [this.pxySpec.proxy, this.pxySpec.sourceAddress],
+        );
+    }
+}
+
+type CachedTokenMinter = {
+    expiry: Date;
+    integrityToken: string;
+    minter: BG.WebPoMinter;
+};
+
+type MinterCache = Map<string, CachedTokenMinter>;
+
+export type ChallengeData = {
+    interpreterUrl: {
+        privateDoNotAccessOrElseTrustedResourceUrlWrappedValue: string;
+    };
+    interpreterHash: string;
+    program: string;
+    globalName: string;
+    clientExperimentsStateBlob: string;
+};
+
 export class SessionManager {
-    // This needs to be reworked as POTs are IP-bound
-    private _bgCache: BGCache = new Map();
-    private youtubeSessionDataCaches: YoutubeSessionDataCaches = {};
-    private TOKEN_TTL_HOURS: number;
-    private logger: Logger;
     // hardcoded API key that has been used by youtube for years
     private static readonly REQUEST_KEY = "O43z0dpjhgX20SCx4KAo";
     private static hasDom = false;
+    private _minterCache: MinterCache = new Map();
+    // This needs to be reworked as POTs are IP-bound
+    private youtubeSessionDataCaches: YoutubeSessionDataCaches = {};
+    private TOKEN_TTL_HOURS: number;
+    private logger: Logger;
 
     constructor(
         shouldLog = true,
@@ -128,18 +199,18 @@ export class SessionManager {
         }
     }
 
-    invalidateCaches() {
+    public invalidateCaches() {
         this.setYoutubeSessionDataCaches();
-        this._bgCache.clear();
+        this._minterCache.clear();
     }
 
-    invalidateIT() {
-        this._bgCache.forEach((bgData) => {
-            bgData.cachedTokenMinter.expiry = new Date(0);
+    public invalidateIT() {
+        this._minterCache.forEach((minterCache) => {
+            minterCache.expiry = new Date(0);
         });
     }
 
-    cleanupCaches() {
+    public cleanupCaches() {
         for (const contentBinding in this.youtubeSessionDataCaches) {
             const sessionData = this.youtubeSessionDataCaches[contentBinding];
             if (sessionData && new Date() > sessionData.expiresAt)
@@ -147,18 +218,18 @@ export class SessionManager {
         }
     }
 
-    getYoutubeSessionDataCaches(cleanup = false) {
+    public getYoutubeSessionDataCaches(cleanup = false) {
         if (cleanup) this.cleanupCaches();
         return this.youtubeSessionDataCaches;
     }
 
-    setYoutubeSessionDataCaches(
+    public setYoutubeSessionDataCaches(
         youtubeSessionData: YoutubeSessionDataCaches = {},
     ) {
         this.youtubeSessionDataCaches = youtubeSessionData || {};
     }
 
-    async generateVisitorData(): Promise<string | null> {
+    public async generateVisitorData(): Promise<string | null> {
         const innertube = await Innertube.create({ retrieve_player: false });
         const visitorData = innertube.session.context.client.visitorData;
         if (!visitorData) {
@@ -169,118 +240,126 @@ export class SessionManager {
         return visitorData;
     }
 
-    public get bgCache(): BGCache {
-        return this._bgCache;
+    public get minterCache(): MinterCache {
+        return this._minterCache;
     }
 
-    getProxyDispatcher({
-        proxy,
-        sourceAddress,
-        disableTlsVerification,
-    }: ProxySpec): Agent | undefined {
-        if (!proxy) {
-            return new Agent({
-                localAddress: sourceAddress,
-                rejectUnauthorized: !disableTlsVerification,
-            });
-        }
-        let protocol: string;
+    private async getDescrambledChallenge(
+        bgConfig: BgConfig,
+        challenge?: ChallengeData,
+        innertubeContext?: InnertubeContext,
+    ): Promise<DescrambledChallenge> {
         try {
-            const parsedUrl = new URL(proxy);
-            protocol = parsedUrl.protocol.replace(":", "");
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (e) {
-            // assume http if no protocol was passed
-            protocol = "http";
-            proxy = `http://${proxy}`;
-        }
-
-        let loggedProxy: string = proxy;
-        try {
-            const parsedUrl = new URL(proxy);
-            if (parsedUrl.password) {
-                loggedProxy = proxy.replace(parsedUrl.password, "****");
-            }
-        } catch (e) {
-            this.logger.warn(`Fail to parse proxy url ${proxy}: ${e}`);
-            return undefined;
-        }
-
-        switch (protocol) {
-            case "http":
-            case "https":
-                this.logger.log(`Using HTTP/HTTPS proxy: ${loggedProxy}`);
-                return new HttpsProxyAgent(proxy, {
-                    rejectUnauthorized: !disableTlsVerification,
-                    localAddress: sourceAddress,
-                });
-            case "socks":
-            case "socks4":
-            case "socks4a":
-            case "socks5":
-            case "socks5h": {
-                this.logger.log(`Using SOCKS proxy: ${loggedProxy}`);
-                const agent = new SocksProxyAgent(proxy);
-                agent.options.localAddress = sourceAddress;
-                agent.options.rejectUnauthorized = !disableTlsVerification;
-                return agent;
-            }
-            default:
-                this.logger.warn(`Unsupported proxy protocol: ${loggedProxy}`);
-                return undefined;
-        }
-    }
-
-    private getFetch(dispatcher: Agent | undefined): FetchFunction {
-        return async (url: any, options: any): Promise<any> => {
-            const maxRetries = 3;
-            for (let attempts = 1; attempts <= maxRetries; attempts++) {
-                try {
-                    const response = await axios.post(url, options.body, {
-                        headers: options.headers,
-                        httpsAgent: dispatcher,
-                    });
-
-                    return {
-                        ok: true,
-                        json: async () => {
-                            return response.data;
+            if (!challenge) {
+                if (!innertubeContext)
+                    throw new Error("Innertube context unavailable");
+                this.logger.debug("Using challenge from /att/get");
+                const attGetResponse = await bgConfig.fetch(
+                    "https://www.youtube.com/youtubei/v1/att/get?prettyPrint=false",
+                    {
+                        method: "POST",
+                        headers: {
+                            ...getHeaders(),
+                            "Content-Type": "application/json",
                         },
-                    };
-                } catch (e) {
-                    if (attempts >= maxRetries) {
-                        return {
-                            ok: false,
-                            json: async () => {
-                                return null;
-                            },
-                            status: e.response?.status || e.code,
-                        };
-                    }
-                    await new Promise((resolve) => setTimeout(resolve, 5000));
-                }
+                        body: JSON.stringify({
+                            context: innertubeContext,
+                            engagementType: "ENGAGEMENT_TYPE_UNBOUND",
+                        }),
+                    },
+                );
+                const attestation = await attGetResponse.json();
+                if (!attestation)
+                    throw new Error("Failed to get challenge from /att/get");
+                challenge = attestation.bgChallenge as ChallengeData;
+            } else {
+                this.logger.debug("Using challenge from the webpage");
             }
-        };
+            const { program, globalName, interpreterHash } = challenge;
+            const { privateDoNotAccessOrElseTrustedResourceUrlWrappedValue } =
+                challenge.interpreterUrl;
+            const interpreterJSResponse = await bgConfig.fetch(
+                `https:${privateDoNotAccessOrElseTrustedResourceUrlWrappedValue}`,
+            );
+            const interpreterJS = await interpreterJSResponse.text();
+            return {
+                program,
+                globalName,
+                interpreterHash,
+                interpreterJavascript: {
+                    privateDoNotAccessOrElseSafeScriptWrappedValue:
+                        interpreterJS,
+                    privateDoNotAccessOrElseTrustedResourceUrlWrappedValue,
+                },
+            };
+        } catch (e) {
+            this.logger.warn(
+                `Failed to get descrambled challenge from Innertube, trying the /Create endpoint. err = ${e}`,
+            );
+            try {
+                const descrambledChallenge =
+                    await BG.Challenge.create(bgConfig);
+                if (descrambledChallenge) return descrambledChallenge;
+            } catch (eInner) {
+                throw new Error(
+                    `Error while attempting to retrieve BG challenge. err = ${JSON.stringify(eInner)}`,
+                    { cause: eInner },
+                );
+            }
+            throw new Error("Could not get Botguard challenge");
+        }
     }
 
-    private async generateBotGuardData(
-        pxySpec: ProxySpec,
-        bgClient: BG.BotGuardClient,
-    ): Promise<BGData> {
+    private async generateTokenMinter(
+        cacheSpec: CacheSpec,
+        bgConfig: BgConfig,
+        challenge?: ChallengeData,
+        innertubeContext?: InnertubeContext,
+    ): Promise<CachedTokenMinter> {
+        const descrambledChallenge = await this.getDescrambledChallenge(
+            bgConfig,
+            challenge,
+            innertubeContext,
+        );
+
+        const { program, globalName } = descrambledChallenge;
+        const interpreterJavascript =
+            descrambledChallenge.interpreterJavascript
+                .privateDoNotAccessOrElseSafeScriptWrappedValue;
+
+        if (interpreterJavascript) {
+            new Function(interpreterJavascript)();
+        } else throw new Error("Could not load VM");
+
+        let bgClient: BG.BotGuardClient;
         try {
-            const doFetch = this.getFetch(this.getProxyDispatcher(pxySpec));
+            bgClient = await BG.BotGuardClient.create({
+                program,
+                globalName,
+                globalObj: bgConfig.globalObj,
+            });
+        } catch (e) {
+            throw new Error(
+                `Failed to create BG client. err.name = ${e.name}. err.message = ${e.message}. err.stack = ${e.stack}`,
+                { cause: e },
+            );
+        }
+        try {
             const webPoSignalOutput: WebPoSignalOutput = [];
             const botguardResponse = await bgClient.snapshot({
                 webPoSignalOutput,
             });
-            const integrityTokenResp = await doFetch(buildURL("GenerateIT"), {
-                method: "POST",
-                headers: getHeaders(),
-                body: JSON.stringify([
-                    SessionManager.REQUEST_KEY,
-                    botguardResponse,
-                ]),
-            });
+            const integrityTokenResp = await bgConfig.fetch(
+                buildURL("GenerateIT"),
+                {
+                    method: "POST",
+                    headers: getHeaders(),
+                    body: JSON.stringify([
+                        SessionManager.REQUEST_KEY,
+                        botguardResponse,
+                    ]),
+                },
+            );
 
             const [
                 integrityToken,
@@ -305,19 +384,20 @@ export class SessionManager {
                 throw new Error(
                     `Unexpected empty integrity token, response: ${JSON.stringify(integrityTokenData)}`,
                 );
-            const bgData: BGData = {
-                cachedTokenMinter: {
-                    expiry: new Date(Date.now() + estimatedTtlSecs * 1000),
-                    integrityToken,
-                    minter: await BG.WebPoMinter.create(
-                        integrityTokenData,
-                        webPoSignalOutput,
-                    ),
-                },
-                bgClient,
+            this.logger.debug(
+                `Generated IntegrityToken: ${JSON.stringify(integrityTokenData)}`,
+            );
+
+            const cachedTokenMinter: CachedTokenMinter = {
+                expiry: new Date(Date.now() + estimatedTtlSecs * 1000),
+                integrityToken,
+                minter: await BG.WebPoMinter.create(
+                    integrityTokenData,
+                    webPoSignalOutput,
+                ),
             };
-            this._bgCache.set(pxySpec.toString(), bgData);
-            return bgData;
+            this._minterCache.set(cacheSpec.key, cachedTokenMinter);
+            return cachedTokenMinter;
         } catch (e) {
             throw new Error(
                 `Failed to generate an integrity token: ${e.message}`,
@@ -359,12 +439,55 @@ export class SessionManager {
         }
     }
 
+    private getFetch(
+        proxySpec: ProxySpec,
+        maxRetries: number,
+        intervalMs: number,
+    ): FetchFunction {
+        const { logger } = this;
+        return async (url: any, options: any): Promise<any> => {
+            const method = (options?.method || "GET").toUpperCase();
+            for (let attempts = 1; attempts <= maxRetries; attempts++) {
+                try {
+                    const axiosOpt: AxiosRequestConfig = {
+                        headers: options?.headers,
+                        params: options?.params,
+                        httpsAgent: proxySpec.asDispatcher(logger),
+                    };
+                    const response = await (method === "GET"
+                        ? axios.get(url, axiosOpt)
+                        : axios.post(url, options?.body, axiosOpt));
+
+                    return {
+                        ok: response.status >= 200 && response.status < 300,
+                        status: response.status,
+                        json: async () => response.data,
+                        text: async () =>
+                            typeof response.data === "string"
+                                ? response.data
+                                : JSON.stringify(response.data),
+                    };
+                } catch (e) {
+                    if (attempts >= maxRetries)
+                        throw new Error(
+                            `Error reaching ${method} ${url}: All ${attempts} retries failed: ${e}`,
+                        );
+                    await new Promise((resolve) =>
+                        setTimeout(resolve, intervalMs),
+                    );
+                }
+            }
+        };
+    }
+
     async generatePoToken(
         contentBinding: string | undefined,
         proxy: string = "",
         bypassCache = false,
         sourceAddress: string | undefined = undefined,
         disableTlsVerification: boolean = false,
+        challenge: ChallengeData | undefined = undefined,
+        innertubeContext?: InnertubeContext,
     ): Promise<YoutubeSessionData> {
         if (!contentBinding) {
             this.logger.error(
@@ -399,6 +522,17 @@ export class SessionManager {
                 disableTlsVerification,
             });
         }
+        const cacheSpec = new CacheSpec(
+            pxySpec,
+            innertubeContext?.client.remoteHost || null,
+        );
+
+        const bgConfig: BgConfig = {
+            fetch: this.getFetch(pxySpec, 3, 5000),
+            globalObj: globalThis,
+            identifier: contentBinding,
+            requestKey: SessionManager.REQUEST_KEY,
+        };
 
         if (!bypassCache) {
             const sessionData = this.youtubeSessionDataCaches[contentBinding];
@@ -408,65 +542,28 @@ export class SessionManager {
                 );
                 return sessionData;
             }
-            let bgData = this._bgCache.get(pxySpec.toString());
-            if (bgData) {
-                if (new Date() >= bgData.cachedTokenMinter.expiry) {
-                    this.logger.log(
-                        "Integrity token expired, generating new one",
-                    );
-                    bgData = await this.generateBotGuardData(
-                        pxySpec,
-                        bgData.bgClient,
+            let cachedTokenMinter = this._minterCache.get(cacheSpec.key);
+            if (cachedTokenMinter) {
+                // Replace minter if expired
+                if (new Date() >= cachedTokenMinter.expiry) {
+                    this.logger.log("POT minter expired, getting a new one");
+                    cachedTokenMinter = await this.generateTokenMinter(
+                        cacheSpec,
+                        bgConfig,
+                        challenge,
+                        innertubeContext,
                     );
                 }
-                return await this.tryMintPOT(
-                    contentBinding,
-                    bgData.cachedTokenMinter,
-                );
+                return await this.tryMintPOT(contentBinding, cachedTokenMinter);
             }
         }
 
-        const bgConfig: BgConfig = {
-            fetch: this.getFetch(this.getProxyDispatcher(pxySpec)),
-            globalObj: globalThis,
-            identifier: contentBinding,
-            requestKey: SessionManager.REQUEST_KEY,
-        };
-
-        let challenge: DescrambledChallenge | undefined;
-        try {
-            challenge = await BG.Challenge.create(bgConfig);
-        } catch (e) {
-            throw new Error(
-                `Error while attempting to retrieve BG challenge. err = ${JSON.stringify(e)}`,
-                { cause: e },
-            );
-        }
-        if (!challenge) throw new Error("Could not get Botguard challenge");
-
-        const interpreterJavascript =
-            challenge.interpreterJavascript
-                .privateDoNotAccessOrElseSafeScriptWrappedValue;
-
-        if (interpreterJavascript) {
-            new Function(interpreterJavascript)();
-        } else throw new Error("Could not load VM");
-
-        let bgClient: BG.BotGuardClient;
-        try {
-            bgClient = await BG.BotGuardClient.create({
-                program: challenge.program,
-                globalName: challenge.globalName,
-                globalObj: bgConfig.globalObj,
-            });
-        } catch (e) {
-            throw new Error(
-                `Failed to create BG client. err.name = ${e.name}. err.message = ${e.message}. err.stack = ${e.stack}`,
-                { cause: e },
-            );
-        }
-
-        const bgData = await this.generateBotGuardData(pxySpec, bgClient);
-        return await this.tryMintPOT(contentBinding, bgData.cachedTokenMinter);
+        const tokenMinter = await this.generateTokenMinter(
+            cacheSpec,
+            bgConfig,
+            challenge,
+            innertubeContext,
+        );
+        return await this.tryMintPOT(contentBinding, tokenMinter);
     }
 }
