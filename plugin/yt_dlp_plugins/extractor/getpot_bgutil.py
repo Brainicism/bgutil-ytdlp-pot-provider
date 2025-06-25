@@ -10,7 +10,6 @@ from yt_dlp.extractor.youtube.pot.provider import (
     PoTokenContext,
     PoTokenProvider,
     PoTokenProviderRejectedRequest,
-    PoTokenRequest,
 )
 from yt_dlp.extractor.youtube.pot.utils import WEBPO_CLIENTS
 from yt_dlp.utils import js_to_json
@@ -77,5 +76,6 @@ class BgUtilPTPBase(PoTokenProvider, abc.ABC):
             webpage, 'raw challenge data', default=None, group='raw_cd')
         if att_txt := traverse_obj(raw_challenge_data, ({js_to_json}, {json.loads}, {json.loads}, 'bgChallenge')):
             return att_txt
+
 
 __all__ = ['__version__']

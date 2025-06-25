@@ -130,9 +130,11 @@ class CacheSpec {
         public ip: string | null,
     ) {}
     public get key(): string {
-        return JSON.stringify(this.ip || [this.pxySpec.proxy, this.pxySpec.sourceAddress]);
+        return JSON.stringify(
+            this.ip || [this.pxySpec.proxy, this.pxySpec.sourceAddress],
+        );
     }
-};
+}
 
 type CachedTokenMinter = {
     expiry: Date;
@@ -258,13 +260,13 @@ export class SessionManager {
                         method: "POST",
                         headers: {
                             ...getHeaders(),
-                            'Content-Type': 'application/json',
+                            "Content-Type": "application/json",
                         },
                         body: JSON.stringify({
                             context: innertubeContext,
                             engagementType: "ENGAGEMENT_TYPE_UNBOUND",
                         }),
-                    }
+                    },
                 );
                 const attestation = await attGetResponse.json();
                 if (!attestation)
@@ -520,7 +522,10 @@ export class SessionManager {
                 disableTlsVerification,
             });
         }
-        const cacheSpec = new CacheSpec(pxySpec, innertubeContext?.client.remoteHost || null);
+        const cacheSpec = new CacheSpec(
+            pxySpec,
+            innertubeContext?.client.remoteHost || null,
+        );
 
         const bgConfig: BgConfig = {
             fetch: this.getFetch(pxySpec, 3, 5000),
