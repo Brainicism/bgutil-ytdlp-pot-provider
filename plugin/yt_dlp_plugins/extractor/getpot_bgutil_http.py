@@ -113,10 +113,11 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
                 request=Request(
                     f'{self._base_url}/get_pot', data=json.dumps({
                         'bypass_cache': request.bypass_cache,
-                        'challenge': self._get_attestation(request),
+                        'challenge': self._get_attestation(request.video_webpage),
                         'content_binding': get_webpo_content_binding(request)[0],
                         'disable_tls_verification': not request.request_verify_tls,
                         'proxy': request.request_proxy,
+                        'innertube_context': request.innertube_context,
                         'source_address': request.request_source_address,
                     }).encode(), headers={'Content-Type': 'application/json'},
                     extensions={'timeout': self._GETPOT_TIMEOUT}, proxies={'all': None}),

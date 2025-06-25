@@ -13,7 +13,7 @@ import { HttpsProxyAgent } from "https-proxy-agent";
 import axios, { AxiosRequestConfig } from "axios";
 import { Agent } from "https";
 import { SocksProxyAgent } from "https-socks-proxy";
-import { Innertube } from "youtubei.js";
+import { Innertube, Context as InnertubeContext } from "youtubei.js";
 
 interface YoutubeSessionData {
     poToken: string;
@@ -238,9 +238,34 @@ export class SessionManager {
     private async getDescrambledChallenge(
         bgConfig: BgConfig,
         challenge?: ChallengeData,
+        innertubeContext?: InnertubeContext,
     ): Promise<DescrambledChallenge> {
-        if (challenge) {
-            this.logger.debug("Using challenge from Innertube");
+        try {
+            if (!challenge) {
+                if (!innertubeContext)
+                    throw new Error("Innertube context unavailable");
+                this.logger.debug("Using challenge from /att/get");
+                const attGetResponse = await bgConfig.fetch(
+                    "https://www.youtube.com/youtubei/v1/att/get?prettyPrint=false",
+                    {
+                        method: "POST",
+                        headers: {
+                            ...getHeaders(),
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            context: innertubeContext,
+                            engagementType: "ENGAGEMENT_TYPE_UNBOUND",
+                        }),
+                    }
+                );
+                const attestation = await attGetResponse.json();
+                if (!attestation)
+                    throw new Error("Failed to get challenge from /att/get");
+                challenge = attestation.bgChallenge as ChallengeData;
+            } else {
+                this.logger.debug("Using challenge from the webpage");
+            }
             const { program, globalName, interpreterHash } = challenge;
             const { privateDoNotAccessOrElseTrustedResourceUrlWrappedValue } =
                 challenge.interpreterUrl;
@@ -258,28 +283,34 @@ export class SessionManager {
                     privateDoNotAccessOrElseTrustedResourceUrlWrappedValue,
                 },
             };
-        }
-        this.logger.debug("Using challenge from the /Create endpoint");
-        try {
-            const challenge = await BG.Challenge.create(bgConfig);
-            if (challenge) return challenge;
         } catch (e) {
-            throw new Error(
-                `Error while attempting to retrieve BG challenge. err = ${JSON.stringify(e)}`,
-                { cause: e },
+            this.logger.warn(
+                `Failed to get descrambled challenge from Innertube, trying the /Create endpoint. err = ${e}`,
             );
+            try {
+                const descrambledChallenge =
+                    await BG.Challenge.create(bgConfig);
+                if (descrambledChallenge) return descrambledChallenge;
+            } catch (eInner) {
+                throw new Error(
+                    `Error while attempting to retrieve BG challenge. err = ${JSON.stringify(eInner)}`,
+                    { cause: eInner },
+                );
+            }
+            throw new Error("Could not get Botguard challenge");
         }
-        throw new Error("Could not get Botguard challenge");
     }
 
     private async generateTokenMinter(
         pxySpec: ProxySpec,
         bgConfig: BgConfig,
         challenge?: ChallengeData,
+        innertubeContext?: InnertubeContext,
     ): Promise<CachedTokenMinter> {
         const descrambledChallenge = await this.getDescrambledChallenge(
             bgConfig,
             challenge,
+            innertubeContext,
         );
 
         const { program, globalName } = descrambledChallenge;
@@ -447,6 +478,7 @@ export class SessionManager {
         sourceAddress: string | undefined = undefined,
         disableTlsVerification: boolean = false,
         challenge: ChallengeData | undefined = undefined,
+        innertubeContext?: InnertubeContext,
     ): Promise<YoutubeSessionData> {
         if (!contentBinding) {
             this.logger.error(
@@ -465,6 +497,8 @@ export class SessionManager {
         this.cleanupCaches();
 
         let pxySpec: ProxySpec;
+        // TODO pub ip
+        void innertubeContext?.client.remoteHost;
         if (proxy) {
             pxySpec = new ProxySpec({
                 proxy,
@@ -506,6 +540,7 @@ export class SessionManager {
                         pxySpec,
                         bgConfig,
                         challenge,
+                        innertubeContext,
                     );
                 }
                 return await this.tryMintPOT(contentBinding, cachedTokenMinter);
@@ -516,6 +551,7 @@ export class SessionManager {
             pxySpec,
             bgConfig,
             challenge,
+            innertubeContext,
         );
         return await this.tryMintPOT(contentBinding, tokenMinter);
     }

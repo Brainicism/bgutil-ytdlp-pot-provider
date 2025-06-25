@@ -49,6 +49,7 @@ httpServer.post("/get_pot", async (request, response) => {
             sourceAddress,
             disableTlsVerification,
             request.body.challenge,
+            request.body.innertube_context,
         );
 
         response.send(sessionData);

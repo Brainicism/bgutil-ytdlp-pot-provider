@@ -13,7 +13,6 @@ from yt_dlp.extractor.youtube.pot.provider import (
     PoTokenRequest,
 )
 from yt_dlp.extractor.youtube.pot.utils import WEBPO_CLIENTS
-from yt_dlp.networking.common import Request
 from yt_dlp.utils import js_to_json
 from yt_dlp.utils.traversal import traverse_obj
 
@@ -65,7 +64,9 @@ class BgUtilPTPBase(PoTokenProvider, abc.ABC):
                 f'Plugin and {name} major versions are mismatched. '
                 f'Update both the plugin and the {name} to the same version to proceed.')
 
-    def _get_attestation(self, request: PoTokenRequest):
+    def _get_attestation(self, webpage: str | None):
+        if not webpage:
+            return None
         raw_challenge_data = self.ie._search_regex(
             r'''(?sx)window\.ytAtR\s*=\s*(?P<raw_cd>(?P<q>['"])
                 (?:
@@ -73,24 +74,8 @@ class BgUtilPTPBase(PoTokenProvider, abc.ABC):
                     (?!(?P=q)).
                 )*
             (?P=q))\s*;''',
-            request.video_webpage, 'raw challenge data', default=None, group='raw_cd')
+            webpage, 'raw challenge data', default=None, group='raw_cd')
         if att_txt := traverse_obj(raw_challenge_data, ({js_to_json}, {json.loads}, {json.loads}, 'bgChallenge')):
             return att_txt
-        else:
-            self.logger.warning(
-                'Failed to extract initial attestation from the webpage, falling back to Innertube endpoint')
-        with self._request_webpage(Request(
-                'https://www.youtube.com/youtubei/v1/att/get?prettyPrint=false',
-                data=json.dumps({
-                    'context': request.innertube_context,
-                    'engagementType': 'ENGAGEMENT_TYPE_UNBOUND',
-                }).encode(), headers={'Content-Type': 'application/json'},
-                extensions={'timeout': 5.0}), pot_request=request,
-                note='Downloading attestation from API') as att_response:
-            if att_txt := traverse_obj(att_response, ({json.load}, 'bgChallenge')):
-                return att_txt
-        self.logger.warning('Failed to download attestation from API')
-        return None
-
 
 __all__ = ['__version__']
