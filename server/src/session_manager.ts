@@ -64,10 +64,7 @@ class ProxySpec {
         this.sourceAddress = sourceAddress;
         this.disableTlsVerification = disableTlsVerification || false;
     }
-    toString(): string {
-        return JSON.stringify([this.proxy, this.sourceAddress]);
-    }
-    asDispatcher(logger: Logger): Agent | undefined {
+    public asDispatcher(logger: Logger): Agent | undefined {
         const { proxy, sourceAddress, disableTlsVerification } = this;
         let sanitizedProxy = proxy;
         if (!sanitizedProxy) {
@@ -126,6 +123,16 @@ class ProxySpec {
         }
     }
 }
+
+class CacheSpec {
+    constructor(
+        public pxySpec: ProxySpec,
+        public ip: string | null,
+    ) {}
+    public get key(): string {
+        return JSON.stringify(this.ip || [this.pxySpec.proxy, this.pxySpec.sourceAddress]);
+    }
+};
 
 type CachedTokenMinter = {
     expiry: Date;
@@ -302,7 +309,7 @@ export class SessionManager {
     }
 
     private async generateTokenMinter(
-        pxySpec: ProxySpec,
+        cacheSpec: CacheSpec,
         bgConfig: BgConfig,
         challenge?: ChallengeData,
         innertubeContext?: InnertubeContext,
@@ -387,7 +394,7 @@ export class SessionManager {
                     webPoSignalOutput,
                 ),
             };
-            this._minterCache.set(pxySpec.toString(), cachedTokenMinter);
+            this._minterCache.set(cacheSpec.key, cachedTokenMinter);
             return cachedTokenMinter;
         } catch (e) {
             throw new Error(
@@ -497,8 +504,6 @@ export class SessionManager {
         this.cleanupCaches();
 
         let pxySpec: ProxySpec;
-        // TODO pub ip
-        void innertubeContext?.client.remoteHost;
         if (proxy) {
             pxySpec = new ProxySpec({
                 proxy,
@@ -515,6 +520,7 @@ export class SessionManager {
                 disableTlsVerification,
             });
         }
+        const cacheSpec = new CacheSpec(pxySpec, innertubeContext?.client.remoteHost || null);
 
         const bgConfig: BgConfig = {
             fetch: this.getFetch(pxySpec, 3, 5000),
@@ -531,13 +537,13 @@ export class SessionManager {
                 );
                 return sessionData;
             }
-            let cachedTokenMinter = this._minterCache.get(pxySpec.toString());
+            let cachedTokenMinter = this._minterCache.get(cacheSpec.key);
             if (cachedTokenMinter) {
                 // Replace minter if expired
                 if (new Date() >= cachedTokenMinter.expiry) {
                     this.logger.log("POT minter expired, getting a new one");
                     cachedTokenMinter = await this.generateTokenMinter(
-                        pxySpec,
+                        cacheSpec,
                         bgConfig,
                         challenge,
                         innertubeContext,
@@ -548,7 +554,7 @@ export class SessionManager {
         }
 
         const tokenMinter = await this.generateTokenMinter(
-            pxySpec,
+            cacheSpec,
             bgConfig,
             challenge,
             innertubeContext,
