@@ -258,19 +258,18 @@ export class SessionManager {
                     privateDoNotAccessOrElseTrustedResourceUrlWrappedValue,
                 },
             };
-        } else {
-            this.logger.debug("Using challenge from the /Create endpoint");
-            try {
-                const challenge = await BG.Challenge.create(bgConfig);
-                if (challenge) return challenge;
-            } catch (e) {
-                throw new Error(
-                    `Error while attempting to retrieve BG challenge. err = ${JSON.stringify(e)}`,
-                    { cause: e },
-                );
-            }
-            throw new Error("Could not get Botguard challenge");
         }
+        this.logger.debug("Using challenge from the /Create endpoint");
+        try {
+            const challenge = await BG.Challenge.create(bgConfig);
+            if (challenge) return challenge;
+        } catch (e) {
+            throw new Error(
+                `Error while attempting to retrieve BG challenge. err = ${JSON.stringify(e)}`,
+                { cause: e },
+            );
+        }
+        throw new Error("Could not get Botguard challenge");
     }
 
     private async generateTokenMinter(
