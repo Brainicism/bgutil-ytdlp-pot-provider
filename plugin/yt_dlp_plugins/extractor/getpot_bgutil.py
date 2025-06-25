@@ -74,8 +74,12 @@ class BgUtilPTPBase(PoTokenProvider, abc.ABC):
                 )*
             (?P=q))\s*;''',
             webpage, 'raw challenge data', default=None, group='raw_cd')
-        if att_txt := traverse_obj(raw_challenge_data, ({js_to_json}, {json.loads}, {json.loads}, 'bgChallenge')):
-            return att_txt
+        att_txt = traverse_obj(
+            raw_challenge_data, ({js_to_json}, {json.loads}, {json.loads}, 'bgChallenge'))
+        if not att_txt:
+            self.logger.warning('Failed to extract initial attestation from the webpage')
+            return None
+        return att_txt
 
 
 __all__ = ['__version__']
