@@ -159,14 +159,13 @@ export class SessionManager {
     private static readonly REQUEST_KEY = "O43z0dpjhgX20SCx4KAo";
     private static hasDom = false;
     private _minterCache: MinterCache = new Map();
-    // This needs to be reworked as POTs are IP-bound
-    private youtubeSessionDataCaches: YoutubeSessionDataCaches = {};
     private TOKEN_TTL_HOURS: number;
     private logger: Logger;
 
     constructor(
         shouldLog = true,
-        youtubeSessionDataCaches: YoutubeSessionDataCaches = {},
+        // This needs to be reworked as POTs are IP-bound
+        private youtubeSessionDataCaches?: YoutubeSessionDataCaches,
     ) {
         this.logger = new Logger(shouldLog);
         this.setYoutubeSessionDataCaches(youtubeSessionDataCaches);
@@ -427,8 +426,9 @@ export class SessionManager {
                         Date.now() + this.TOKEN_TTL_HOURS * 60 * 60 * 1000,
                     ),
                 };
-                this.youtubeSessionDataCaches[contentBinding] =
-                    youtubeSessionData;
+                if (this.youtubeSessionDataCaches)
+                    this.youtubeSessionDataCaches[contentBinding] =
+                        youtubeSessionData;
                 return youtubeSessionData;
             } else throw new Error("Unexpected empty POT");
         } catch (e) {
@@ -535,12 +535,15 @@ export class SessionManager {
         };
 
         if (!bypassCache) {
-            const sessionData = this.youtubeSessionDataCaches[contentBinding];
-            if (sessionData) {
-                this.logger.log(
-                    `POT for ${contentBinding} still fresh, returning cached token`,
-                );
-                return sessionData;
+            if (this.youtubeSessionDataCaches) {
+                const sessionData =
+                    this.youtubeSessionDataCaches[contentBinding];
+                if (sessionData) {
+                    this.logger.log(
+                        `POT for ${contentBinding} still fresh, returning cached token`,
+                    );
+                    return sessionData;
+                }
             }
             let cachedTokenMinter = this._minterCache.get(cacheSpec.key);
             if (cachedTokenMinter) {

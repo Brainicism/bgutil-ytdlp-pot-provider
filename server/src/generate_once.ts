@@ -99,7 +99,7 @@ const options = program.opts();
         }
     }
 
-    const sessionManager = new SessionManager(verbose, cache);
+    const sessionManager = new SessionManager(verbose, cache || {});
 
     try {
         const sessionData = await sessionManager.generatePoToken(
