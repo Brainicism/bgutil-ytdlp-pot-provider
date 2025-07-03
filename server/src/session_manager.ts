@@ -136,13 +136,13 @@ class CacheSpec {
     }
 }
 
-type CachedTokenMinter = {
+type TokenMinter = {
     expiry: Date;
     integrityToken: string;
     minter: BG.WebPoMinter;
 };
 
-type MinterCache = Map<string, CachedTokenMinter>;
+type MinterCache = Map<string, TokenMinter>;
 
 export type ChallengeData = {
     interpreterUrl: {
@@ -321,7 +321,7 @@ export class SessionManager {
         challenge?: ChallengeData,
         innertubeContext?: InnertubeContext,
         disableInnertube?: boolean,
-    ): Promise<CachedTokenMinter> {
+    ): Promise<TokenMinter> {
         const descrambledChallenge = await this.getDescrambledChallenge(
             bgConfig,
             challenge,
@@ -395,7 +395,7 @@ export class SessionManager {
                 `Generated IntegrityToken: ${JSON.stringify(integrityTokenData)}`,
             );
 
-            const cachedTokenMinter: CachedTokenMinter = {
+            const tokenMinter: TokenMinter = {
                 expiry: new Date(Date.now() + estimatedTtlSecs * 1000),
                 integrityToken,
                 minter: await BG.WebPoMinter.create(
@@ -403,8 +403,8 @@ export class SessionManager {
                     webPoSignalOutput,
                 ),
             };
-            this._minterCache.set(cacheSpec.key, cachedTokenMinter);
-            return cachedTokenMinter;
+            this._minterCache.set(cacheSpec.key, tokenMinter);
+            return tokenMinter;
         } catch (e) {
             throw new Error(
                 `Failed to generate an integrity token: ${e.message}`,
@@ -417,12 +417,12 @@ export class SessionManager {
 
     private async tryMintPOT(
         contentBinding: string,
-        cachedTokenMinter: CachedTokenMinter,
+        tokenMinter: TokenMinter,
     ): Promise<YoutubeSessionData> {
         this.logger.log(`Generating POT for ${contentBinding}`);
         try {
             const poToken =
-                await cachedTokenMinter.minter.mintAsWebsafeString(
+                await tokenMinter.minter.mintAsWebsafeString(
                     contentBinding,
                 );
             if (poToken) {
@@ -554,12 +554,12 @@ export class SessionManager {
                     return sessionData;
                 }
             }
-            let cachedTokenMinter = this._minterCache.get(cacheSpec.key);
-            if (cachedTokenMinter) {
+            let tokenMinter = this._minterCache.get(cacheSpec.key);
+            if (tokenMinter) {
                 // Replace minter if expired
-                if (new Date() >= cachedTokenMinter.expiry) {
+                if (new Date() >= tokenMinter.expiry) {
                     this.logger.log("POT minter expired, getting a new one");
-                    cachedTokenMinter = await this.generateTokenMinter(
+                    tokenMinter = await this.generateTokenMinter(
                         cacheSpec,
                         bgConfig,
                         challenge,
@@ -567,7 +567,7 @@ export class SessionManager {
                         disableInnertube,
                     );
                 }
-                return await this.tryMintPOT(contentBinding, cachedTokenMinter);
+                return await this.tryMintPOT(contentBinding, tokenMinter);
             }
         }
 
