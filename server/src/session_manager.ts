@@ -250,8 +250,7 @@ export class SessionManager {
         disableInnertube?: boolean,
     ): Promise<DescrambledChallenge> {
         try {
-            if (disableInnertube)
-                throw null;
+            if (disableInnertube) throw null;
             if (!challenge) {
                 if (!innertubeContext)
                     throw new Error("Innertube context unavailable");
@@ -296,7 +295,9 @@ export class SessionManager {
             };
         } catch (e) {
             if (e === null)
-                this.logger.debug('Using /Create endpoint as innertube challenges are disabled');
+                this.logger.debug(
+                    "Using /Create endpoint as innertube challenges are disabled",
+                );
             else
                 this.logger.warn(
                     `Failed to get descrambled challenge from Innertube, trying the /Create endpoint. err = ${e}`,
@@ -422,9 +423,7 @@ export class SessionManager {
         this.logger.log(`Generating POT for ${contentBinding}`);
         try {
             const poToken =
-                await tokenMinter.minter.mintAsWebsafeString(
-                    contentBinding,
-                );
+                await tokenMinter.minter.mintAsWebsafeString(contentBinding);
             if (poToken) {
                 this.logger.log(`poToken: ${poToken}`);
                 const youtubeSessionData: YoutubeSessionData = {
