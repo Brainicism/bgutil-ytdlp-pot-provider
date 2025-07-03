@@ -81,6 +81,6 @@ httpServer.get("/ping", async (request, response) => {
 });
 
 httpServer.get("/minter_cache", async (request, response) => {
-    console.log(sessionManager.minterCache);
+    console.debug(sessionManager.minterCache);
     response.send(Array.from(sessionManager.minterCache.keys()));
 });
