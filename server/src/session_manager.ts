@@ -247,8 +247,11 @@ export class SessionManager {
         bgConfig: BgConfig,
         challenge?: ChallengeData,
         innertubeContext?: InnertubeContext,
+        disableInnertube?: boolean,
     ): Promise<DescrambledChallenge> {
         try {
+            if (disableInnertube)
+                throw null;
             if (!challenge) {
                 if (!innertubeContext)
                     throw new Error("Innertube context unavailable");
@@ -292,9 +295,12 @@ export class SessionManager {
                 },
             };
         } catch (e) {
-            this.logger.warn(
-                `Failed to get descrambled challenge from Innertube, trying the /Create endpoint. err = ${e}`,
-            );
+            if (e === null)
+                this.logger.debug('Using /Create endpoint as innertube challenges are disabled');
+            else
+                this.logger.warn(
+                    `Failed to get descrambled challenge from Innertube, trying the /Create endpoint. err = ${e}`,
+                );
             try {
                 const descrambledChallenge =
                     await BG.Challenge.create(bgConfig);
@@ -314,11 +320,13 @@ export class SessionManager {
         bgConfig: BgConfig,
         challenge?: ChallengeData,
         innertubeContext?: InnertubeContext,
+        disableInnertube?: boolean,
     ): Promise<CachedTokenMinter> {
         const descrambledChallenge = await this.getDescrambledChallenge(
             bgConfig,
             challenge,
             innertubeContext,
+            disableInnertube,
         );
 
         const { program, globalName } = descrambledChallenge;
@@ -487,6 +495,7 @@ export class SessionManager {
         sourceAddress: string | undefined = undefined,
         disableTlsVerification: boolean = false,
         challenge: ChallengeData | undefined = undefined,
+        disableInnertube: boolean = false,
         innertubeContext?: InnertubeContext,
     ): Promise<YoutubeSessionData> {
         if (!contentBinding) {
@@ -555,6 +564,7 @@ export class SessionManager {
                         bgConfig,
                         challenge,
                         innertubeContext,
+                        disableInnertube,
                     );
                 }
                 return await this.tryMintPOT(contentBinding, cachedTokenMinter);
@@ -566,6 +576,7 @@ export class SessionManager {
             bgConfig,
             challenge,
             innertubeContext,
+            disableInnertube,
         );
         return await this.tryMintPOT(contentBinding, tokenMinter);
     }
