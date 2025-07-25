@@ -74,7 +74,7 @@ jobs:
 
           # expect this to fail, but just make sure that the plugin is invoked
           {
-            script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtubepot-bgutilscript:script_path=server/build/generate_once.js" dQw4w9WgXcQ 2>&1)
+            script_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtubepot-bgutilscript:script_path=server/build/generate_once.js" --extractor-args "youtube:player-client=web;" dQw4w9WgXcQ 2>&1)
             ret=$?
           } || true
 
@@ -166,7 +166,7 @@ jobs:
 
           # expect this to fail, but just make sure that the plugin is invoked
           {
-            server_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtubepot-bgutilhttp:base_url=http://127.0.0.1:${{ env.PORT }}" dQw4w9WgXcQ 2>&1)
+            server_response=$(./yt-dlp ${{ env.TEST_ARGS }} --extractor-args "youtubepot-bgutilhttp:base_url=http://127.0.0.1:${{ env.PORT }} --extractor-args "youtube:player-client=web;" dQw4w9WgXcQ 2>&1)
             ret=$?
           } || true
 
