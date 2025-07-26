@@ -223,9 +223,9 @@ export class SessionManager {
     }
 
     public setYoutubeSessionDataCaches(
-        youtubeSessionData: YoutubeSessionDataCaches = {},
+        youtubeSessionData?: YoutubeSessionDataCaches,
     ) {
-        this.youtubeSessionDataCaches = youtubeSessionData || {};
+        this.youtubeSessionDataCaches = youtubeSessionData;
     }
 
     public async generateVisitorData(): Promise<string | null> {
