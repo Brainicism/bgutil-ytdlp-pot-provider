@@ -27,6 +27,7 @@
         "https-socks-proxy": "^2.2.0",
         "proxy-agent": "^6.5.0",
         "jsdom": "^26.1.0",
+        "proxy-agent": "^6.5.0",
         "youtubei.js": "^15.0.1"
     },
     "devDependencies": {
