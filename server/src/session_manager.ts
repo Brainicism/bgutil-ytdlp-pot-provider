@@ -168,7 +168,6 @@ export class SessionManager {
         private youtubeSessionDataCaches?: YoutubeSessionDataCaches,
     ) {
         this.logger = new Logger(shouldLog);
-        this.setYoutubeSessionDataCaches(youtubeSessionDataCaches);
         this.TOKEN_TTL_HOURS = process.env.TOKEN_TTL
             ? parseInt(process.env.TOKEN_TTL)
             : 6;
