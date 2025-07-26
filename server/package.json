@@ -18,32 +18,32 @@
         "format": "npx prettier --write 'src/**/*.{js,ts}'"
     },
     "dependencies": {
-        "axios": "^1.7.9",
-        "bgutils-js": "^3.1.1",
-        "body-parser": "^1.20.3",
+        "axios": "^1.11.0",
+        "bgutils-js": "^3.2.0",
+        "body-parser": "^2.2.0",
         "commander": "github:tj/commander.js.git#develop",
-        "express": "^4.21.2",
+        "express": "^5.1.0",
         "https-proxy-agent": "^7.0.6",
         "https-socks-proxy": "^2.2.0",
-        "jsdom": "^25.0.1",
         "proxy-agent": "^6.5.0",
-        "youtubei.js": "^13.4.0"
+        "jsdom": "^26.1.0",
+        "youtubei.js": "^15.0.1"
     },
     "devDependencies": {
         "@commander-js/extra-typings": "github:commander-js/extra-typings.git#develop",
-        "@eslint/js": "^9.17.0",
-        "@types/body-parser": "^1.19.5",
-        "@types/express": "^5.0.0",
+        "@eslint/js": "^9.32.0",
+        "@types/body-parser": "^1.19.6",
+        "@types/express": "^5.0.3",
         "@types/jsdom": "^21.1.7",
-        "@types/node": "^22.10.2",
-        "@typescript-eslint/parser": "^8.18.2",
-        "eslint": "^9.17.0",
-        "eslint-config-prettier": "^9.1.0",
+        "@types/node": "^24.1.0",
+        "@typescript-eslint/parser": "^8.38.0",
+        "eslint": "^9.32.0",
+        "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-only-warn": "^1.1.0",
-        "eslint-plugin-prettier": "^5.2.1",
-        "prettier": "3.4.2",
+        "eslint-plugin-prettier": "^5.5.3",
+        "prettier": "3.6.2",
         "ts-node": "^10.9.2",
-        "typescript": "^5.7.2",
-        "typescript-eslint": "^8.18.2"
+        "typescript": "^5.8.3",
+        "typescript-eslint": "^8.38.0"
     }
 }
