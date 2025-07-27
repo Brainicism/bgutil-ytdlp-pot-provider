@@ -26,7 +26,7 @@ The provider comes in two parts:
 1. Requires yt-dlp `2025.05.22` or above.
 
 2. If using Docker image for option (a) for the provider, the Docker runtime is required.  
-   Otherwise, Node.js (>= 18) and Yarn are required. You will also need git to clone the repository.
+   Otherwise, Node.js (>= 18) is required. You will also need git to clone the repository.
 
 ### 1. Set up the provider
 
@@ -48,7 +48,7 @@ docker run --name bgutil-provider -d -p 4416:4416 --init brainicism/bgutil-ytdlp
 # Replace 1.1.0 with the latest version or the one that matches the plugin
 git clone --single-branch --branch 1.1.0 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
 cd bgutil-ytdlp-pot-provider/server/
-yarn install --frozen-lockfile
+npm install
 npx tsc
 node build/main.js
 ```
@@ -81,7 +81,7 @@ cd ~
 # Replace 1.1.0 with the latest version or the one that matches the plugin
 git clone --single-branch --branch 1.1.0 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
 cd bgutil-ytdlp-pot-provider/server/
-yarn install --frozen-lockfile
+npm install
 npx tsc
 ```
 
