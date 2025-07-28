@@ -12,7 +12,7 @@ concurrency:
 env:
   TEST_ARGS: >
     -vF --color always
-    --extractor-args "youtube:player-client=web,web_music,mweb;pot_trace=true" \
+    --extractor-args "youtube:player-client=web,web_music,mweb;pot_trace=true"
     --ignore-no-formats-error
 
 jobs:
