@@ -2,7 +2,6 @@ import { SessionManager } from "./session_manager";
 import { VERSION } from "./version";
 import { Command } from "commander";
 import express from "express";
-import bodyParser from "body-parser";
 
 const program = new Command().option("-p, --port <PORT>").parse();
 
@@ -11,7 +10,7 @@ const options = program.opts();
 const PORT_NUMBER = options.port || 4416;
 
 const httpServer = express();
-httpServer.use(bodyParser.json());
+httpServer.use(express.json());
 
 httpServer.listen({
     host: "0.0.0.0",
@@ -22,6 +21,10 @@ console.log(`Started POT server (v${VERSION}) on port ${PORT_NUMBER}`);
 
 const sessionManager = new SessionManager();
 httpServer.post("/get_pot", async (request, response) => {
+    if (!request.body) {
+        request.body = {};
+    }
+
     if (request.body.data_sync_id) {
         console.error(
             "data_sync_id is deprecated, use content_binding instead",
