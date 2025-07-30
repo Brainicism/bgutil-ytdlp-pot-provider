@@ -46,7 +46,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x" # keep in sync with yt-dlp's python requirement
-          cache: "pip"
       - name: Download yt-dlp
         run: curl -L https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp -o yt-dlp && chmod +x ./yt-dlp
       - name: Install and build server dependencies
@@ -119,7 +118,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x" # keep in sync with yt-dlp's python requirement
-          cache: "pip"
       - name: Download yt-dlp
         run: curl -L https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp -o yt-dlp && chmod +x ./yt-dlp
       - name: Install plugin
