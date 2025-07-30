@@ -109,10 +109,10 @@ jobs:
     name: Test plugin (server method)
     runs-on: ubuntu-latest
     env:
-      PORT: ${{ 4426 }}
+      PORT: 4426
       # Interval/Timeout in seconds to wait for the server to be up
-      INTERVAL: ${{ 0.5 }}
-      TIMEOUT: ${{ 7.5 }}
+      INTERVAL: 0.5
+      TIMEOUT: 7.5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -161,7 +161,11 @@ jobs:
           # check that the server is returning a POT
           pot_response=$(curl -s -X POST "http://127.0.0.1:${{ env.PORT }}/get_pot")
           echo "::group::Get pot response from the HTTP server"
-          echo "$pot_response" | jq -C
+          if echo "$pot_response" | jq -e . >/dev/null 2>&1; then
+            echo "$pot_response" | jq -C
+          else
+            echo "$pot_response"
+          fi
           echo "::endgroup::"
           poToken=$(echo "$pot_response" | jq -r '.poToken')
           contentBinding=$(echo "$pot_response" | jq -r '.contentBinding')
