@@ -12,6 +12,7 @@ const PORT_NUMBER = options.port || 4416;
 
 const httpServer = express();
 httpServer.use(bodyParser.json());
+httpServer.use(bodyParser.urlencoded({ extended: true }));
 
 httpServer.listen({
     host: "0.0.0.0",
@@ -22,24 +23,25 @@ console.log(`Started POT server (v${VERSION}) on port ${PORT_NUMBER}`);
 
 const sessionManager = new SessionManager();
 httpServer.post("/get_pot", async (request, response) => {
-    if (request.body.data_sync_id) {
+    const body = request.body || {};
+    if (body.data_sync_id) {
         console.error(
             "data_sync_id is deprecated, use content_binding instead",
         );
         process.exit(1);
     }
-    if (request.body.visitor_data) {
+    if (body.visitor_data) {
         console.error(
             "visitor_data is deprecated, use content_binding instead",
         );
         process.exit(1);
     }
-    const contentBinding: string | undefined = request.body.content_binding;
-    const proxy: string = request.body.proxy;
-    const bypassCache: boolean = request.body.bypass_cache || false;
-    const sourceAddress: string | undefined = request.body.source_address;
+    const contentBinding: string | undefined = body.content_binding;
+    const proxy: string = body.proxy;
+    const bypassCache: boolean = body.bypass_cache || false;
+    const sourceAddress: string | undefined = body.source_address;
     const disableTlsVerification: boolean =
-        request.body.disable_tls_verification || false;
+        body.disable_tls_verification || false;
 
     try {
         const sessionData = await sessionManager.generatePoToken(
