@@ -2,7 +2,7 @@ FROM node:20-slim AS build
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm install
+RUN npm install --production
 
 COPY tsconfig.json ./
 COPY src/ src/
