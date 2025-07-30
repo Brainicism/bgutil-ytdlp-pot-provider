@@ -2,7 +2,6 @@ import { SessionManager } from "./session_manager";
 import { VERSION } from "./version";
 import { Command } from "commander";
 import express from "express";
-import bodyParser from "body-parser";
 
 const program = new Command().option("-p, --port <PORT>").parse();
 
@@ -11,8 +10,8 @@ const options = program.opts();
 const PORT_NUMBER = options.port || 4416;
 
 const httpServer = express();
-httpServer.use(bodyParser.json());
-httpServer.use(bodyParser.urlencoded({ extended: true }));
+httpServer.use(express.json());
+httpServer.use(express.urlencoded({ extended: true }));
 
 httpServer.listen({
     host: "0.0.0.0",
