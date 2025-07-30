@@ -151,7 +151,11 @@ jobs:
           Timeout reached before the server is up." && exit 1)
 
           echo "::group::Response from HTTP server"
-          echo "$PING_RESP" | jq -C
+          if echo "$PING_RESP" | jq -e . >/dev/null 2>&1; then
+            echo "$PING_RESP" | jq -C
+          else
+            echo "$PING_RESP"
+          fi
           echo "::endgroup::"
 
           # check that the server is returning a POT
