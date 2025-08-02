@@ -10,7 +10,7 @@ import {
     USER_AGENT,
 } from "bgutils-js";
 import { Agent } from "https";
-import { ProxyAgent, ProxyAgentOptions } from "proxy-agent";
+import { ProxyAgent } from "proxy-agent";
 import { JSDOM } from "jsdom";
 import { Innertube, Context as InnertubeContext } from "youtubei.js";
 
@@ -54,10 +54,7 @@ class ProxySpec {
     public proxyUrl?: URL;
     public sourceAddress?: string;
     public disableTlsVerification: boolean = false;
-    constructor({
-        sourceAddress,
-        disableTlsVerification,
-    }: Partial<ProxySpec>) {
+    constructor({ sourceAddress, disableTlsVerification }: Partial<ProxySpec>) {
         this.sourceAddress = sourceAddress;
         this.disableTlsVerification = disableTlsVerification || false;
     }
@@ -82,7 +79,10 @@ class ProxySpec {
         }
     }
 
-    public asDispatcher(this: Readonly<this>, logger: Logger): Agent | undefined {
+    public asDispatcher(
+        this: Readonly<this>,
+        logger: Logger,
+    ): Agent | undefined {
         const { proxyUrl, sourceAddress, disableTlsVerification } = this;
         if (!proxyUrl) {
             return new Agent({
@@ -94,7 +94,9 @@ class ProxySpec {
         const pxyStr = this.proxy!;
         const { password } = proxyUrl;
 
-        let loggedProxy = password ? pxyStr.replace(password, "****") : pxyStr;
+        const loggedProxy = password
+            ? pxyStr.replace(password, "****")
+            : pxyStr;
 
         logger.log(`Using proxy: ${loggedProxy}`);
         try {
@@ -499,14 +501,14 @@ export class SessionManager {
 
         this.cleanupCaches();
 
-        let pxySpec = new ProxySpec({
+        const pxySpec = new ProxySpec({
             sourceAddress,
             disableTlsVerification,
         });
         if (proxy) {
             pxySpec.proxy = proxy;
         } else {
-            pxySpec.proxy = 
+            pxySpec.proxy =
                 process.env.HTTPS_PROXY ||
                 process.env.HTTP_PROXY ||
                 process.env.ALL_PROXY;
