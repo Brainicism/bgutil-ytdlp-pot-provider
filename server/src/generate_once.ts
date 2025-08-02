@@ -108,6 +108,9 @@ const options = program.opts();
             options.bypassCache || false,
             options.sourceAddress,
             options.disableTlsVerification || false,
+            undefined,  // challenge
+            true,  // disableInnertube
+            undefined,  // innertubeContext
         );
 
         try {

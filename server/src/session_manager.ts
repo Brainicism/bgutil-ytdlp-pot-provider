@@ -284,7 +284,7 @@ export class SessionManager {
         } catch (e) {
             if (e === null)
                 this.logger.debug(
-                    "Using /Create endpoint as innertube challenges are disabled",
+                    "Using the /Create endpoint as innertube challenges are disabled",
                 );
             else
                 this.logger.warn(
