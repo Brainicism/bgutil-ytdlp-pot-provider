@@ -1,3 +1,4 @@
+import axios, { AxiosRequestConfig } from "axios";
 import {
     BG,
     BgConfig,
@@ -8,11 +9,9 @@ import {
     getHeaders,
     USER_AGENT,
 } from "bgutils-js";
-import { JSDOM } from "jsdom";
-import { HttpsProxyAgent } from "https-proxy-agent";
-import axios, { AxiosRequestConfig } from "axios";
 import { Agent } from "https";
-import { SocksProxyAgent } from "https-socks-proxy";
+import { ProxyAgent, ProxyAgentOptions } from "proxy-agent";
+import { JSDOM } from "jsdom";
 import { Innertube, Context as InnertubeContext } from "youtubei.js";
 
 interface YoutubeSessionData {
@@ -52,74 +51,62 @@ class Logger {
 }
 
 class ProxySpec {
-    public proxy?: string;
+    public proxyUrl?: URL;
     public sourceAddress?: string;
     public disableTlsVerification: boolean = false;
     constructor({
-        proxy,
         sourceAddress,
         disableTlsVerification,
     }: Partial<ProxySpec>) {
-        this.proxy = proxy;
         this.sourceAddress = sourceAddress;
         this.disableTlsVerification = disableTlsVerification || false;
     }
-    public asDispatcher(logger: Logger): Agent | undefined {
-        const { proxy, sourceAddress, disableTlsVerification } = this;
-        let sanitizedProxy = proxy;
-        if (!sanitizedProxy) {
+
+    public get proxy(): string | undefined {
+        return this.proxyUrl?.href;
+    }
+
+    public set proxy(newProxy: string | undefined) {
+        if (newProxy) {
+            // Normalize and sanitize the proxy URL
+            try {
+                this.proxyUrl = new URL(newProxy);
+            } catch {
+                newProxy = `http://${newProxy}`;
+                try {
+                    this.proxyUrl = new URL(newProxy);
+                } catch (e) {
+                    throw new Error(`Invalid proxy URL: ${newProxy} (${e})`);
+                }
+            }
+        }
+    }
+
+    public asDispatcher(this: Readonly<this>, logger: Logger): Agent | undefined {
+        const { proxyUrl, sourceAddress, disableTlsVerification } = this;
+        if (!proxyUrl) {
             return new Agent({
                 localAddress: sourceAddress,
                 rejectUnauthorized: !disableTlsVerification,
             });
         }
-        let protocol: string;
-        try {
-            const parsedUrl = new URL(sanitizedProxy);
-            protocol = parsedUrl.protocol.replace(":", "");
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (e) {
-            // assume http if no protocol was passed
-            protocol = "http";
-            sanitizedProxy = `http://${sanitizedProxy}`;
-        }
+        // Proxy must be a string as long as the URL is truthy
+        const pxyStr = this.proxy!;
+        const { password } = proxyUrl;
 
-        let loggedProxy: string = sanitizedProxy;
-        try {
-            const parsedUrl = new URL(sanitizedProxy);
-            if (parsedUrl.password) {
-                loggedProxy = sanitizedProxy.replace(
-                    parsedUrl.password,
-                    "****",
-                );
-            }
-        } catch (e) {
-            logger.warn(`Fail to parse proxy url ${sanitizedProxy}: ${e}`);
-            return undefined;
-        }
+        let loggedProxy = password ? pxyStr.replace(password, "****") : pxyStr;
 
-        switch (protocol) {
-            case "http":
-            case "https":
-                logger.log(`Using HTTP/HTTPS proxy: ${loggedProxy}`);
-                return new HttpsProxyAgent(sanitizedProxy, {
-                    rejectUnauthorized: !disableTlsVerification,
-                    localAddress: sourceAddress,
-                });
-            case "socks":
-            case "socks4":
-            case "socks4a":
-            case "socks5":
-            case "socks5h": {
-                logger.log(`Using SOCKS proxy: ${loggedProxy}`);
-                const agent = new SocksProxyAgent(sanitizedProxy);
-                agent.options.localAddress = sourceAddress;
-                agent.options.rejectUnauthorized = !disableTlsVerification;
-                return agent;
-            }
-            default:
-                logger.warn(`Unsupported proxy protocol: ${loggedProxy}`);
-                return undefined;
+        logger.log(`Using proxy: ${loggedProxy}`);
+        try {
+            return new ProxyAgent({
+                getProxyForUrl: () => pxyStr,
+                localAddress: sourceAddress,
+                rejectUnauthorized: !disableTlsVerification,
+            });
+        } catch (e) {
+            throw new Error(
+                `Failed to create proxy agent for ${loggedProxy}: ${e}`,
+            );
         }
     }
 }
@@ -512,23 +499,19 @@ export class SessionManager {
 
         this.cleanupCaches();
 
-        let pxySpec: ProxySpec;
+        let pxySpec = new ProxySpec({
+            sourceAddress,
+            disableTlsVerification,
+        });
         if (proxy) {
-            pxySpec = new ProxySpec({
-                proxy,
-                sourceAddress,
-                disableTlsVerification,
-            });
+            pxySpec.proxy = proxy;
         } else {
-            pxySpec = new ProxySpec({
-                proxy:
-                    process.env.HTTPS_PROXY ||
-                    process.env.HTTP_PROXY ||
-                    process.env.ALL_PROXY,
-                sourceAddress,
-                disableTlsVerification,
-            });
+            pxySpec.proxy = 
+                process.env.HTTPS_PROXY ||
+                process.env.HTTP_PROXY ||
+                process.env.ALL_PROXY;
         }
+
         const cacheSpec = new CacheSpec(
             pxySpec,
             innertubeContext?.client.remoteHost || null,
