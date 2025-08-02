@@ -74,7 +74,6 @@ httpServer.post("/invalidate_it", async (request, response) => {
 
 httpServer.get("/ping", async (request, response) => {
     response.send({
-        token_ttl_hours: process.env.TOKEN_TTL || 6,
         server_uptime: process.uptime(),
         version: VERSION,
     });

@@ -24,7 +24,6 @@ If you are interested in using the script/server standalone for generating your 
         - `contentBinding`: The generated or passed [content binding](#content-binding).
         - `expiresAt`: The expiry timestamp of the POT entry.
 - **GET /ping**: Ping the server. The response includes:
-    - `token_ttl_hours`: The current applied `TOKEN_TTL` value, defaults to 6.
     - `server_uptime`: Uptime of the server process in seconds.
     - `version`: Current server version.
 
