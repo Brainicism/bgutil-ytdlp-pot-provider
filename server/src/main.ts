@@ -49,9 +49,9 @@ httpServer.post("/get_pot", async (request, response) => {
             bypassCache,
             sourceAddress,
             disableTlsVerification,
-            request.body.challenge,
-            request.body.disable_innertube || false,
-            request.body.innertube_context,
+            body.challenge,
+            body.disable_innertube || false,
+            body.innertube_context,
         );
 
         response.send(sessionData);
