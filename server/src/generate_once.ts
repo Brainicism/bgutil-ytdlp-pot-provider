@@ -99,7 +99,7 @@ const options = program.opts();
         }
     }
 
-    const sessionManager = new SessionManager(verbose, cache);
+    const sessionManager = new SessionManager(verbose, cache || {});
 
     try {
         const sessionData = await sessionManager.generatePoToken(
@@ -108,6 +108,9 @@ const options = program.opts();
             options.bypassCache || false,
             options.sourceAddress,
             options.disableTlsVerification || false,
+            undefined, // challenge
+            true, // disableInnertube
+            undefined, // innertubeContext
         );
 
         try {

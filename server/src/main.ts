@@ -49,6 +49,9 @@ httpServer.post("/get_pot", async (request, response) => {
             bypassCache,
             sourceAddress,
             disableTlsVerification,
+            request.body.challenge,
+            request.body.disable_innertube || false,
+            request.body.innertube_context,
         );
 
         response.send(sessionData);
@@ -62,13 +65,22 @@ httpServer.post("/get_pot", async (request, response) => {
 
 httpServer.post("/invalidate_caches", async (request, response) => {
     sessionManager.invalidateCaches();
-    response.send();
+    response.status(204).send();
+});
+
+httpServer.post("/invalidate_it", async (request, response) => {
+    sessionManager.invalidateIT();
+    response.status(204).send();
 });
 
 httpServer.get("/ping", async (request, response) => {
     response.send({
-        token_ttl_hours: process.env.TOKEN_TTL || 6,
         server_uptime: process.uptime(),
         version: VERSION,
     });
+});
+
+httpServer.get("/minter_cache", async (request, response) => {
+    console.debug(sessionManager.minterCache);
+    response.send(Array.from(sessionManager.minterCache.keys()));
 });

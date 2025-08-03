@@ -45,7 +45,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.9" # keep in sync with yt-dlp's python requirement
+          python-version: "3.x" # keep in sync with yt-dlp's python requirement
       - name: Download yt-dlp
         run: curl -L https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp -o yt-dlp && chmod +x ./yt-dlp
       - name: Install and build server dependencies
@@ -62,7 +62,7 @@ jobs:
           echo "script version: $(node server/build/generate_once.js --version)"
 
           # check that the script is returning a POT
-          script_output=$(node server/build/generate_once.js)
+          script_output=$(node server/build/generate_once.js | tail -n 1)
           echo "::group::POT response from the script"
           echo "$script_output" | jq -C
           echo "::endgroup::"
@@ -95,7 +95,7 @@ jobs:
             [ "$exit_code" -eq 0 ] && exit_code=1
           fi
 
-          pot_response=$(echo "$script_response" | grep -A1 -m1 '\[youtube\] \[pot:bgutil:script\] TRACE: stdout:' | tail -n1 | jq -r '.poToken')
+          pot_response=$(echo "$script_response" | grep -A1 -m1 '\[youtube\] \[pot:bgutil:script\] TRACE: JSON response:' | tail -n1 | jq -r '.poToken')
           echo "POT: $pot_response"
           if [[ "$pot_response" == "null" || -z "$pot_response" || "$pot_response" == '""' ]]; then
              echo "::error title=Failed to generate POT,file=plugin/yt_dlp_plugins/extractor/getpot_bgutil_script.py::\
@@ -117,7 +117,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.9" # keep in sync with yt-dlp's python requirement
+          python-version: "3.x" # keep in sync with yt-dlp's python requirement
       - name: Download yt-dlp
         run: curl -L https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp -o yt-dlp && chmod +x ./yt-dlp
       - name: Install plugin

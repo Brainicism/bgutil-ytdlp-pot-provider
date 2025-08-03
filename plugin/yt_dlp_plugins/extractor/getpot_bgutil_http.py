@@ -1,16 +1,8 @@
 from __future__ import annotations
 
-import contextlib
 import functools
 import json
 import time
-
-from yt_dlp.extractor.youtube.pot.utils import get_webpo_content_binding
-from yt_dlp.networking.common import Request
-from yt_dlp.networking.exceptions import HTTPError, TransportError
-
-with contextlib.suppress(ImportError):
-    from yt_dlp_plugins.extractor.getpot_bgutil import BgUtilPTPBase
 
 from yt_dlp.extractor.youtube.pot.provider import (
     PoTokenProviderError,
@@ -20,6 +12,11 @@ from yt_dlp.extractor.youtube.pot.provider import (
     register_preference,
     register_provider,
 )
+from yt_dlp.extractor.youtube.pot.utils import get_webpo_content_binding
+from yt_dlp.networking.common import Request
+from yt_dlp.networking.exceptions import HTTPError, TransportError
+
+from yt_dlp_plugins.extractor.getpot_bgutil import BgUtilPTPBase
 
 
 @register_provider
@@ -111,15 +108,20 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
         # used for CI check
         self.logger.trace('Generating POT via HTTP server')
 
+        disable_innertube = bool(self._configuration_arg('disable_innertube', default=[None])[0])
+
         try:
             response = self._request_webpage(
                 request=Request(
                     f'{self._base_url}/get_pot', data=json.dumps({
-                        'content_binding': get_webpo_content_binding(request)[0],
-                        'proxy': request.request_proxy,
                         'bypass_cache': request.bypass_cache,
-                        'source_address': request.request_source_address,
+                        'challenge': self._get_attestation(None if disable_innertube else request.video_webpage),
+                        'content_binding': get_webpo_content_binding(request)[0],
+                        'disable_innertube': disable_innertube,
                         'disable_tls_verification': not request.request_verify_tls,
+                        'proxy': request.request_proxy,
+                        'innertube_context': request.innertube_context,
+                        'source_address': request.request_source_address,
                     }).encode(), headers={'Content-Type': 'application/json'},
                     extensions={'timeout': self._GETPOT_TIMEOUT}, proxies={'all': None}),
                 note=f'Generating a {request.context.value} PO Token for '
@@ -139,7 +141,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
             raise PoTokenProviderError(error_msg)
         if 'poToken' not in response_json:
             raise PoTokenProviderError(
-                f'Server did not respond with a poToken. Received response: {json.dumps(response_json)}')
+                f'Server did not respond with a poToken. Received response: {response}')
 
         po_token = response_json['poToken']
         self.logger.trace(f'Generated POT: {po_token}')

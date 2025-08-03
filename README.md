@@ -30,7 +30,7 @@ The provider comes in two parts:
 
 ### 1. Set up the provider
 
-There are two options for the provider, an always running POT generation HTTP server, and a POT generation script invoked when needed. The HTTP server option is simpler, and comes with a prebuilt Docker image. **You only need to choose one option.**
+There are two options for the provider, an always running POT generation HTTP server, and a POT generation script invoked when needed. The HTTP server option is simpler, faster, and comes with a prebuilt Docker image. **You only need to choose one option.**
 
 #### (a) HTTP Server Option
 
@@ -53,18 +53,9 @@ npx tsc
 node build/main.js
 ```
 
-<details>
-  <summary>Server Command Line Options/Endpoints/Environment Variables</summary>
-
-**Options**
+**Server Command Line Options**
 
 - `-p, --port <PORT>`: The port on which the server listens.
-
-**Environment Variables**
-
-- **TOKEN_TTL**: The time in hours for a PO token to be considered valid. While there are no definitive answers on how long a token is valid, it has been observed to be valid for atleast a couple of days (Default: 6).
-
-</details>
 
 #### (b) Generation Script Option
 
@@ -118,6 +109,14 @@ If changing the port or IP used for the provider server, pass it to yt-dlp via `
 --extractor-args "youtubepot-bgutilhttp:base_url=http://127.0.0.1:8080"
 ```
 
+If the tokens are no longer working, passing `disable_innertube=1` to yt-dlp restores the legacy behaviour and _might_ help
+
+```shell
+--extractor-args "youtubepot-bgutilhttp:base_url=http://127.0.0.1:8080;disable_innertube=1"
+```
+
+Note that when you pass multiple extractor arguments to one provider or extractor, they are to be separated by semicolons(`;`) as shown above. Multiple `--extractor-args` will **NOT** work for the same provier/extractor.
+
 ---
 
 If using option (b) script for the provider, with the default script location in your home directory (i.e: `~/bgutil-ytdlp-pot-provider` or `%USERPROFILE%\bgutil-ytdlp-pot-provider`), you can also use yt-dlp like normal.
@@ -130,8 +129,8 @@ If you installed the script in a different location, pass it as the extractor ar
 
 ---
 
-We use a cache internally for all generated tokens. You can change the TTL (time to live) for the token cache with the environment variable `TOKEN_TTL`. It's currently impossible to use different TTLs for different token contexts (can be `gvs` or `player`, see [Technical Details](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide#technical-details) in the PO Token Guide). The environment variable is in hours and defaults to 6.  
-When using the script method, the environment variables will be passed down to the script. You can pass a `TOKEN_TTL` to yt-dlp to use a custom TTL.
+We use a cache internally for all generated tokens when option (b) script is used. You can change the TTL (time to live) for the token cache with the environment variable `TOKEN_TTL` (in hours, defaults to 6). It's currently impossible to use different TTLs for different token contexts (can be `gvs`, `player`, or `subs`, see [Technical Details](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide#technical-details) from the PO Token Guide).  
+That is, when using the script method, you can pass a `TOKEN_TTL` to yt-dlp to use a custom TTL for PO Tokens.
 
 ---
 
