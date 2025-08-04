@@ -1,5 +1,5 @@
 import { SessionManager } from "./session_manager.js";
-import { VERSION } from "./version.js";
+import { strerror, VERSION } from "./utils.js";
 import { Command } from "commander";
 import express from "express";
 
@@ -13,28 +13,31 @@ const httpServer = express();
 httpServer.use(express.json());
 httpServer.use(express.urlencoded({ extended: true }));
 
-httpServer.listen({
-    host: "0.0.0.0",
-    port: PORT_NUMBER,
-});
-
-console.log(`Started POT server (v${VERSION}) on port ${PORT_NUMBER}`);
+httpServer.listen(
+    {
+        host: "0.0.0.0",
+        port: PORT_NUMBER,
+    },
+    () => {
+        console.log(`Started POT server (v${VERSION}) on port ${PORT_NUMBER}`);
+    },
+);
 
 const sessionManager = new SessionManager();
 httpServer.post("/get_pot", async (request, response) => {
     const body = request.body || {};
-    if (body.data_sync_id) {
-        console.error(
-            "data_sync_id is deprecated, use content_binding instead",
-        );
-        process.exit(1);
-    }
-    if (body.visitor_data) {
-        console.error(
-            "visitor_data is deprecated, use content_binding instead",
-        );
-        process.exit(1);
-    }
+    if (body.data_sync_id)
+        return response
+            .status(400)
+            .send({
+                error: "data_sync_id is deprecated, use content_binding instead",
+            });
+    if (body.visitor_data)
+        return response
+            .status(400)
+            .send({
+                error: "visitor_data is deprecated, use content_binding instead",
+            });
     const contentBinding: string | undefined = body.content_binding;
     const proxy: string = body.proxy;
     const bypassCache: boolean = body.bypass_cache || false;
@@ -56,10 +59,9 @@ httpServer.post("/get_pot", async (request, response) => {
 
         response.send(sessionData);
     } catch (e) {
-        console.error(
-            `Failed while generating POT. err.name = ${e.name}. err.message = ${e.message}. err.stack = ${e.stack}`,
-        );
-        response.status(500).send({ error: JSON.stringify(e) });
+        const msg = strerror(e, /*update=*/true);
+        console.error(e.stack);
+        response.status(500).send({ error: msg });
     }
 });
 

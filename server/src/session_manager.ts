@@ -13,6 +13,7 @@ import { Agent } from "https";
 import { ProxyAgent } from "proxy-agent";
 import { JSDOM } from "jsdom";
 import { Innertube, Context as InnertubeContext } from "youtubei.js";
+import { strerror } from "./utils.js";
 
 interface YoutubeSessionData {
     poToken: string;
@@ -73,7 +74,9 @@ class ProxySpec {
                 try {
                     this.proxyUrl = new URL(newProxy);
                 } catch (e) {
-                    throw new Error(`Invalid proxy URL: ${newProxy} (${e})`);
+                    throw new Error(`Invalid proxy URL: ${newProxy}`, {
+                        cause: e,
+                    });
                 }
             }
         }
@@ -106,9 +109,9 @@ class ProxySpec {
                 rejectUnauthorized: !disableTlsVerification,
             });
         } catch (e) {
-            throw new Error(
-                `Failed to create proxy agent for ${loggedProxy}: ${e}`,
-            );
+            throw new Error(`Failed to create proxy agent for ${loggedProxy}`, {
+                cause: e,
+            });
         }
     }
 }
@@ -288,7 +291,7 @@ export class SessionManager {
                 );
             else
                 this.logger.warn(
-                    `Failed to get descrambled challenge from Innertube, trying the /Create endpoint. err = ${e}`,
+                    `Failed to get descrambled challenge from Innertube, trying the /Create endpoint. (Caused by ${strerror(e)})`,
                 );
             try {
                 const descrambledChallenge =
@@ -296,7 +299,7 @@ export class SessionManager {
                 if (descrambledChallenge) return descrambledChallenge;
             } catch (eInner) {
                 throw new Error(
-                    `Error while attempting to retrieve BG challenge. err = ${JSON.stringify(eInner)}`,
+                    `Error while attempting to retrieve BG challenge.`,
                     { cause: eInner },
                 );
             }
@@ -335,10 +338,7 @@ export class SessionManager {
                 globalObj: bgConfig.globalObj,
             });
         } catch (e) {
-            throw new Error(
-                `Failed to create BG client. err.name = ${e.name}. err.message = ${e.message}. err.stack = ${e.stack}`,
-                { cause: e },
-            );
+            throw new Error(`Failed to create BG client.`, { cause: e });
         }
         try {
             const webPoSignalOutput: WebPoSignalOutput = [];
@@ -395,12 +395,9 @@ export class SessionManager {
             this._minterCache.set(cacheSpec.key, tokenMinter);
             return tokenMinter;
         } catch (e) {
-            throw new Error(
-                `Failed to generate an integrity token: ${e.message}`,
-                {
-                    cause: e,
-                },
-            );
+            throw new Error(`Failed to generate an integrity token.`, {
+                cause: e,
+            });
         }
     }
 
@@ -454,7 +451,10 @@ export class SessionManager {
                         : axios.post(url, options?.body, axiosOpt));
 
                     return {
-                        ok: response.status >= 200 && response.status < 300,
+                        ok:
+                            false &&
+                            response.status >= 200 &&
+                            response.status < 300,
                         status: response.status,
                         json: async () => response.data,
                         text: async () =>
@@ -465,7 +465,8 @@ export class SessionManager {
                 } catch (e) {
                     if (attempts >= maxRetries)
                         throw new Error(
-                            `Error reaching ${method} ${url}: All ${attempts} retries failed: ${e}`,
+                            `Error reaching ${method} ${url}: All ${attempts} retries failed.`,
+                            { cause: e },
                         );
                     await new Promise((resolve) =>
                         setTimeout(resolve, intervalMs),
@@ -486,16 +487,12 @@ export class SessionManager {
         innertubeContext?: InnertubeContext,
     ): Promise<YoutubeSessionData> {
         if (!contentBinding) {
-            this.logger.error(
+            this.logger.warn(
                 "No content binding provided, generating visitor data via Innertube...",
             );
             const visitorData = await this.generateVisitorData();
-            if (!visitorData) {
-                this.logger.error(
-                    "Unable to generate visitor data via Innertube",
-                );
+            if (!visitorData)
                 throw new Error("Unable to generate visitor data");
-            }
             contentBinding = visitorData;
         }
 

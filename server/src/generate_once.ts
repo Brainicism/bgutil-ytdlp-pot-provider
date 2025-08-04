@@ -1,5 +1,5 @@
 import { SessionManager, YoutubeSessionDataCaches } from "./session_manager.js";
-import { VERSION } from "./version.js";
+import { VERSION } from "./utils.js";
 import { Command } from "commander";
 import * as fs from "fs";
 import * as path from "path";
