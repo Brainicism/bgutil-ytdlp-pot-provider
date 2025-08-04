@@ -27,17 +27,13 @@ const sessionManager = new SessionManager();
 httpServer.post("/get_pot", async (request, response) => {
     const body = request.body || {};
     if (body.data_sync_id)
-        return response
-            .status(400)
-            .send({
-                error: "data_sync_id is deprecated, use content_binding instead",
-            });
+        return response.status(400).send({
+            error: "data_sync_id is deprecated, use content_binding instead",
+        });
     if (body.visitor_data)
-        return response
-            .status(400)
-            .send({
-                error: "visitor_data is deprecated, use content_binding instead",
-            });
+        return response.status(400).send({
+            error: "visitor_data is deprecated, use content_binding instead",
+        });
     const contentBinding: string | undefined = body.content_binding;
     const proxy: string = body.proxy;
     const bypassCache: boolean = body.bypass_cache || false;
@@ -59,7 +55,7 @@ httpServer.post("/get_pot", async (request, response) => {
 
         response.send(sessionData);
     } catch (e) {
-        const msg = strerror(e, /*update=*/true);
+        const msg = strerror(e, /*update=*/ true);
         console.error(e.stack);
         response.status(500).send({ error: msg });
     }

@@ -451,10 +451,7 @@ export class SessionManager {
                         : axios.post(url, options?.body, axiosOpt));
 
                     return {
-                        ok:
-                            false &&
-                            response.status >= 200 &&
-                            response.status < 300,
+                        ok: response.status >= 200 && response.status < 300,
                         status: response.status,
                         json: async () => response.data,
                         text: async () =>
