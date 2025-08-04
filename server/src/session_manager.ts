@@ -291,7 +291,7 @@ export class SessionManager {
                 );
             else
                 this.logger.warn(
-                    `Failed to get descrambled challenge from Innertube, trying the /Create endpoint. (Caused by ${strerror(e)})`,
+                    `Failed to get descrambled challenge from Innertube, trying the /Create endpoint. (caused by ${strerror(e)})`,
                 );
             try {
                 const descrambledChallenge =
