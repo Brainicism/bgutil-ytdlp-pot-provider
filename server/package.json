@@ -30,7 +30,7 @@
         "youtubei.js": "^15.0.1"
     },
     "devDependencies": {
-        "@commander-js/extra-typings": "github:commander-js/extra-typings.git#develop",
+        "@commander-js/extra-typings": "^14.0.0",
         "@eslint/js": "^9.32.0",
         "@types/body-parser": "^1.19.6",
         "@types/express": "^5.0.3",
