@@ -150,7 +150,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
 
 @register_preference(BgUtilHTTPPTP)
 def bgutil_HTTP_getpot_preference(provider, request):
-    return 100
+    return 130
 
 
 __all__ = [BgUtilHTTPPTP.__name__,
