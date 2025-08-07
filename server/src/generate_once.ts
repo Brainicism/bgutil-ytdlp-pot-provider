@@ -3,6 +3,7 @@ import { VERSION } from "./utils.js";
 import { Command } from "commander";
 import * as fs from "fs";
 import * as path from "path";
+import { fileURLToPath } from "url";
 
 // Follow XDG Base Directory Specification: https://specifications.freedesktop.org/basedir-spec/latest/
 let cachedir;
@@ -19,6 +20,10 @@ if ("XDG_CACHE_HOME" in process.env) {
     );
 } else {
     // fall back to a known path if environment variables are not found
+    // TODO: repalce this with import.meta.dirname when we raise node requirement to >= 20
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+
     cachedir = path.resolve(__dirname, "..");
 }
 if (!fs.existsSync(cachedir)) {
