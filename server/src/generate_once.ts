@@ -7,14 +7,15 @@ import { fileURLToPath } from "url";
 
 // Follow XDG Base Directory Specification: https://specifications.freedesktop.org/basedir-spec/latest/
 let cachedir;
+const homeDirectory = process.env.HOME || process.env.USERPROFILE;
 if ("XDG_CACHE_HOME" in process.env) {
     cachedir = path.resolve(
         process.env.XDG_CACHE_HOME || "",
         "bgutil-ytdlp-pot-provider",
     );
-} else if ("HOME" in process.env) {
+} else if (homeDirectory) {
     cachedir = path.resolve(
-        process.env.HOME || "",
+        homeDirectory,
         ".cache",
         "bgutil-ytdlp-pot-provider",
     );
