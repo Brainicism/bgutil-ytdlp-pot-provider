@@ -20,7 +20,7 @@ if ("XDG_CACHE_HOME" in process.env) {
     );
 } else {
     // fall back to a known path if environment variables are not found
-    // TODO: repalce this with import.meta.dirname when we raise node requirement to >= 20
+    // TODO: replace this with import.meta.dirname when we raise node requirement to >= 20
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
 
