@@ -345,29 +345,23 @@ export class SessionManager {
             const botguardResponse = await bgClient.snapshot({
                 webPoSignalOutput,
             });
-            const integrityTokenResp = await bgConfig.fetch(
-                buildURL("GenerateIT"),
-                {
+            const integrityTokenResp = await (
+                await bgConfig.fetch(buildURL("GenerateIT"), {
                     method: "POST",
                     headers: getHeaders(),
                     body: JSON.stringify([
                         SessionManager.REQUEST_KEY,
                         botguardResponse,
                     ]),
-                },
-            );
+                })
+            ).json();
 
             const [
                 integrityToken,
                 estimatedTtlSecs,
                 mintRefreshThreshold,
                 websafeFallbackToken,
-            ] = (await integrityTokenResp.json()) as [
-                string,
-                number,
-                number,
-                string,
-            ];
+            ] = integrityTokenResp;
 
             const integrityTokenData = {
                 integrityToken,
@@ -378,7 +372,7 @@ export class SessionManager {
 
             if (!integrityToken)
                 throw new Error(
-                    `Unexpected empty integrity token, response: ${JSON.stringify(integrityTokenData)}`,
+                    `Unexpected empty integrity token, response: ${JSON.stringify(integrityTokenResp)}`,
                 );
             this.logger.debug(
                 `Generated IntegrityToken: ${JSON.stringify(integrityTokenData)}`,
