@@ -40,7 +40,3 @@ echo "Compiling TypeScript files"
 npx tsc
 echo "DONE!"
 echo -e "Use the command command to start the server: \nnode server/build/main.js"
-
-
-
-
