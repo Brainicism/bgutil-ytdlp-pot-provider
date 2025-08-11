@@ -7,6 +7,9 @@ ADD_CONF=false
 for arg in "$@"; do
     if [ "$arg" = "--add-conf" ]; then
         ADD_CONF=true
+    elif [ -n "$arg" ]; then
+        echo "ERROR: Unrecognized argument: $arg" >&2
+        exit 1
     fi
 done
 
@@ -19,11 +22,15 @@ cp -r plugin/* "$PLUGIN_DIR"
 
 if [ "$ADD_CONF" = true ]; then
     YTDLP_CONF=~/yt-dlp.conf
-    echo "Adding yt-dlp configuration to $YTDLP_CONF"
-    echo -e "--extractor-args \"youtubepot-bgutilscript:script_path=$(realpath server/build/generate_once.js)\"" > "$YTDLP_CONF"
-    echo -e '--extractor-args "youtube:player-client=mweb"' >> "$YTDLP_CONF"
+    if [ -e "$YTDLP_CONF" ]; then
+        echo "WARN: yt-dlp.conf already exists at $YTDLP_CONF. Delete it if you want to recreate it." >&2
+    else
+        echo "Adding yt-dlp configuration to $YTDLP_CONF"
+        echo -e "--extractor-args \"youtubepot-bgutilscript:script_path=$(realpath server/build/generate_once.js)\"" > "$YTDLP_CONF"
+        echo -e '--extractor-args "youtube:player-client=mweb"' >> "$YTDLP_CONF"
+    fi
 else
-    echo "yt-dlp.conf was not created. To add it, run: $0 --add-conf"
+    echo "WARN: yt-dlp.conf was not created. To add it, run: $0 --add-conf"
 fi
 
 cd server/
