@@ -42,6 +42,9 @@ The provider is a Node.js HTTP server. You have two options for running it: as a
 docker run --name bgutil-provider -d -p 4416:4416 --init brainicism/bgutil-ytdlp-pot-provider
 ```
 
+> [!IMPORTANT]
+> Note that the docker container's network is isolated from your local network by default. If you are using a local proxy server, it will not be accessible from within the container unless you pass `--net=host` as well.
+
 **Native:**
 
 ```shell
