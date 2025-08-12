@@ -15,7 +15,7 @@ httpServer.use(express.urlencoded({ extended: true }));
 
 httpServer.listen(
     {
-        host: "0.0.0.0",
+        host: "::",
         port: PORT_NUMBER,
     },
     () => {
