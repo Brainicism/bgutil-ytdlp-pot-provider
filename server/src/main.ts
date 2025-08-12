@@ -13,15 +13,35 @@ const httpServer = express();
 httpServer.use(express.json());
 httpServer.use(express.urlencoded({ extended: true }));
 
-httpServer.listen(
-    {
-        host: "::",
-        port: PORT_NUMBER,
-    },
-    () => {
-        console.log(`Started POT server (v${VERSION}) on port ${PORT_NUMBER}`);
-    },
-);
+httpServer
+    .listen(
+        {
+            host: "::",
+            port: PORT_NUMBER,
+        },
+        (err) => {
+            if (!err) {
+                console.log(
+                    `Started POT server (v${VERSION}) on on address [::]:${PORT_NUMBER}`,
+                );
+            }
+        },
+    )
+    .on("error", () => {
+        // ipv6 only systems might not be able to bind to "::", so we try 0.0.0.0 instead
+        // this is temporary as we plan to bind to localhost in the next major version
+        httpServer.listen(
+            {
+                host: "0.0.0.0",
+                port: PORT_NUMBER,
+            },
+            () => {
+                console.log(
+                    `Started POT server (v${VERSION}) on address 0.0.0.0:${PORT_NUMBER}`,
+                );
+            },
+        );
+    });
 
 const sessionManager = new SessionManager();
 httpServer.post("/get_pot", async (request, response) => {
