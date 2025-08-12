@@ -28,7 +28,7 @@ httpServer
         },
     )
     .on("error", () => {
-        // ipv6 only systems might not be able to bind to "::", so we try 0.0.0.0 instead
+        // ipv4 only systems might not be able to bind to "::", so we try 0.0.0.0 instead
         // this is temporary as we plan to bind to localhost in the next major version
         httpServer.listen(
             {
