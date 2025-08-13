@@ -143,3 +143,14 @@ To check if the plugin was installed correctly, you should see the `bgutil` prov
 ```
 [debug] [youtube] [pot] PO Token Providers: bgutil:http-1.2.1 (external), bgutil:script-1.2.1 (external)
 ```
+
+### FAQ
+
+#### I'm getting errors during `npm install` on Termux
+
+For provider versions >=1.2.0, you may have issues while installing the `canvas` dependency on Termux. The Termux environment is missing a `android_ndk_path` and two packages by default. Run the following commands to setup the dependencies correctly.
+
+```shell
+mkdir ~/.gyp && echo "{'variables':{'android_ndk_path':''}}" > ~/.gyp/include.gypi
+pkg install libvips xorgproto
+```
