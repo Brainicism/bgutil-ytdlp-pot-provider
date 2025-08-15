@@ -90,6 +90,7 @@ class ProxySpec {
         if (!proxyUrl) {
             return new Agent({
                 localAddress: sourceAddress,
+                family: this.ipFamily(),
                 rejectUnauthorized: !disableTlsVerification,
             });
         }
@@ -106,11 +107,7 @@ class ProxySpec {
             return new ProxyAgent({
                 getProxyForUrl: () => pxyStr,
                 localAddress: sourceAddress,
-                family: sourceAddress
-                    ? sourceAddress.includes(":")
-                        ? 6
-                        : 4
-                    : undefined,
+                family: this.ipFamily(),
                 rejectUnauthorized: !disableTlsVerification,
             });
         } catch (e) {
@@ -118,6 +115,11 @@ class ProxySpec {
                 cause: e,
             });
         }
+    }
+
+    ipFamily(): number | undefined {
+        if (!this.sourceAddress) return undefined;
+        return this.sourceAddress.includes(":") ? 6 : 4;
     }
 }
 
