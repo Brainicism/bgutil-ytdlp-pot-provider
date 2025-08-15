@@ -106,6 +106,11 @@ class ProxySpec {
             return new ProxyAgent({
                 getProxyForUrl: () => pxyStr,
                 localAddress: sourceAddress,
+                family: sourceAddress
+                    ? sourceAddress.includes(":")
+                        ? 6
+                        : 4
+                    : undefined,
                 rejectUnauthorized: !disableTlsVerification,
             });
         } catch (e) {
