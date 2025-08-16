@@ -59,7 +59,7 @@ class ProxySpec {
     constructor({ sourceAddress, disableTlsVerification }: Partial<ProxySpec>) {
         this.sourceAddress = sourceAddress;
         this.disableTlsVerification = disableTlsVerification || false;
-        if (this.sourceAddress) {
+        if (!this.sourceAddress) {
             this.ipFamily = undefined;
         } else {
             this.ipFamily = this.sourceAddress?.includes(":") ? 6 : 4;
