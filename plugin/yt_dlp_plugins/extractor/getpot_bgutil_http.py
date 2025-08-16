@@ -126,7 +126,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
                 request=Request(
                     f'{self._base_url}/get_pot', data=json.dumps({
                         'bypass_cache': request.bypass_cache,
-                        'challenge': self._get_attestation(None if disable_innertube else request.video_webpage),
+                        'challenge': challenge,
                         'content_binding': get_webpo_content_binding(request)[0],
                         'disable_innertube': disable_innertube,
                         'disable_tls_verification': not request.request_verify_tls,
