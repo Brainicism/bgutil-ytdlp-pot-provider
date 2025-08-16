@@ -55,7 +55,7 @@ class ProxySpec {
     public proxyUrl?: URL;
     public sourceAddress?: string;
     public disableTlsVerification: boolean = false;
-    public ipFamily: number | undefined = 0;
+    public readonly ipFamily?: number;
     constructor({ sourceAddress, disableTlsVerification }: Partial<ProxySpec>) {
         this.sourceAddress = sourceAddress;
         this.disableTlsVerification = disableTlsVerification || false;
