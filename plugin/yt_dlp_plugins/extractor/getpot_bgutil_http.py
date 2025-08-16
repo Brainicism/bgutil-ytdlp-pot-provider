@@ -111,7 +111,6 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
         disable_innertube = bool(self._configuration_arg('disable_innertube', default=[None])[0])
         player_skip = self.ie._configuration_arg(ie_key='youtube', key='player_skip', default=[None])[0]
 
-        self.logger.info(f'Using {request.internal_client_name} provider for {player_skip} request ')
         if request.internal_client_name == 'web_music' and player_skip == 'webpage':
             self.logger.warning(
                 'InnerTube method is currently disabled for web_music client when using player_skip=webpage. Disabling it for this request.',
