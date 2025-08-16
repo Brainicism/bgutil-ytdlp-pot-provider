@@ -109,12 +109,16 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
         self.logger.trace('Generating POT via HTTP server')
 
         disable_innertube = bool(self._configuration_arg('disable_innertube', default=[None])[0])
-        player_skip = self.ie._configuration_arg(ie_key='youtube', key='player_skip', default=[None])[0]
-
-        if request.internal_client_name == 'web_music' and player_skip == 'webpage':
-            self.logger.warning(
-                'InnerTube method is currently disabled for web_music client when using player_skip=webpage. Disabling it for this request.',
-            )
+        challenge = self._get_attestation(None if disable_innertube else request.video_webpage)
+        # The challenge is falsy when the webpage and the challenge are unavailable
+        # In this case, we need to disable /att/get since it's broken for web_music
+        if not challenge and request.internal_client_name == 'web_music':
+            if not disable_innertube:  # if not already set, warn the user
+                self.logger.warning(
+                    'BotGuard challenges cannot be obtained from the webpage, '
+                    'overriding disable_innertube=True because InnerTube challenges '
+                    'are currently broken for the web_music client. '
+                    'Pass disable_innertube=1 to suppress this warning.')
             disable_innertube = True
 
         try:
