@@ -115,7 +115,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
         if not challenge and request.internal_client_name == 'web_music':
             if not disable_innertube:  # if not already set, warn the user
                 self.logger.warning(
-                    'BotGuard challenges cannot be obtained from the webpage, '
+                    'BotGuard challenges could not be obtained from the webpage, '
                     'overriding disable_innertube=True because InnerTube challenges '
                     'are currently broken for the web_music client. '
                     'Pass disable_innertube=1 to suppress this warning.')
