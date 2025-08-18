@@ -21,7 +21,9 @@ httpServer
         },
         (err) => {
             if (err) {
-                console.error(`Could not listen on [::]:${PORT_NUMBER}, falling back to 0.0.0.0 (Caused by ${strerror(err)})`);
+                console.error(
+                    `Could not listen on [::]:${PORT_NUMBER}, falling back to 0.0.0.0 (Caused by ${strerror(err)})`,
+                );
             } else {
                 console.log(
                     `Started POT server (v${VERSION}) on on address [::]:${PORT_NUMBER}`,
@@ -39,7 +41,9 @@ httpServer
             },
             (err) => {
                 if (err) {
-                    console.error(`Could not listen on [::]:${PORT_NUMBER} (Caused by ${strerror(err)})`);
+                    console.error(
+                        `Could not listen on [::]:${PORT_NUMBER} (Caused by ${strerror(err)})`,
+                    );
                 } else {
                     console.log(
                         `Started POT server (v${VERSION}) on address 0.0.0.0:${PORT_NUMBER}`,
