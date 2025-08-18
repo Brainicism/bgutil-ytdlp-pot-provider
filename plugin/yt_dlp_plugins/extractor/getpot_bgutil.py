@@ -58,24 +58,23 @@ class BgUtilPTPBase(PoTokenProvider, abc.ABC):
                 f'Please ensure they are on the same version. '
                 f'Otherwise, help will NOT be provided for any issues that arise. '
                 f'(plugin: {self.PROVIDER_VERSION}, {name}: {got_version or default})',
-                once=True,
-            )
+                once=True)
+
         if not got_version or _major(got_version) != _major(self.PROVIDER_VERSION):
             self._warn_and_raise(
                 f'Plugin and {name} major versions are mismatched. '
-                f'Update both the plugin and the {name} to the same version to proceed.'
-            )
+                f'Update both the plugin and the {name} to the same version to proceed.')
 
     def _get_attestation(self, webpage: str | None):
         if not webpage:
             return None
         raw_challenge_data = self.ie._search_regex(
-            r"""(?sx)window\.ytAtR\s*=\s*(?P<raw_cd>(?P<q>['"])
+            r'''(?sx)window\.ytAtR\s*=\s*(?P<raw_cd>(?P<q>['"])
                 (?:
                     \\.|
                     (?!(?P=q)).
                 )*
-            (?P=q))\s*;""",
+            (?P=q))\s*;''',
             webpage,
             'raw challenge data',
             default=None,
