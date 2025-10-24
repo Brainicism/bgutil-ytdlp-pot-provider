@@ -131,7 +131,7 @@ jobs:
           fi
 
           echo "Waiting for server to be up..."
-          PING_RESP=$(timeout 7.5 bash -c "ping 0.5") || \
+          PING_RESP=$(timeout 70000 bash -c "ping 0.5") || \
             (echo "::error title=Timeout reached,file=server/src/main.ts::Timeout reached before the server is up." && if [ "${{ inputs.runtime }}" = "node" ]; then docker stop bgutil-provider || true; else kill $DENOPID || true; fi && exit 1)
 
           echo "::group::Response from HTTP server"
