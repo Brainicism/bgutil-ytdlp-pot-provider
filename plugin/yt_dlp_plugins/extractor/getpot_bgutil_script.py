@@ -26,16 +26,16 @@ T = TypeVar('T')
 
 
 def getenv(key, default=None, /, *, integer=False, string=True):
-    args = dict(key=key, default=default, integer=integer, string=string)
+    args = dict(key=key, default=default, integer=integer, string=string) # noqa: C408
     supported_types = dict(zip(args.keys(), (
-        (str,), # key
+        (str,),  # key
         (
             bool,
             float,
             int,
             str,
             None.__class__,
-        ), # default
+        ),  # default
         (bool,) * (len(args.keys()) - 2),
     )))
     unsupported_type_msg = 'Unsupported type for positional argument, "{}": {}'
@@ -47,8 +47,10 @@ def getenv(key, default=None, /, *, integer=False, string=True):
 
     r = os.getenv(key, d)
     if r is None:
-        if string: r = str()
-        if integer: r = int()
+        if string:
+            r = str() # noqa: UP018
+        if integer:
+            r = int() # noqa: UP018
     elif integer:
         r = int(float(r))
     return r
