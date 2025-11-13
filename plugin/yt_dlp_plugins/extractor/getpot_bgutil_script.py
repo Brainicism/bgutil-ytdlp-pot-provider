@@ -26,7 +26,7 @@ T = TypeVar('T')
 
 
 def getenv(key, default=None, /, *, integer=False, string=True):
-    args = dict(key=key, default=default, integer=integer, string=string) # noqa: C408
+    args = dict(key=key, default=default, integer=integer, string=string)  # noqa: C408
     supported_types = dict(zip(args.keys(), (
         (str,),  # key
         (
@@ -48,9 +48,9 @@ def getenv(key, default=None, /, *, integer=False, string=True):
     r = os.getenv(key, d)
     if r is None:
         if string:
-            r = str() # noqa: UP018
+            r = str()  # noqa: UP018
         if integer:
-            r = int() # noqa: UP018
+            r = int()  # noqa: UP018
     elif integer:
         r = int(float(r))
     return r
