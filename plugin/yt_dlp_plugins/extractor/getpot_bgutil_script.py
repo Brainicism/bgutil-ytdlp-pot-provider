@@ -7,6 +7,7 @@ import os
 import re
 import shutil
 import subprocess
+from pathlib import Path
 from typing import Iterable, TypeVar
 
 from yt_dlp.extractor.youtube.pot.provider import (
@@ -22,6 +23,35 @@ from yt_dlp.utils import Popen, int_or_none
 from yt_dlp_plugins.extractor.getpot_bgutil import BgUtilPTPBase
 
 T = TypeVar('T')
+
+
+def getenv(key, default=None, /, *, integer=False, string=True):
+    args = dict(key=key, default=default, integer=integer, string=string)
+    supported_types = dict(zip(args.keys(), (
+        (str,), # key
+        (
+            bool,
+            float,
+            int,
+            str,
+            None.__class__,
+        ), # default
+        (bool,) * (len(args.keys()) - 2),
+    )))
+    unsupported_type_msg = 'Unsupported type for positional argument, "{}": {}'
+    for k, t in supported_types.items():
+        v = args[k]
+        assert isinstance(v, t), unsupported_type_msg.format(k, type(v))
+
+    d = str(default) if default is not None else None
+
+    r = os.getenv(key, d)
+    if r is None:
+        if string: r = str()
+        if integer: r = int()
+    elif integer:
+        r = int(float(r))
+    return r
 
 
 class BgUtilScriptPTPBase(BgUtilPTPBase, abc.ABC):
@@ -239,6 +269,14 @@ class BgUtilScriptDenoPTP(BgUtilScriptPTPBase):
 
     def _jsrt_args(self) -> Iterable[str]:
         # TODO: restrict permissions!
+        _cache_dir = getenv('XDG_CACHE_HOME')
+        _home_path = Path(self._HOMEDIR).resolve()
+        if _home_path.is_dir() and not _cache_dir:
+            _cache_dir = _home_path / '.cache'
+        elif not _cache_dir:
+            _cache_dir = '.'
+        _cache_dir = Path(_cache_dir).resolve() / 'bgutil-ytdlp-pot-provider'
+        _cache_dir.mkdir(parents=True, exist_ok=True)
         return ('-A', '--unstable-sloppy-imports')
 
 
