@@ -43,7 +43,7 @@
         "eslint-plugin-prettier": "^5.5.3",
         "prettier": "3.6.2",
         "swc-node": "^1.0.0",
-        "typescript": "^5.8.3",
+        "typescript": "^5.9.3",
         "typescript-eslint": "^8.38.0"
     }
 }
