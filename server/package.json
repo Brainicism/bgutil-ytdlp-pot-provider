@@ -42,7 +42,7 @@
         "eslint-plugin-only-warn": "^1.1.0",
         "eslint-plugin-prettier": "^5.5.3",
         "prettier": "3.6.2",
-        "ts-node": "1.7.1",
+        "swc-node": "^1.0.0",
         "typescript": "^5.8.3",
         "typescript-eslint": "^8.38.0"
     }
