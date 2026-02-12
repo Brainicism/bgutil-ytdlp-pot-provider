@@ -21,7 +21,7 @@ jobs:
     name: Lint and format check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install Ruff and autopep8
         run: pip install ruff autopep8
       - name: Python lint check (Ruff)
@@ -47,7 +47,7 @@ jobs:
         jsrt: [deno, node]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x" # keep in sync with yt-dlp's python requirement
@@ -148,6 +148,23 @@ jobs:
 
           exit $exit_code
 
+  docker-lint:
+    name: Dockerfile Syntax Check
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Validate Dockerfile
+        uses: docker/build-push-action@v6
+        with:
+          ##context: "{{defaultContext}}:server"
+          # Use checkout and local paths to avoid the URL syntax
+          context: server
+          file: server/Dockerfile
+          call: check
+
   server-method:
     name: Test plugin (server method)
     runs-on: ubuntu-latest
@@ -162,11 +179,12 @@ jobs:
       INTERVAL: 0.5
       TIMEOUT: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x" # keep in sync with yt-dlp's python requirement
       - name: Download yt-dlp
+        shell: bash
         run: |
           curl -L https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp -o yt-dlp
           chmod +x ./yt-dlp
@@ -187,16 +205,20 @@ jobs:
           node-version: "20" # minimum supported version
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        if: matrix.run == 'docker'
       - name: Build Docker image
         uses: docker/build-push-action@v6
         if: matrix.run == 'docker'
         with:
-          context: server/
+          context: server
+          file: server/Dockerfile
           target: server_${{ matrix.jsrt }}
           load: true
           tags: brainicism/bgutil-ytdlp-pot-provider:ci-${{ matrix.jsrt }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            BUILDKIT_DOCKERFILE_CHECK=error=false
       - name: Test server method
         timeout-minutes: 3
         shell: bash
@@ -217,7 +239,7 @@ jobs:
             else
               docker stop bgutil-provider
               echo "::group::Logs from the HTTP server ($CURR_MATRIX)"
-              docker logs -t bgutil-provider
+              docker logs -t bgutil-provider 2>&1
             fi
             echo "::endgroup::"
           }
