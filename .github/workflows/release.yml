@@ -15,11 +15,11 @@ jobs:
     outputs:
       version: ${{ steps.set_variables.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.x"
 
@@ -28,6 +28,7 @@ jobs:
 
       - name: Set variables
         id: set_variables
+        shell: bash
         run: |
           cp README.md plugin/
           cd plugin/
@@ -89,11 +90,11 @@ jobs:
     permissions:
       id-token: write # mandatory for trusted publishing
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.x"
 
@@ -103,6 +104,7 @@ jobs:
           pip install build hatchling
 
       - name: Build
+        shell: bash
         run: |
           printf '%s\n\n' \
             "Official repository: <${{ github.server_url }}/${{ github.repository }}>" > ./README.md.new
@@ -127,7 +129,7 @@ jobs:
     env:
       repository: ${{ github.repository }} # like `brainicism/bgutil-ytdlp-pot-provider`
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -204,7 +206,7 @@ jobs:
           cat ./README.md >> ./README.md.new && mv -f ./README.md.new ./README.md
 
       - name: Update repo description
-        uses: peter-evans/dockerhub-description@v4
+        uses: peter-evans/dockerhub-description@v5
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}

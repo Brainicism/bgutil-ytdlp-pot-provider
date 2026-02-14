@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1
-# check=error=true
 FROM node:25-bookworm-slim AS install
 USER node
 WORKDIR /app
