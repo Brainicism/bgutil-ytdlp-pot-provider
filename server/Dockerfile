@@ -37,7 +37,8 @@ COPY tsconfig.json package.json deno.lock ./
 COPY --from=install --chown=deno:deno /app/node_modules node_modules/
 COPY src/ src/
 
-RUN deno cache --frozen src/main.ts
+RUN deno cache --frozen src/main.ts ; \
+    du -had 5 "${DENO_DIR}" | sort -h
 
 EXPOSE 4416
 ENTRYPOINT [ \
