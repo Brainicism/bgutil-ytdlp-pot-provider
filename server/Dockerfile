@@ -17,7 +17,7 @@ RUN --mount=type=cache,target=/home/node/.npm,uid=1000,gid=1000 \
 COPY types/ types/
 COPY tsconfig.json ./
 COPY src/ src/
-RUN npx tsc
+rUN npx tsc
 
 FROM install AS server_node
 
