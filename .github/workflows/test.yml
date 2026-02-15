@@ -10,7 +10,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  DOCKER_BUILD_SUMMARY: true
   DOCKER_BUILD_RECORD_UPLOAD: false
   TEST_ARGS: >-
     -vF --color always
@@ -53,7 +52,6 @@ jobs:
         if: failure()
         env:
           DOCKER_BUILD_SUMMARY: false
-          DOCKER_BUILD_RECORD_UPLOAD: false
         with:
           context: server
           file: server/Dockerfile
