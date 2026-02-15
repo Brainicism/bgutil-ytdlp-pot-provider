@@ -286,7 +286,7 @@ class BgUtilScriptNodePTP(BgUtilScriptPTPBase):
     _JSRT_EXEC = 'node'
     _JSRT_VSN_REGEX = r'^v(\S+)'
     _JSRT_MIN_VER = (20, 0, 0)
-    _JSRT_PREF = 9
+    _JSRT_PREF = 10
 
     def _script_path_impl(self) -> str:
         return os.path.join(
@@ -301,7 +301,7 @@ class BgUtilScriptDenoPTP(BgUtilScriptPTPBase):
     _JSRT_EXEC = 'deno'
     _JSRT_VSN_REGEX = r'^deno (\S+)'
     _JSRT_MIN_VER = (2, 0, 0)
-    _JSRT_PREF = 10
+    _JSRT_PREF = 20
 
     def _script_path_impl(self) -> str:
         return os.path.join(

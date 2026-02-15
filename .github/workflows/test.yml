@@ -10,6 +10,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  DOCKER_BUILD_SUMMARY: true
+  DOCKER_BUILD_RECORD_UPLOAD: false
   TEST_ARGS: >-
     -vF --color always
     --extractor-args "youtube:player-client=web,web_music,mweb;pot_trace=true;fetch_pot=always"
