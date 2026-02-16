@@ -42,6 +42,7 @@ COPY src/ src/
 RUN deno upgrade --output 'deno.v4' \
     --checksum '70bad6284689e7d20e9dc8fa4feab92b895396ba2bb3faf848e9078b2d75db14' \
     'v2.2.15' && \
+    deno run -A scripts/lock_versions.ts && \
     ./deno.v4 install --node-modules-dir=manual --lock deno.v4.lock --entrypoint src/main.ts && \
     diff -su deno.lock deno.v4.lock && \
     deno run -A scripts/check.ts ; \
