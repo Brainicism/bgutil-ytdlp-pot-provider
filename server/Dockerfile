@@ -33,7 +33,7 @@ ENV DENO_DIR=/app/.cache/deno
 ENV DENO_NO_PROMPT=1 DENO_NO_UPDATE_CHECK=1
 
 COPY types/ types/
-COPY tsconfig.json package.json package-lock.json ./
+COPY tsconfig.json package.json package-lock.json deno.lock ./
 COPY --from=install --chown=deno:deno /app/node_modules node_modules/
 COPY scripts/ scripts/
 COPY src/ src/
@@ -42,7 +42,8 @@ COPY src/ src/
 RUN deno upgrade --output 'deno.v4' \
     --checksum '70bad6284689e7d20e9dc8fa4feab92b895396ba2bb3faf848e9078b2d75db14' \
     'v2.2.15' && \
-    ./deno.v4 install --node-modules-dir=manual --entrypoint src/main.ts && \
+    ./deno.v4 install --node-modules-dir=manual --lock deno.v4.lock --entrypoint src/main.ts && \
+    diff -su deno.lock deno.v4.lock && \
     deno run -A scripts/check.ts ; \
     rm -f deno.v4
 
