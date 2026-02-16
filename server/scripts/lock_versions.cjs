@@ -24,5 +24,5 @@ if (pkg.devDependencies) {
   }
 }
 
-fs.writeFileSync('../package.json', JSON.stringify(pkg, null, 2));
+fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2));
 console.log('package.json pinned to lockfile versions.');
