@@ -33,7 +33,7 @@ ENV DENO_DIR=/app/.cache/deno
 ENV DENO_NO_PROMPT=1 DENO_NO_UPDATE_CHECK=1
 
 COPY types/ types/
-COPY tsconfig.json package.json ./
+COPY tsconfig.json package.json package-lock.json ./
 COPY --from=install --chown=deno:deno /app/node_modules node_modules/
 COPY src/ src/
 
