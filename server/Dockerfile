@@ -45,10 +45,12 @@ RUN deno upgrade --output 'deno.v4' \
     deno run -A scripts/lock_versions.cjs && \
     ./deno.v4 install --node-modules-dir=manual --lock deno.v4.lock --entrypoint src/main.ts && \
     diff -su deno.lock deno.v4.lock && \
+    mv -v deno.lock deno.orig.lock && \
+    mv -v deno.v4.lock deno.lock && \
     deno run -A scripts/check.ts ; \
     rm -f deno.v4
 
-RUN deno cache --frozen src/main.ts ; \
+RUN deno cache --node-modules-dir=manual --frozen src/main.ts ; \
     du -had 5 "${DENO_DIR}" | sort -h
 
 EXPOSE 4416
