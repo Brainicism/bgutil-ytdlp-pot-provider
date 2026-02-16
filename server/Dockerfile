@@ -35,11 +35,10 @@ ENV DENO_NO_PROMPT=1 DENO_NO_UPDATE_CHECK=1
 COPY types/ types/
 COPY tsconfig.json package.json ./
 COPY --from=install --chown=deno:deno /app/node_modules node_modules/
-COPY scripts/ scripts/
 COPY src/ src/
 
 RUN rm -rf "${DENO_DIR}" && \
-    deno cache --node-modules-dir=manual --frozen src/main.ts ; \
+    deno cache --node-modules-dir=manual src/main.ts ; \
     du -had 5 "${DENO_DIR}" | sort -h
 
 EXPOSE 4416
