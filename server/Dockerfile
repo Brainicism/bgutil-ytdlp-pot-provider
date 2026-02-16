@@ -42,15 +42,16 @@ COPY src/ src/
 RUN deno upgrade --output 'deno.v4' \
     --checksum '70bad6284689e7d20e9dc8fa4feab92b895396ba2bb3faf848e9078b2d75db14' \
     'v2.2.15' && \
-    deno run -A scripts/lock_versions.cjs && \
+    deno run --node-modules-dir=manual -A scripts/lock_versions.cjs && \
     ./deno.v4 install --node-modules-dir=manual --lock deno.v4.lock --entrypoint src/main.ts && \
     diff -su deno.lock deno.v4.lock && \
     mv -v deno.lock deno.orig.lock && \
     mv -v deno.v4.lock deno.lock && \
-    deno run -A scripts/check.ts ; \
+    deno run --node-modules-dir=manual -A scripts/check.ts ; \
     rm -f deno.v4
 
-RUN deno cache --node-modules-dir=manual --frozen src/main.ts ; \
+RUN rm -rf "${DENO_DIR}" && \
+    deno cache --node-modules-dir=manual src/main.ts ; \
     du -had 5 "${DENO_DIR}" | sort -h
 
 EXPOSE 4416
