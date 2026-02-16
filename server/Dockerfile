@@ -38,7 +38,7 @@ COPY --from=install --chown=deno:deno /app/node_modules node_modules/
 COPY src/ src/
 
 RUN rm -rf "${DENO_DIR}" && \
-    deno cache --node-modules-dir=auto --frozen src/main.ts ; \
+    deno cache --node-modules-dir=manual --frozen src/main.ts ; \
     du -had 5 "${DENO_DIR}" | sort -h
 
 EXPOSE 4416
