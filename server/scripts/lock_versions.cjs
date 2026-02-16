@@ -1,6 +1,6 @@
 const fs = require('fs');
-const pkg = require('./package.json');
-const lock = require('./package-lock.json');
+const pkg = require('../package.json');
+const lock = require('../package-lock.json');
 
 // Helper to get version from lockfile (handles v1, v2, and v3 formats)
 const getLockedVersion = (name) => {
@@ -24,5 +24,5 @@ if (pkg.devDependencies) {
   }
 }
 
-fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2));
+fs.writeFileSync('../package.json', JSON.stringify(pkg, null, 2));
 console.log('package.json pinned to lockfile versions.');
