@@ -4,13 +4,14 @@ import * as fs from "node:fs";
 
 const serverHome = path.resolve(import.meta.dirname, "..");
 
-function downgradeLock(lockfile): void {
+function downgradeLock(lockfile): boolean {
     const { version } = lockfile;
-    if (version === "4") return;
+    if (version === "4") return true;
     if (version !== "5")
         throw new Error(`Invalid deno.lock version: ${version}`);
     console.log("blindly downgrading deno.lock from v5 to v4");
     lockfile.version = "4";
+    return false;
 }
 
 function getDenoPkgs(lockfile) {
@@ -51,10 +52,12 @@ function getNodePkgs(lockfile) {
     return pkgs;
 }
 
+let exitCode = 0;
 try {
     const denoPath = path.resolve(serverHome, "deno.lock");
     const denoLock = JSON.parse(fs.readFileSync(denoPath).toString());
-    downgradeLock(denoLock);
+    if (!downgradeLock(denoLock))
+        exitCode = 1;
     fs.writeFileSync(denoPath, JSON.stringify(denoLock, null, 2) + "\n");
 
     const denoPkgs = getDenoPkgs(denoLock);
@@ -62,12 +65,19 @@ try {
         serverHome, "package-lock.json")).toString()));
 
     for (const denoIt in denoPkgs)
-        if (!(denoIt in nodePkgs))
+        if (!(denoIt in nodePkgs)) {
+            exitCode = 1;
             console.log(`Deno extra: ${denoPkgs[denoIt]}, integrity ${denoIt}`);
+        }
 
     for (const nodeIt in nodePkgs)
-        if (!(nodeIt in denoPkgs))
+        if (!(nodeIt in denoPkgs)) {
+            exitCode = 1;
             console.log(`Node extra: ${nodePkgs[nodeIt]}, integrity ${nodeIt}`);
+        }
 } catch (e) {
-    console.error(`ERROR: ${e.message}`);
+    console.error(`error checking lockfiles: ${e.message}`);
+    exitCode = 1;
+} finally {
+    process.exit(exitCode);
 }

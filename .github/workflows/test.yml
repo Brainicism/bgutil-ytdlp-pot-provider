@@ -30,9 +30,13 @@ jobs:
       - name: Python lint check (autopep8)
         if: always()
         run: autopep8 --diff plugin/
-      - name: Install server dependencies
+      - name: Check and install server dependencies
         if: always()
-        run: cd server && npm ci --no-audit --no-fund && npm audit
+        run: |
+          cd server
+          node scripts/check_lockfiles.ts
+          npm ci --no-audit --no-fund
+          npm audit
       - name: Server lint check (ESlint)
         if: always()
         run: cd server && npx eslint --max-warnings=0 src/
