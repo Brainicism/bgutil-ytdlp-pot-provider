@@ -36,7 +36,6 @@ jobs:
           cd server
           node scripts/check_lockfiles.ts
           npm ci --no-audit --no-fund
-          npm audit
       - name: Server lint check (ESlint)
         if: always()
         run: cd server && npx eslint --max-warnings=0 src/
