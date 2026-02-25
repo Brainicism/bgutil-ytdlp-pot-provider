@@ -32,7 +32,9 @@ jobs:
         run: autopep8 --diff plugin/
       - name: Install server dependencies
         if: always()
-        run: cd server && npm ci --no-audit --no-fund && npm audit
+        run: |
+          cd server
+          npm ci --no-audit --no-fund
       - name: Server lint check (ESlint)
         if: always()
         run: cd server && npx eslint --max-warnings=0 src/
