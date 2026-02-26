@@ -39,8 +39,8 @@ jobs:
         if: always()
         run: |
           cd server
-          node scripts/check_lockfiles.ts
           npm ci --no-audit --no-fund
+          node scripts/check_lockfiles.ts
       - name: Server lint check (ESlint)
         if: always()
         run: cd server && npx eslint --max-warnings=0 src/
