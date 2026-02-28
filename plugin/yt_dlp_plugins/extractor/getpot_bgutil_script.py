@@ -18,7 +18,7 @@ from yt_dlp.extractor.youtube.pot.provider import (
     register_provider,
 )
 from yt_dlp.extractor.youtube.pot.utils import get_webpo_content_binding
-from yt_dlp.utils import Popen, int_or_none
+from yt_dlp.utils import Popen, int_or_none, shell_quote
 from yt_dlp.utils.traversal import traverse_obj
 
 from yt_dlp_plugins.extractor.getpot_bgutil import BgUtilPTPBase
@@ -231,6 +231,7 @@ class BgUtilScriptPTPBase(BgUtilPTPBase, abc.ABC):
         if proxy := request.request_proxy:
             command_args.extend(['-p', proxy])
         command_args.extend(['-c', get_webpo_content_binding(request)[0]])
+        command_args.extend(['--innertube-context', json.dumps(request.innertube_context)])
         if request.bypass_cache:
             command_args.append('--bypass-cache')
         if request.request_source_address:
@@ -244,7 +245,7 @@ class BgUtilScriptPTPBase(BgUtilPTPBase, abc.ABC):
             f'{request.internal_client_name} client via bgutil script',
         )
         self.logger.debug(
-            f'Executing command to get POT via script: {" ".join(command_args)}')
+            f'Executing command to get POT via script: {" ".join(map(shell_quote, command_args))}')
 
         try:
             stdout, _, returncode = Popen.run(
@@ -259,8 +260,8 @@ class BgUtilScriptPTPBase(BgUtilPTPBase, abc.ABC):
             raise PoTokenProviderError(
                 f'_get_pot_via_script failed: Unable to run script (caused by {e!r})') from e
 
-        if stdout_extra := stdout_lines:
-            self.logger.trace(f'script stdout:\n{stdout_extra}')
+        if stdout_extra := '\n'.join(stdout_lines):
+            self.logger.debug(f'script stdout:\n{stdout_extra}')
         if returncode:
             raise PoTokenProviderError(
                 f'_get_pot_via_script failed with returncode {returncode}')

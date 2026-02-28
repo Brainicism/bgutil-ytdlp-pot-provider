@@ -13,7 +13,6 @@ import { Agent } from "node:https";
 import { ProxyAgent } from "proxy-agent";
 import { JSDOM } from "jsdom";
 import { Innertube, Context as InnertubeContext } from "youtubei.js";
-import { strerror } from "./utils.ts";
 
 interface YoutubeSessionData {
     poToken: string;
@@ -246,10 +245,8 @@ export class SessionManager {
         bgConfig: BgConfig,
         challenge?: ChallengeData,
         innertubeContext?: InnertubeContext,
-        disableInnertube?: boolean,
     ): Promise<DescrambledChallenge> {
         try {
-            if (disableInnertube) throw null;
             if (!challenge) {
                 if (!innertubeContext)
                     throw new Error("Innertube context unavailable");
@@ -293,25 +290,7 @@ export class SessionManager {
                 },
             };
         } catch (e) {
-            if (e === null)
-                this.logger.debug(
-                    "Using the /Create endpoint as innertube challenges are disabled",
-                );
-            else
-                this.logger.warn(
-                    `Failed to get descrambled challenge from Innertube, trying the /Create endpoint. (caused by ${strerror(e)})`,
-                );
-            try {
-                const descrambledChallenge =
-                    await BG.Challenge.create(bgConfig);
-                if (descrambledChallenge) return descrambledChallenge;
-            } catch (eInner) {
-                throw new Error(
-                    `Error while attempting to retrieve BG challenge.`,
-                    { cause: eInner },
-                );
-            }
-            throw new Error("Could not get Botguard challenge");
+            throw new Error("Could not get BotGuard challenge", { cause: e });
         }
     }
 
@@ -320,13 +299,11 @@ export class SessionManager {
         bgConfig: BgConfig,
         challenge?: ChallengeData,
         innertubeContext?: InnertubeContext,
-        disableInnertube?: boolean,
     ): Promise<TokenMinter> {
         const descrambledChallenge = await this.getDescrambledChallenge(
             bgConfig,
             challenge,
             innertubeContext,
-            disableInnertube,
         );
 
         const { program, globalName } = descrambledChallenge;
@@ -488,7 +465,6 @@ export class SessionManager {
         sourceAddress: string | undefined = undefined,
         disableTlsVerification: boolean = false,
         challenge: ChallengeData | undefined = undefined,
-        disableInnertube: boolean = false,
         innertubeContext?: InnertubeContext,
     ): Promise<YoutubeSessionData> {
         if (!contentBinding) {
@@ -549,7 +525,6 @@ export class SessionManager {
                         bgConfig,
                         challenge,
                         innertubeContext,
-                        disableInnertube,
                     );
                 }
                 return await this.tryMintPOT(contentBinding, tokenMinter);
@@ -561,7 +536,6 @@ export class SessionManager {
             bgConfig,
             challenge,
             innertubeContext,
-            disableInnertube,
         );
         return await this.tryMintPOT(contentBinding, tokenMinter);
     }

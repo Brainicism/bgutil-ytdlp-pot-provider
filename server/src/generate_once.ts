@@ -34,6 +34,7 @@ const program = new Command()
     .option("-p, --proxy <proxy-all>")
     .option("-b, --bypass-cache")
     .option("-s, --source-address <source-address>")
+    .option("--innertube-context <innertube-context>")
     .option("--disable-tls-verification")
     .option("--version")
     .option("--verbose")
@@ -64,6 +65,12 @@ const options = program.opts();
     if (options.visitorData) {
         console.error(
             "Visitor data is deprecated, use --content-binding instead",
+        );
+        process.exit(1);
+    }
+    if (!options.innertubeContext) {
+        console.error(
+            "--innertube-context <innertube-context> is mandatory for /att/get",
         );
         process.exit(1);
     }
@@ -108,8 +115,7 @@ const options = program.opts();
             options.sourceAddress,
             options.disableTlsVerification || false,
             undefined, // challenge
-            true, // disableInnertube
-            undefined, // innertubeContext
+            JSON.parse(options.innertubeContext), // innertubeContext
         );
 
         try {

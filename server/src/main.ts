@@ -64,6 +64,11 @@ httpServer.post("/get_pot", async (request, response) => {
         return response.status(400).send({
             error: "visitor_data is deprecated, use content_binding instead",
         });
+    if (body.disable_innertube)
+        return response.status(400).send({
+            error: "disable_innertube is deprecated because the /Create endpoint doesn't work anymore",
+        });
+
     const contentBinding: string | undefined = body.content_binding;
     const proxy: string = body.proxy;
     const bypassCache: boolean = body.bypass_cache || false;
@@ -79,7 +84,6 @@ httpServer.post("/get_pot", async (request, response) => {
             sourceAddress,
             disableTlsVerification,
             body.challenge,
-            body.disable_innertube || false,
             body.innertube_context,
         );
 
