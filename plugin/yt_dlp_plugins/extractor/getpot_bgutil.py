@@ -4,6 +4,8 @@ __version__ = '1.3.0'
 
 import abc
 import json
+import os
+from typing import TypeVar
 
 from yt_dlp.extractor.youtube.pot.provider import (
     ExternalRequestFeature,
@@ -14,6 +16,8 @@ from yt_dlp.extractor.youtube.pot.provider import (
 from yt_dlp.extractor.youtube.pot.utils import WEBPO_CLIENTS
 from yt_dlp.utils import js_to_json
 from yt_dlp.utils.traversal import traverse_obj
+
+T = TypeVar('T')
 
 
 class BgUtilPTPBase(PoTokenProvider, abc.ABC):
@@ -44,6 +48,24 @@ class BgUtilPTPBase(PoTokenProvider, abc.ABC):
     def _warn_and_raise(self, msg, once=True, raise_from=None):
         self.logger.warning(msg, once=once)
         raise PoTokenProviderRejectedRequest(msg) from raise_from
+
+    def _script_config_arg(self, key: str, default: T = None, *, casesense=True) -> str | T:
+        return self.ie._configuration_arg(
+            ie_key='youtubepot-bgutilscript', key=key, default=[default], casesense=casesense)[0]
+
+    @staticmethod
+    def _resolve_script_path(*ps: str):
+        return os.path.abspath(
+            os.path.expanduser(os.path.expandvars(os.path.join(*ps))))
+
+    def _script_path_provided(self) -> str | None:
+        if server_home := self._script_config_arg('server_home'):
+            return self._resolve_script_path(server_home)
+
+        if script_path := self._script_config_arg('script_path'):
+            return self._resolve_script_path(script_path, os.pardir, os.pardir)
+
+        return None
 
     def _check_version(self, got_version, *, default='unknown', name):
         def _major(version):
