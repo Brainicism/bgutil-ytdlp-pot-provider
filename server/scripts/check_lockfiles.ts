@@ -56,9 +56,10 @@ let exitCode = 0;
 try {
     const denoPath = path.resolve(serverHome, "deno.lock");
     const denoLock = JSON.parse(fs.readFileSync(denoPath).toString());
-    if (!downgradeLock(denoLock))
+    if (!downgradeLock(denoLock)) {
+        fs.writeFileSync(denoPath, JSON.stringify(denoLock, null, 2) + "\n");
         exitCode = 1;
-    fs.writeFileSync(denoPath, JSON.stringify(denoLock, null, 2) + "\n");
+    }
 
     const denoPkgs = getDenoPkgs(denoLock);
     const nodePkgs = getNodePkgs(JSON.parse(fs.readFileSync(path.resolve(
