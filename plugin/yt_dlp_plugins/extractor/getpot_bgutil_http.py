@@ -63,7 +63,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
         except TransportError as e:
             # the server may be down
             warning_base = f'Error reaching GET {self._base_url}/ping (caused by {e.__class__.__name__}). '
-            if self._script_path_provided():  # server down is expected, log info
+            if self._script_path_provided() is not None:  # server down is expected, log info
                 self._info_and_raise(
                     warning_base + 'This is expected if you are using the script method.')
             else:
