@@ -226,8 +226,8 @@ export class SessionManager {
         this.youtubeSessionDataCaches = youtubeSessionData;
     }
 
-    public async generateVisitorData(): Promise<string | null> {
-        const innertube = await Innertube.create({ retrieve_player: false });
+    public async generateVisitorData(fetch: FetchFunction): Promise<string | null> {
+        const innertube = await Innertube.create({ retrieve_player: false, fetch });
         const visitorData = innertube.session.context.client.visitorData;
         if (!visitorData) {
             this.logger.error("Unable to generate visitor data via Innertube");
@@ -248,8 +248,6 @@ export class SessionManager {
     ): Promise<DescrambledChallenge> {
         try {
             if (!challenge) {
-                if (!innertubeContext)
-                    throw new Error("Innertube context unavailable");
                 this.logger.debug("Using challenge from /att/get");
                 const attGetResponse = await bgConfig.fetch(
                     "https://www.youtube.com/youtubei/v1/att/get?prettyPrint=false",
@@ -260,7 +258,12 @@ export class SessionManager {
                             "Content-Type": "application/json",
                         },
                         body: JSON.stringify({
-                            context: innertubeContext,
+                            context: innertubeContext || {
+                                client: {
+                                    clientName: 'WEB',
+                                    clientVersion: '2.20260227.01.00',
+                                },
+                            },
                             engagementType: "ENGAGEMENT_TYPE_UNBOUND",
                         }),
                     },
@@ -467,16 +470,6 @@ export class SessionManager {
         challenge: ChallengeData | undefined = undefined,
         innertubeContext?: InnertubeContext,
     ): Promise<YoutubeSessionData> {
-        if (!contentBinding) {
-            this.logger.warn(
-                "No content binding provided, generating visitor data via Innertube...",
-            );
-            const visitorData = await this.generateVisitorData();
-            if (!visitorData)
-                throw new Error("Unable to generate visitor data");
-            contentBinding = visitorData;
-        }
-
         this.cleanupCaches();
 
         const pxySpec = new ProxySpec({
@@ -497,8 +490,31 @@ export class SessionManager {
             innertubeContext?.client.remoteHost || null,
         );
 
+        const bgFetch = this.getFetch(pxySpec, 3, 5000);
+        let innertube: Innertube | undefined = undefined;
+        if (!contentBinding && innertubeContext) {
+            this.logger.warn(
+                "No content binding provided, using the one from the supplied Innertube context...",
+            );
+            contentBinding = innertubeContext.client.visitorData;
+        }
+
+        if (!contentBinding) {
+            this.logger.warn(
+                "No content binding provided, generating visitor data via Innertube...",
+            );
+            innertube = await Innertube.create({ retrieve_player: false, fetch: bgFetch });
+            contentBinding = innertube.session.context.client.visitorData;
+        }
+
+        if (!contentBinding)
+            throw new Error("Unable to generate visitor data");
+
+        if (!innertubeContext)
+            innertubeContext = innertube?.session.context;
+
         const bgConfig: BgConfig = {
-            fetch: this.getFetch(pxySpec, 3, 5000),
+            fetch: bgFetch,
             globalObj: globalThis,
             identifier: contentBinding,
             requestKey: SessionManager.REQUEST_KEY,

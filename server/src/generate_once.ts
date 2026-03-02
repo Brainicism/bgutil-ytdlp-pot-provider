@@ -68,12 +68,6 @@ const options = program.opts();
         );
         process.exit(1);
     }
-    if (!options.innertubeContext) {
-        console.error(
-            "--innertube-context <innertube-context> is mandatory for /att/get",
-        );
-        process.exit(1);
-    }
 
     const contentBinding = options.contentBinding;
     const proxy = options.proxy || "";
@@ -115,7 +109,9 @@ const options = program.opts();
             options.sourceAddress,
             options.disableTlsVerification || false,
             undefined, // challenge
-            JSON.parse(options.innertubeContext), // innertubeContext
+            options.innertubeContext !== undefined
+                ? JSON.parse(options.innertubeContext)
+                : undefined, // innertubeContext
         );
 
         try {

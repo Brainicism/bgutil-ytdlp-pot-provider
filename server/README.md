@@ -11,12 +11,12 @@ If you are interested in using the script/server standalone for generating your 
 
 - **POST /get_pot**: Generate a new POT.
     - The request data should be a JSON including:
-        - `content_binding`: [Content binding](#content-binding) (optional).
+        - `content_binding`: [Content binding](#content-binding) (optional, set to visitor data in `innertube_context` or a freshly generated visitor data if null).
         - `proxy`: A string indicating the proxy to use for the requests (optional).
         - `bypass_cache`: boolean, when set to true, bypasses any cache if present (optional).
-        - `challenge`: string or null, the BotGuard challenge from Innertube (optional, a valid `innertube_context` must be supplied if null).
+        - `challenge`: string or null, the BotGuard challenge from Innertube (optional).
         - `disable_tls_verification`: boolean, when set to true, disables TLS certificate verification. (optional)
-        - `innertube_context`: object, the innertube context to be sent in the innertube request in case `challenge` is not present. Note that when available, the public IP in the innertube context is used as the cache key for POTs. (optional, a valid `challenge` must be supplied if null)
+        - `innertube_context`: object, the innertube context to be sent in the innertube request in case `challenge` is not present. Note that when available, the public IP in the innertube context is used as the cache key for POTs. (optional)
         - `source_address`: string, the cient-side IP address to bind to. (optional)
     - Returns a JSON:
         - `poToken`: The POT.
@@ -34,7 +34,7 @@ If you are interested in using the script/server standalone for generating your 
 - `-p, --proxy <proxy-all>`: The proxy to use for the requests, optional.
 - `-b, --bypass-cache`: See `bypass_cache` from the `POST /get_pot` endpoint.
 - `-s, --source-address <source-address>`: See `source_address` from the `POST /get_pot` endpoint, optional.
-- `--innertube-context <innertube-context>`: See `innertube_context` from the `POST /get_pot` endpoint, mandatory.
+- `--innertube-context <innertube-context>`: See `innertube_context` from the `POST /get_pot` endpoint, optional.
 - `--disable-tls-verification`: See `disable_tls_verification` from the above endpoint.
 - `--version`: Print the script version and exit.
 - `--verbose`: Use verbose logging.
