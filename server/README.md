@@ -11,11 +11,10 @@ If you are interested in using the script/server standalone for generating your 
 
 - **POST /get_pot**: Generate a new POT.
     - The request data should be a JSON including:
-        - `content_binding`: [Content binding](#content-binding) (optional).
+        - `content_binding`: [Content binding](#content-binding) (optional, set to visitor data in `innertube_context` or a freshly generated visitor data if null).
         - `proxy`: A string indicating the proxy to use for the requests (optional).
         - `bypass_cache`: boolean, when set to true, bypasses any cache if present (optional).
         - `challenge`: string or null, the BotGuard challenge from Innertube (optional).
-        - `disable_innertube`: boolean, when set to true, disables challenges from Innertube (optional).
         - `disable_tls_verification`: boolean, when set to true, disables TLS certificate verification. (optional)
         - `innertube_context`: object, the innertube context to be sent in the innertube request in case `challenge` is not present. Note that when available, the public IP in the innertube context is used as the cache key for POTs. (optional)
         - `source_address`: string, the cient-side IP address to bind to. (optional)
@@ -35,6 +34,7 @@ If you are interested in using the script/server standalone for generating your 
 - `-p, --proxy <proxy-all>`: The proxy to use for the requests, optional.
 - `-b, --bypass-cache`: See `bypass_cache` from the `POST /get_pot` endpoint.
 - `-s, --source-address <source-address>`: See `source_address` from the `POST /get_pot` endpoint, optional.
+- `--innertube-context <innertube-context>`: See `innertube_context` from the `POST /get_pot` endpoint, optional.
 - `--disable-tls-verification`: See `disable_tls_verification` from the above endpoint.
 - `--version`: Print the script version and exit.
 - `--verbose`: Use verbose logging.
@@ -47,6 +47,6 @@ If you are interested in using the script/server standalone for generating your 
 
 Content bindings refer to the data used to generate a PO Token.
 
-GVS tokens (See [PO Tokens for GVS](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide#po-tokens-for-gvs) from the PO Token Guide) are all session-bound so the content binding for a GVS token is either a Visitor ID (also known as `visitorData`, `VISITOR_INFO1_LIVE`, used when not logged in) or the account Session ID (first part of the Data Sync ID, used when logged in).
+GVS WEBPO tokens (See [PO Tokens for GVS](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide#po-tokens-for-gvs) from the PO Token Guide) used to be session-bound so the content binding for a GVS token is either a Visitor ID (also known as `visitorData`, `VISITOR_INFO1_LIVE`, used when not logged in) or the account Session ID (first part of the Data Sync ID, used when logged in). They are mostly bound to video ID now.
 
 Player tokens are mostly content-bound and their content bindings are the video IDs. Note that the `web_music` client uses the session token instead of video ID to generate player tokens.

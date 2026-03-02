@@ -34,6 +34,7 @@ const program = new Command()
     .option("-p, --proxy <proxy-all>")
     .option("-b, --bypass-cache")
     .option("-s, --source-address <source-address>")
+    .option("--innertube-context <innertube-context>")
     .option("--disable-tls-verification")
     .option("--version")
     .option("--verbose")
@@ -108,8 +109,9 @@ const options = program.opts();
             options.sourceAddress,
             options.disableTlsVerification || false,
             undefined, // challenge
-            true, // disableInnertube
-            undefined, // innertubeContext
+            options.innertubeContext !== undefined
+                ? JSON.parse(options.innertubeContext)
+                : undefined, // innertubeContext
         );
 
         try {
