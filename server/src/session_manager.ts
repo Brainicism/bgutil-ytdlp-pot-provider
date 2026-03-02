@@ -226,17 +226,6 @@ export class SessionManager {
         this.youtubeSessionDataCaches = youtubeSessionData;
     }
 
-    public async generateVisitorData(fetch: FetchFunction): Promise<string | null> {
-        const innertube = await Innertube.create({ retrieve_player: false, fetch });
-        const visitorData = innertube.session.context.client.visitorData;
-        if (!visitorData) {
-            this.logger.error("Unable to generate visitor data via Innertube");
-            return null;
-        }
-
-        return visitorData;
-    }
-
     public get minterCache(): MinterCache {
         return this._minterCache;
     }
@@ -260,8 +249,8 @@ export class SessionManager {
                         body: JSON.stringify({
                             context: innertubeContext || {
                                 client: {
-                                    clientName: 'WEB',
-                                    clientVersion: '2.20260227.01.00',
+                                    clientName: "WEB",
+                                    clientVersion: "2.20260227.01.00",
                                 },
                             },
                             engagementType: "ENGAGEMENT_TYPE_UNBOUND",
@@ -503,15 +492,16 @@ export class SessionManager {
             this.logger.warn(
                 "No content binding provided, generating visitor data via Innertube...",
             );
-            innertube = await Innertube.create({ retrieve_player: false, fetch: bgFetch });
+            innertube = await Innertube.create({
+                retrieve_player: false,
+                fetch: bgFetch,
+            });
             contentBinding = innertube.session.context.client.visitorData;
         }
 
-        if (!contentBinding)
-            throw new Error("Unable to generate visitor data");
+        if (!contentBinding) throw new Error("Unable to generate visitor data");
 
-        if (!innertubeContext)
-            innertubeContext = innertube?.session.context;
+        if (!innertubeContext) innertubeContext = innertube?.session.context;
 
         const bgConfig: BgConfig = {
             fetch: bgFetch,
