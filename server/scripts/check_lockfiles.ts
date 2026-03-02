@@ -4,6 +4,7 @@ import * as fs from "node:fs";
 
 const serverHome = path.resolve(import.meta.dirname, "..");
 
+// Returns true if the lockfile was updated, false otherwise
 function downgradeLock(lockfile): boolean {
     const { version } = lockfile;
     if (version === "4") return true;
