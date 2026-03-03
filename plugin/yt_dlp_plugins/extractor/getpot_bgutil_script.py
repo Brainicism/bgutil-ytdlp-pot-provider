@@ -317,6 +317,7 @@ class BgUtilScriptDenoPTP(BgUtilScriptPTPBase):
         process_env = os.environ.copy()
         process_env['DENO_NO_PROMPT'] = '1'
         process_env['DENO_NO_UPDATE_CHECK'] = '1'
+        process_env['FORCE_COLOR'] = 'false'
         return process_env
 
 
