@@ -105,14 +105,17 @@ class BgUtilScriptPTPBase(BgUtilPTPBase, abc.ABC):
     def _jsrt_args(self) -> Iterable[str]:
         return ()
 
+    def _jsrt_envs(self) -> dict:
+        return os.environ.copy()
+
     def _jsrt_path_impl(self) -> str | None:
         jsrt_path = _determine_runtime_path(
             traverse_obj(self.ie.get_param('js_runtimes'), (self._JSRT_EXEC, 'path')),
             self._JSRT_EXEC)
         try:
             output, _, returncode = Popen.run(
-                [jsrt_path, '--version'], text=True, stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=5.0)
+                [jsrt_path, '--version'], env=self._jsrt_envs(), timeout=5.0,
+                text=True, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             output = output.strip()
         except subprocess.TimeoutExpired:
             self.logger.debug(
@@ -196,7 +199,8 @@ class BgUtilScriptPTPBase(BgUtilPTPBase, abc.ABC):
             return False
         stdout, _, returncode = Popen.run(
             [self._jsrt_path, *self._jsrt_args(), script_path, '--version'],
-            stdout=subprocess.PIPE, text=True, timeout=self._GET_SCRIPT_VSN_TIMEOUT)
+            env=self._jsrt_envs(), timeout=self._GET_SCRIPT_VSN_TIMEOUT,
+            text=True, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE)
         stdout = stdout.strip()
         if returncode:
             self.logger.warning(
@@ -239,8 +243,8 @@ class BgUtilScriptPTPBase(BgUtilPTPBase, abc.ABC):
 
         try:
             stdout, _, returncode = Popen.run(
-                command_args, stdout=subprocess.PIPE, text=True,
-                timeout=self._GETPOT_TIMEOUT)
+                command_args, env=self._jsrt_envs(), timeout=self._GETPOT_TIMEOUT,
+                text=True, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE)
             stdout_lines = stdout.strip().splitlines()
             json_resp = stdout_lines.pop()
         except subprocess.TimeoutExpired as e:
@@ -308,6 +312,12 @@ class BgUtilScriptDenoPTP(BgUtilScriptPTPBase):
             f'--allow-write={escpath(self._script_cache_dir)}',
             f'--allow-read={escpath(self._script_cache_dir, node_mods_path)}',
         )
+
+    def _jsrt_envs(self) -> dict:
+        process_env = os.environ.copy()
+        process_env['DENO_NO_PROMPT'] = '1'
+        process_env['DENO_NO_UPDATE_CHECK'] = '1'
+        return process_env
 
 
 __all__ = [
