@@ -11,7 +11,7 @@ import {
 } from "bgutils-js";
 import { Agent } from "node:https";
 import { ProxyAgent } from "proxy-agent";
-import { JSDOM } from "jsdom";
+import { PropertySymbol, Window } from "happy-dom";
 import { Innertube, Context as InnertubeContext } from "youtubei.js";
 
 interface YoutubeSessionData {
@@ -171,25 +171,28 @@ export class SessionManager {
             ? parseInt(process.env.TOKEN_TTL)
             : 6;
         if (!SessionManager.hasDom) {
-            const dom = new JSDOM(
-                '<!DOCTYPE html><html lang="en"><head><title></title></head><body></body></html>',
-                {
-                    url: "https://www.youtube.com/",
-                    referrer: "https://www.youtube.com/",
-                    userAgent: USER_AGENT,
+            const window = new Window({
+                url: "https://www.youtube.com/",
+                settings: {
+                    navigator: {
+                        userAgent: USER_AGENT,
+                    },
                 },
-            );
+            });
+
+            (window.document as any)[PropertySymbol.referrer] =
+                "https://www.youtube.com/";
 
             Object.assign(globalThis, {
-                window: dom.window,
-                document: dom.window.document,
-                location: dom.window.location,
-                origin: dom.window.origin,
+                window,
+                document: window.document,
+                location: window.location,
+                origin: window.location.origin,
             });
 
             if (!Reflect.has(globalThis, "navigator")) {
                 Object.defineProperty(globalThis, "navigator", {
-                    value: dom.window.navigator,
+                    value: window.navigator,
                 });
             }
             SessionManager.hasDom = true;
@@ -418,8 +421,16 @@ export class SessionManager {
             const method = (options?.method || "GET").toUpperCase();
             for (let attempts = 1; attempts <= maxRetries; attempts++) {
                 try {
+                    const baseHeaders = options?.headers || {};
+                    const headers = {
+                        ...baseHeaders,
+                        Referer:
+                            baseHeaders.Referer ||
+                            baseHeaders.referer ||
+                            "https://www.youtube.com/",
+                    };
                     const axiosOpt: AxiosRequestConfig = {
-                        headers: options?.headers,
+                        headers,
                         params: options?.params,
                         httpsAgent: proxySpec.asDispatcher(logger),
                     };
