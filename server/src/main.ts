@@ -55,9 +55,9 @@ httpServer
 
 const sessionManager = new SessionManager();
 httpServer.get("/", async (request, response) => {
-    response.status(400).send({
-        error: "This server is not meant to be accessed directly unless you know what you're doing. Follow the README for plugin/provider setup, and yt-dlp will automatically use the provider: https://github.com/Brainicism/bgutil-ytdlp-pot-provider#readme",
-    });
+    response.status(400).send(
+      "This server is not meant to be accessed directly unless you know what you're doing. Follow the README for plugin/provider setup, and yt-dlp will automatically use the provider: https://github.com/Brainicism/bgutil-ytdlp-pot-provider#readme",
+    );
 });
 
 httpServer.post("/get_pot", async (request, response) => {
