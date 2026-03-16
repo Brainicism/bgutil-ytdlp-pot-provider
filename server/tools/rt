@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+
+set -u
+
+err() {
+    printf 1>&2 -- '%s\n' "$@"
+}
+
+find_binary() {
+	for cmd in "$@"; do
+		command -v "${cmd}" && break
+	done
+}
+
+cmd="$(find_binary node bun deno)"
+case "${cmd}" in
+    (*/bun) exec "${cmd}" --shell=bun --bun run "$@" ;;
+    (*/deno) exec "${cmd}" run -A "$@" ;;
+    (*/node) exec "${cmd}" "$@" ;;
+    (*) err 'ERROR: No supported runtime found.' ;;
+esac
+exit 1

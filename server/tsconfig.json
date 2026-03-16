@@ -1,28 +1,45 @@
 {
     "compilerOptions": {
-        "incremental": true,
-        "outDir": "./build",
-        "allowJs": true,
-        "target": "es2022",
-        "module": "esnext",
-        "moduleResolution": "node",
-        "baseUrl": ".",
-        "rootDir": "src",
-        "strictBindCallApply": true,
-        "strictFunctionTypes": true,
-        "strictNullChecks": true,
-        "noImplicitThis": true,
-        "noImplicitAny": true,
-        "strictPropertyInitialization": true,
-        "resolveJsonModule": true,
-        "esModuleInterop": true,
-        "sourceMap": true,
-        "skipLibCheck": true,
+        /* Version 5.9+ Node 20 Targets */
+        "module": "node20",
+        "moduleResolution": "nodenext",
+        "target": "es2023",
+
+        /* Strictness & Safety */
+        "noImplicitOverride": true,
+        //"noPropertyAccessFromIndexSignature": true,
         "noUncheckedIndexedAccess": true,
+        "skipLibCheck": true,
+        "strict": true,
+
+        /* Remove these crutches eventually. */
+        // Fix: Use 'process.env["VAR"]' for environment variables
+        "noPropertyAccessFromIndexSignature": false,
+        // Fix: Use 'instanceof Error' in catch blocks
+        "useUnknownInCatchVariables": false,
+        // Fix: Use 'import type' for type-only imports
+        "verbatimModuleSyntax": false,
+
+        /* Emit & Transformation Logic */
+        "allowImportingTsExtensions": true,
+        "incremental": true,
+        "noEmit": false,
         "rewriteRelativeImportExtensions": true,
+        "sourceMap": true,
+        //"verbatimModuleSyntax": true,
+
+        /* Paths & Directory Structure */
+        "baseUrl": ".",
+        "outDir": "build",
         "paths": {
-            "commander": ["./types/commander.d.ts"]
-        }
+            "commander": ["types/commander.d.ts"]
+        },
+        "rootDir": "src",
+        "tsBuildInfoFile": "build/.tsconfig.tsbuildinfo",
+
+        /* Interop */
+        "esModuleInterop": true,
+        "resolveJsonModule": false
     },
-    "include": ["./src/**/*"]
+    "include": ["src/**/*"]
 }

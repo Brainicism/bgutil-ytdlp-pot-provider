@@ -1,0 +1,3 @@
+allowBuilds:
+    canvas: true
+    '@swc/core': false
