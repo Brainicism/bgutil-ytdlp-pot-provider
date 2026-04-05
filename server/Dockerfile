@@ -40,5 +40,5 @@ RUN deno cache --frozen src/main.ts
 EXPOSE 4416
 ENTRYPOINT [ \
     "/usr/bin/deno", "run", "--allow-env", "--allow-net", \
-    "--allow-ffi=/app/node_modules", "--allow-read=/app/node_modules", \
+    "--allow-ffi=/app/node_modules", "--allow-read=/app/node_modules,/app/package.json", \
     "/app/src/main.ts"]

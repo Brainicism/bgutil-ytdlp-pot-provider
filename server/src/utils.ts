@@ -1,6 +1,14 @@
 import { BGError } from "bgutils-js";
+import * as fs from "node:fs";
+import * as path from "node:path";
 
-export const VERSION = "1.3.1";
+const packageJson = JSON.parse(
+    fs.readFileSync(
+        path.resolve(import.meta.dirname, "..", "package.json"),
+        "utf-8",
+    ),
+);
+export const VERSION: string = packageJson.version;
 
 export function strerror(e: any, update?: boolean): string {
     const msg =
