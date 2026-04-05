@@ -1,175 +1,48 @@
-import axios, { AxiosRequestConfig } from "axios";
-import {
-    BG,
-    BgConfig,
-    DescrambledChallenge,
-    WebPoSignalOutput,
-    FetchFunction,
-    buildURL,
-    getHeaders,
-    USER_AGENT,
-} from "bgutils-js";
-import { Agent } from "node:https";
-import { ProxyAgent } from "proxy-agent";
+import { BgConfig, FetchFunction, USER_AGENT } from "bgutils-js";
 import { JSDOM } from "jsdom";
 import { Innertube, Context as InnertubeContext } from "youtubei.js";
-
-interface YoutubeSessionData {
-    poToken: string;
-    contentBinding: string;
-    expiresAt: Date;
-}
-
-export interface YoutubeSessionDataCaches {
-    [contentBinding: string]: YoutubeSessionData;
-}
-
-class Logger {
-    readonly debug: (msg: string) => void;
-    readonly log: (msg: string) => void;
-    readonly warn: (msg: string) => void;
-    readonly error: (msg: string) => void;
-
-    constructor(shouldLog = true) {
-        if (shouldLog) {
-            this.debug = (msg: string) => {
-                console.debug(msg);
-            };
-            this.log = (msg: string) => {
-                console.log(msg);
-            };
-        } else {
-            this.debug = this.log = () => {};
-        }
-        this.warn = (msg: string) => {
-            console.warn(msg);
-        };
-        this.error = (msg: string) => {
-            console.error(msg);
-        };
-    }
-}
-
-class ProxySpec {
-    public proxyUrl?: URL;
-    public sourceAddress?: string;
-    public disableTlsVerification: boolean = false;
-    public readonly ipFamily?: number;
-    constructor({ sourceAddress, disableTlsVerification }: Partial<ProxySpec>) {
-        this.sourceAddress = sourceAddress;
-        this.disableTlsVerification = disableTlsVerification || false;
-        if (!this.sourceAddress) {
-            this.ipFamily = undefined;
-        } else {
-            this.ipFamily = this.sourceAddress?.includes(":") ? 6 : 4;
-        }
-    }
-
-    public get proxy(): string | undefined {
-        return this.proxyUrl?.href;
-    }
-
-    public set proxy(newProxy: string | undefined) {
-        if (newProxy) {
-            // Normalize and sanitize the proxy URL
-            try {
-                this.proxyUrl = new URL(newProxy);
-            } catch {
-                newProxy = `http://${newProxy}`;
-                try {
-                    this.proxyUrl = new URL(newProxy);
-                } catch (e) {
-                    throw new Error(`Invalid proxy URL: ${newProxy}`, {
-                        cause: e,
-                    });
-                }
-            }
-        }
-    }
-
-    public asDispatcher(
-        this: Readonly<this>,
-        logger: Logger,
-    ): Agent | undefined {
-        const { proxyUrl, sourceAddress, disableTlsVerification } = this;
-        if (!proxyUrl) {
-            return new Agent({
-                localAddress: sourceAddress,
-                family: this.ipFamily,
-                rejectUnauthorized: !disableTlsVerification,
-            });
-        }
-        // Proxy must be a string as long as the URL is truthy
-        const pxyStr = this.proxy!;
-        const { password } = proxyUrl;
-
-        const loggedProxy = password
-            ? pxyStr.replace(password, "****")
-            : pxyStr;
-
-        logger.log(`Using proxy: ${loggedProxy}`);
-        try {
-            return new ProxyAgent({
-                getProxyForUrl: () => pxyStr,
-                localAddress: sourceAddress,
-                family: this.ipFamily,
-                rejectUnauthorized: !disableTlsVerification,
-            });
-        } catch (e) {
-            throw new Error(`Failed to create proxy agent for ${loggedProxy}`, {
-                cause: e,
-            });
-        }
-    }
-}
-
-class CacheSpec {
-    constructor(
-        public pxySpec: ProxySpec,
-        public ip: string | null,
-    ) {}
-    public get key(): string {
-        return JSON.stringify(
-            this.ip || [this.pxySpec.proxy, this.pxySpec.sourceAddress],
-        );
-    }
-}
-
-type TokenMinter = {
-    expiry: Date;
-    integrityToken: string;
-    minter: BG.WebPoMinter;
-};
-
-type MinterCache = Map<string, TokenMinter>;
-
-export type ChallengeData = {
-    interpreterUrl: {
-        privateDoNotAccessOrElseTrustedResourceUrlWrappedValue: string;
-    };
-    interpreterHash: string;
-    program: string;
-    globalName: string;
-    clientExperimentsStateBlob: string;
-};
+import { CacheSpec } from "./cache_spec.ts";
+import { CacheStore } from "./cache_store.ts";
+import { ChallengeData, ChallengeService } from "./challenge_service.ts";
+import { Logger } from "./logger.ts";
+import { NetworkClient } from "./network_client.ts";
+import { ProxySpec } from "./proxy_spec.ts";
+import { MinterCache, TokenMinterService } from "./token_minter_service.ts";
+import {
+    YoutubeSessionData,
+    YoutubeSessionDataCaches,
+} from "./session_types.ts";
 
 export class SessionManager {
     // hardcoded API key that has been used by youtube for years
     private static readonly REQUEST_KEY = "O43z0dpjhgX20SCx4KAo";
     private static hasDom = false;
-    private _minterCache: MinterCache = new Map();
     private TOKEN_TTL_HOURS: number;
     private logger: Logger;
+    private caches: CacheStore;
+    private networkClient: NetworkClient;
+    private challengeService: ChallengeService;
+    private tokenMinterService: TokenMinterService;
 
     constructor(
         shouldLog = true,
         // This needs to be reworked as POTs are IP-bound
-        private youtubeSessionDataCaches?: YoutubeSessionDataCaches,
+        youtubeSessionDataCaches?: YoutubeSessionDataCaches,
     ) {
         this.logger = new Logger(shouldLog);
+        this.caches = new CacheStore(youtubeSessionDataCaches);
+        this.networkClient = new NetworkClient(this.logger);
+        this.challengeService = new ChallengeService(this.logger);
         this.TOKEN_TTL_HOURS = process.env.TOKEN_TTL
             ? parseInt(process.env.TOKEN_TTL)
             : 6;
+        this.tokenMinterService = new TokenMinterService(
+            this.logger,
+            this.challengeService,
+            this.caches.minterCache,
+            this.TOKEN_TTL_HOURS,
+            SessionManager.REQUEST_KEY,
+        );
         if (!SessionManager.hasDom) {
             const dom = new JSDOM(
                 '<!DOCTYPE html><html lang="en"><head><title></title></head><body></body></html>',
@@ -197,215 +70,29 @@ export class SessionManager {
     }
 
     public invalidateCaches() {
-        this.setYoutubeSessionDataCaches();
-        this._minterCache.clear();
+        this.caches.invalidateCaches();
     }
 
     public invalidateIT() {
-        this._minterCache.forEach((minterCache) => {
-            minterCache.expiry = new Date(0);
-        });
+        this.caches.invalidateIT();
     }
 
     public cleanupCaches() {
-        for (const contentBinding in this.youtubeSessionDataCaches) {
-            const sessionData = this.youtubeSessionDataCaches[contentBinding];
-            if (sessionData && new Date() > sessionData.expiresAt)
-                delete this.youtubeSessionDataCaches[contentBinding];
-        }
+        this.caches.cleanupCaches();
     }
 
     public getYoutubeSessionDataCaches(cleanup = false) {
-        if (cleanup) this.cleanupCaches();
-        return this.youtubeSessionDataCaches;
+        return this.caches.getYoutubeSessionDataCaches(cleanup);
     }
 
     public setYoutubeSessionDataCaches(
         youtubeSessionData?: YoutubeSessionDataCaches,
     ) {
-        this.youtubeSessionDataCaches = youtubeSessionData;
+        this.caches.setYoutubeSessionDataCaches(youtubeSessionData);
     }
 
     public get minterCache(): MinterCache {
-        return this._minterCache;
-    }
-
-    private async getDescrambledChallenge(
-        bgConfig: BgConfig,
-        challenge?: ChallengeData,
-        innertubeContext?: InnertubeContext,
-    ): Promise<DescrambledChallenge> {
-        try {
-            if (!challenge) {
-                this.logger.debug("Using challenge from /att/get");
-                const attGetResponse = await bgConfig.fetch(
-                    "https://www.youtube.com/youtubei/v1/att/get?prettyPrint=false",
-                    {
-                        method: "POST",
-                        headers: {
-                            ...getHeaders(),
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                            context: innertubeContext || {
-                                client: {
-                                    clientName: "WEB",
-                                    clientVersion: "2.20260227.01.00",
-                                },
-                            },
-                            engagementType: "ENGAGEMENT_TYPE_UNBOUND",
-                        }),
-                    },
-                );
-                const attestation = await attGetResponse.json();
-                if (!attestation)
-                    throw new Error("Failed to get challenge from /att/get");
-                challenge = attestation.bgChallenge as ChallengeData;
-            } else {
-                this.logger.debug("Using challenge from the webpage");
-            }
-            const { program, globalName, interpreterHash } = challenge;
-            const { privateDoNotAccessOrElseTrustedResourceUrlWrappedValue } =
-                challenge.interpreterUrl;
-            const interpreterJSResponse = await bgConfig.fetch(
-                `https:${privateDoNotAccessOrElseTrustedResourceUrlWrappedValue}`,
-            );
-            const interpreterJS = await interpreterJSResponse.text();
-            return {
-                program,
-                globalName,
-                interpreterHash,
-                interpreterJavascript: {
-                    privateDoNotAccessOrElseSafeScriptWrappedValue:
-                        interpreterJS,
-                    privateDoNotAccessOrElseTrustedResourceUrlWrappedValue,
-                },
-            };
-        } catch (e) {
-            throw new Error("Could not get BotGuard challenge", { cause: e });
-        }
-    }
-
-    private async generateTokenMinter(
-        cacheSpec: CacheSpec,
-        bgConfig: BgConfig,
-        challenge?: ChallengeData,
-        innertubeContext?: InnertubeContext,
-    ): Promise<TokenMinter> {
-        const descrambledChallenge = await this.getDescrambledChallenge(
-            bgConfig,
-            challenge,
-            innertubeContext,
-        );
-
-        const { program, globalName } = descrambledChallenge;
-        const interpreterJavascript =
-            descrambledChallenge.interpreterJavascript
-                .privateDoNotAccessOrElseSafeScriptWrappedValue;
-
-        if (interpreterJavascript) {
-            new Function(interpreterJavascript)();
-        } else throw new Error("Could not load VM");
-
-        let bgClient: BG.BotGuardClient;
-        try {
-            bgClient = await BG.BotGuardClient.create({
-                program,
-                globalName,
-                globalObj: bgConfig.globalObj,
-            });
-        } catch (e) {
-            throw new Error(`Failed to create BG client.`, { cause: e });
-        }
-        try {
-            const webPoSignalOutput: WebPoSignalOutput = [];
-            const botguardResponse = await bgClient.snapshot({
-                webPoSignalOutput,
-            });
-            const integrityTokenResp = await bgConfig.fetch(
-                buildURL("GenerateIT"),
-                {
-                    method: "POST",
-                    headers: getHeaders(),
-                    body: JSON.stringify([
-                        SessionManager.REQUEST_KEY,
-                        botguardResponse,
-                    ]),
-                },
-            );
-
-            const [
-                integrityToken,
-                estimatedTtlSecs,
-                mintRefreshThreshold,
-                websafeFallbackToken,
-            ] = (await integrityTokenResp.json()) as [
-                string,
-                number,
-                number,
-                string,
-            ];
-
-            const integrityTokenData = {
-                integrityToken,
-                estimatedTtlSecs,
-                mintRefreshThreshold,
-                websafeFallbackToken,
-            };
-
-            if (!integrityToken)
-                throw new Error(
-                    `Unexpected empty integrity token, response: ${JSON.stringify(integrityTokenData)}`,
-                );
-            this.logger.debug(
-                `Generated IntegrityToken: ${JSON.stringify(integrityTokenData)}`,
-            );
-
-            const tokenMinter: TokenMinter = {
-                expiry: new Date(Date.now() + estimatedTtlSecs * 1000),
-                integrityToken,
-                minter: await BG.WebPoMinter.create(
-                    integrityTokenData,
-                    webPoSignalOutput,
-                ),
-            };
-            this._minterCache.set(cacheSpec.key, tokenMinter);
-            return tokenMinter;
-        } catch (e) {
-            throw new Error(`Failed to generate an integrity token.`, {
-                cause: e,
-            });
-        }
-    }
-
-    private async tryMintPOT(
-        contentBinding: string,
-        tokenMinter: TokenMinter,
-    ): Promise<YoutubeSessionData> {
-        this.logger.log(`Generating POT for ${contentBinding}`);
-        try {
-            const poToken =
-                await tokenMinter.minter.mintAsWebsafeString(contentBinding);
-            if (poToken) {
-                this.logger.log(`poToken: ${poToken}`);
-                const youtubeSessionData: YoutubeSessionData = {
-                    contentBinding,
-                    poToken,
-                    expiresAt: new Date(
-                        Date.now() + this.TOKEN_TTL_HOURS * 60 * 60 * 1000,
-                    ),
-                };
-                if (this.youtubeSessionDataCaches)
-                    this.youtubeSessionDataCaches[contentBinding] =
-                        youtubeSessionData;
-                return youtubeSessionData;
-            } else throw new Error("Unexpected empty POT");
-        } catch (e) {
-            throw new Error(
-                `Failed to mint POT for ${contentBinding}: ${e.message}`,
-                { cause: e },
-            );
-        }
+        return this.caches.minterCache;
     }
 
     private getFetch(
@@ -413,41 +100,7 @@ export class SessionManager {
         maxRetries: number,
         intervalMs: number,
     ): FetchFunction {
-        const { logger } = this;
-        return async (url: any, options: any): Promise<any> => {
-            const method = (options?.method || "GET").toUpperCase();
-            for (let attempts = 1; attempts <= maxRetries; attempts++) {
-                try {
-                    const axiosOpt: AxiosRequestConfig = {
-                        headers: options?.headers,
-                        params: options?.params,
-                        httpsAgent: proxySpec.asDispatcher(logger),
-                    };
-                    const response = await (method === "GET"
-                        ? axios.get(url, axiosOpt)
-                        : axios.post(url, options?.body, axiosOpt));
-
-                    return {
-                        ok: response.status >= 200 && response.status < 300,
-                        status: response.status,
-                        json: async () => response.data,
-                        text: async () =>
-                            typeof response.data === "string"
-                                ? response.data
-                                : JSON.stringify(response.data),
-                    };
-                } catch (e) {
-                    if (attempts >= maxRetries)
-                        throw new Error(
-                            `Error reaching ${method} ${url}: All ${attempts} retries failed.`,
-                            { cause: e },
-                        );
-                    await new Promise((resolve) =>
-                        setTimeout(resolve, intervalMs),
-                    );
-                }
-            }
-        };
+        return this.networkClient.getFetch(proxySpec, maxRetries, intervalMs);
     }
 
     async generatePoToken(
@@ -511,9 +164,9 @@ export class SessionManager {
         };
 
         if (!bypassCache) {
-            if (this.youtubeSessionDataCaches) {
-                const sessionData =
-                    this.youtubeSessionDataCaches[contentBinding];
+            const caches = this.caches.getYoutubeSessionDataCaches();
+            if (caches) {
+                const sessionData = caches[contentBinding];
                 if (sessionData) {
                     this.logger.log(
                         `POT for ${contentBinding} still fresh, returning cached token`,
@@ -521,28 +174,36 @@ export class SessionManager {
                     return sessionData;
                 }
             }
-            let tokenMinter = this._minterCache.get(cacheSpec.key);
+            let tokenMinter = this.caches.minterCache.get(cacheSpec.key);
             if (tokenMinter) {
                 // Replace minter if expired
                 if (new Date() >= tokenMinter.expiry) {
                     this.logger.log("POT minter expired, getting a new one");
-                    tokenMinter = await this.generateTokenMinter(
-                        cacheSpec,
+                    tokenMinter = await this.tokenMinterService.generateTokenMinter(
+                        cacheSpec.key,
                         bgConfig,
                         challenge,
                         innertubeContext,
                     );
                 }
-                return await this.tryMintPOT(contentBinding, tokenMinter);
+                return await this.tokenMinterService.tryMintPOT(
+                    contentBinding,
+                    tokenMinter,
+                    this.caches.getYoutubeSessionDataCaches(),
+                );
             }
         }
 
-        const tokenMinter = await this.generateTokenMinter(
-            cacheSpec,
+        const tokenMinter = await this.tokenMinterService.generateTokenMinter(
+            cacheSpec.key,
             bgConfig,
             challenge,
             innertubeContext,
         );
-        return await this.tryMintPOT(contentBinding, tokenMinter);
+        return await this.tokenMinterService.tryMintPOT(
+            contentBinding,
+            tokenMinter,
+            this.caches.getYoutubeSessionDataCaches(),
+        );
     }
 }
