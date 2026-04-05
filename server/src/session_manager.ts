@@ -179,12 +179,13 @@ export class SessionManager {
                 // Replace minter if expired
                 if (new Date() >= tokenMinter.expiry) {
                     this.logger.log("POT minter expired, getting a new one");
-                    tokenMinter = await this.tokenMinterService.generateTokenMinter(
-                        cacheSpec.key,
-                        bgConfig,
-                        challenge,
-                        innertubeContext,
-                    );
+                    tokenMinter =
+                        await this.tokenMinterService.generateTokenMinter(
+                            cacheSpec.key,
+                            bgConfig,
+                            challenge,
+                            innertubeContext,
+                        );
                 }
                 return await this.tokenMinterService.tryMintPOT(
                     contentBinding,

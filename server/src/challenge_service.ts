@@ -1,8 +1,4 @@
-import {
-    BgConfig,
-    DescrambledChallenge,
-    getHeaders,
-} from "bgutils-js";
+import { BgConfig, DescrambledChallenge, getHeaders } from "bgutils-js";
 import { Context as InnertubeContext } from "youtubei.js";
 import { Logger } from "./logger.ts";
 

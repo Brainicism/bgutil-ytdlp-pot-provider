@@ -8,7 +8,10 @@ import {
 import { Context as InnertubeContext } from "youtubei.js";
 import { ChallengeData, ChallengeService } from "./challenge_service.ts";
 import { Logger } from "./logger.ts";
-import { YoutubeSessionData, YoutubeSessionDataCaches } from "./session_types.ts";
+import {
+    YoutubeSessionData,
+    YoutubeSessionDataCaches,
+} from "./session_types.ts";
 
 export type TokenMinter = {
     expiry: Date;
