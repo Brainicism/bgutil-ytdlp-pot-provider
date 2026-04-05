@@ -274,7 +274,7 @@ jobs:
             esac
             cd ..
           else
-            docker run --name bgutil-provider -d -p ${{ env.PORT }}:4416 \
+            docker run --name bgutil-provider --net=host -d -p ${{ env.PORT }}:4416 \
               brainicism/bgutil-ytdlp-pot-provider:ci-${{ matrix.jsrt }}
           fi
 
