@@ -11,7 +11,7 @@ import {
 } from "bgutils-js";
 import { Agent } from "node:https";
 import { ProxyAgent } from "proxy-agent";
-import { JSDOM } from "jsdom";
+import { GlobalWindow } from "happy-dom";
 import { Innertube, Context as InnertubeContext } from "youtubei.js";
 
 interface YoutubeSessionData {
@@ -171,25 +171,25 @@ export class SessionManager {
             ? parseInt(process.env.TOKEN_TTL)
             : 6;
         if (!SessionManager.hasDom) {
-            const dom = new JSDOM(
-                '<!DOCTYPE html><html lang="en"><head><title></title></head><body></body></html>',
-                {
-                    url: "https://www.youtube.com/",
-                    referrer: "https://www.youtube.com/",
-                    userAgent: USER_AGENT,
+            const window = new GlobalWindow({
+                url: "https://www.youtube.com/",
+                settings: {
+                    navigator: {
+                        userAgent: USER_AGENT,
+                    },
                 },
-            );
+            });
 
             Object.assign(globalThis, {
-                window: dom.window,
-                document: dom.window.document,
-                location: dom.window.location,
-                origin: dom.window.origin,
+                window,
+                document: window.document,
+                location: window.location,
+                origin: window.origin,
             });
 
             if (!Reflect.has(globalThis, "navigator")) {
                 Object.defineProperty(globalThis, "navigator", {
-                    value: dom.window.navigator,
+                    value: window.navigator,
                 });
             }
             SessionManager.hasDom = true;
