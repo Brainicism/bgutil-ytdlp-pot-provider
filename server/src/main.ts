@@ -3,7 +3,13 @@ import { strerror, VERSION } from "./utils.ts";
 import { Command } from "commander";
 import express from "express";
 
-const program = new Command().option("-p, --port <PORT>").parse();
+const program = new Command()
+    .option("-p, --port <PORT>")
+    .option(
+        "-P, --local-proxy",
+        "Use proxy specified in local env vars, instead of that passed by the client"
+    )
+    .parse();
 
 const options = program.opts();
 
@@ -78,7 +84,7 @@ httpServer.post("/get_pot", async (request, response) => {
         });
 
     const contentBinding: string | undefined = body.content_binding;
-    const proxy: string = body.proxy;
+    const proxy: string | null = options.localProxy ? null : body.proxy;
     const bypassCache: boolean = body.bypass_cache || false;
     const sourceAddress: string | undefined = body.source_address;
     const disableTlsVerification: boolean =

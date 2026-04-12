@@ -422,6 +422,7 @@ export class SessionManager {
                         headers: options?.headers,
                         params: options?.params,
                         httpsAgent: proxySpec.asDispatcher(logger),
+                        proxy: false, // Axios' built-in proxy support is broken for all cases except http-over-http. Here proxy-agent is used.
                     };
                     const response = await (method === "GET"
                         ? axios.get(url, axiosOpt)
@@ -452,7 +453,7 @@ export class SessionManager {
 
     async generatePoToken(
         contentBinding: string | undefined,
-        proxy: string = "",
+        proxy: string | null = "",
         bypassCache = false,
         sourceAddress: string | undefined = undefined,
         disableTlsVerification: boolean = false,
