@@ -52,16 +52,14 @@ This is a JavaScript HTTP server, on port 4416 by default. You have two options 
 
 **Docker:**
 
-Port 4416 is exposed to the host system by default. Pass `-p 1234:4416` in the docker run options (before the image name) to publish the server to port 1234 on the host system. Replace `[OPTIONS]` with the server command line options (usually this is not needed because you can use docker to publish the server to another port).
-
 ```shell
-docker run --name bgutil-provider -d --init brainicism/bgutil-ytdlp-pot-provider [OPTIONS]
+docker run --name bgutil-provider -p 4416:4416 -d --init brainicism/bgutil-ytdlp-pot-provider
 ```
 
 Our Docker image comes in two flavors: Node.js or Deno. The `:latest` tag defaults to Node.js, but you can specify an alternate version/flavor like so: `brainicism/bgutil-ytdlp-pot-provider:1.3.1-deno`. The `:node` tag also points to the latest Node.js image, and `:deno` points to the latest Deno image.
 
 > [!IMPORTANT]
-> Note that the docker container's network is isolated from your local network by default. If you are using a local proxy server, it will not be accessible from within the container unless you pass `--net=host` as well.
+> Note that the container's network is isolated from your local network by default. If you are using a local proxy server, you need to pass `-e ALL_PROXY=http|socks5://host.containers.internal:PROXY_PORT` to Docker (i.e. before `brainicism/bgutil-ytdlp-pot-provider`) and `--local-proxy` to this program (i.e. after `brainicism/bgutil-ytdlp-pot-provider`).
 
 **Native:**
 
