@@ -31,6 +31,15 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
         self._server_available = True
 
     @functools.cached_property
+    def _manual_proxy(self) -> str | False | None:
+        proxy = self._configuration_arg('proxy', default=[None])[0]
+
+        if proxy == '' or proxy == 'none':
+            return False
+
+        return proxy
+
+    @functools.cached_property
     def _base_url(self):
         base_url = self._configuration_arg('base_url', default=[None])[0]
 
@@ -119,6 +128,8 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
                 'a PO Token cannot be generated because InnerTube challenges '
                 'are currently broken for the web_music client. ')
 
+        proxy = request.request_proxy if self._manual_proxy is None else self._manual_proxy
+
         try:
             response = self._request_webpage(
                 request=Request(
@@ -127,7 +138,7 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
                         'challenge': challenge,
                         'content_binding': get_webpo_content_binding(request)[0],
                         'disable_tls_verification': not request.request_verify_tls,
-                        'proxy': request.request_proxy,
+                        'proxy': proxy,
                         'innertube_context': request.innertube_context,
                         'source_address': request.request_source_address,
                     }).encode(), headers={'Content-Type': 'application/json'},

@@ -7,7 +7,7 @@ const program = new Command()
     .option("-p, --port <PORT>")
     .option(
         "-P, --local-proxy",
-        "Use proxy specified in local env vars, instead of that passed by the client"
+        "Use proxy locally specified in env vars, overriding that passed by the client",
     )
     .parse();
 
@@ -83,8 +83,13 @@ httpServer.post("/get_pot", async (request, response) => {
             error: "disable_innertube is deprecated because the /Create endpoint doesn't work anymore",
         });
 
+    const proxy: string = options.localProxy
+        ? process.env.HTTPS_PROXY ||
+          process.env.HTTP_PROXY ||
+          process.env.ALL_PROXY ||
+          ""
+        : body.proxy || "";
     const contentBinding: string | undefined = body.content_binding;
-    const proxy: string | null = options.localProxy ? null : body.proxy;
     const bypassCache: boolean = body.bypass_cache || false;
     const sourceAddress: string | undefined = body.source_address;
     const disableTlsVerification: boolean =

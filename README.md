@@ -59,7 +59,7 @@ docker run --name bgutil-provider -p 4416:4416 -d --init brainicism/bgutil-ytdlp
 Our Docker image comes in two flavors: Node.js or Deno. The `:latest` tag defaults to Node.js, but you can specify an alternate version/flavor like so: `brainicism/bgutil-ytdlp-pot-provider:1.3.1-deno`. The `:node` tag also points to the latest Node.js image, and `:deno` points to the latest Deno image.
 
 > [!IMPORTANT]
-> Note that the container's network is isolated from your local network by default. If you are using a local proxy server, you need to pass `-e ALL_PROXY=http|socks5://host.containers.internal:PROXY_PORT` to Docker (i.e. before `brainicism/bgutil-ytdlp-pot-provider`) and `--local-proxy` to this program (i.e. after `brainicism/bgutil-ytdlp-pot-provider`).
+> Note that the container's network is isolated from your local network by default. If you are using a local proxy server, you need to pass `--extractor-args "youtubepot-bgutilhttp:proxy=socks5h://host.containers.internal:[PROXY_PORT]"` to yt-dlp.
 
 **Native:**
 

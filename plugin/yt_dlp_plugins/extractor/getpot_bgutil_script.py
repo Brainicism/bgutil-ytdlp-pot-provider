@@ -149,6 +149,15 @@ class BgUtilScriptPTPBase(BgUtilPTPBase, abc.ABC):
             return False
 
     @functools.cached_property
+    def _manual_proxy(self) -> str | False | None:
+        proxy = self._script_config_arg('proxy')
+
+        if proxy == '' or proxy == 'none':
+            return False
+
+        return proxy
+
+    @functools.cached_property
     def _script_path(self) -> str:
         return self._script_path_impl()
 
@@ -222,8 +231,8 @@ class BgUtilScriptPTPBase(BgUtilPTPBase, abc.ABC):
             f'Generating POT via script: {self._script_path}')
 
         command_args = [self._jsrt_path, *self._jsrt_args(), self._script_path]
-        if proxy := request.request_proxy:
-            command_args.extend(['-p', proxy])
+        proxy = (request.request_proxy if self._manual_proxy is None else self._manual_proxy) or ''
+        command_args.extend(['-p', proxy])
         command_args.extend(['-c', get_webpo_content_binding(request)[0]])
         command_args.extend(['--innertube-context', json.dumps(request.innertube_context)])
         if request.bypass_cache:

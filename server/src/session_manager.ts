@@ -453,7 +453,7 @@ export class SessionManager {
 
     async generatePoToken(
         contentBinding: string | undefined,
-        proxy: string | null = "",
+        proxy: string = "",
         bypassCache = false,
         sourceAddress: string | undefined = undefined,
         disableTlsVerification: boolean = false,
@@ -468,11 +468,6 @@ export class SessionManager {
         });
         if (proxy) {
             pxySpec.proxy = proxy;
-        } else {
-            pxySpec.proxy =
-                process.env.HTTPS_PROXY ||
-                process.env.HTTP_PROXY ||
-                process.env.ALL_PROXY;
         }
 
         const cacheSpec = new CacheSpec(
