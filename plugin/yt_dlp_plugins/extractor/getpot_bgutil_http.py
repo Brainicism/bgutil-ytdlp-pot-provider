@@ -107,8 +107,9 @@ class BgUtilHTTPPTP(BgUtilPTPBase):
         self.logger.trace('Generating POT via HTTP server')
 
         if self._configuration_arg('disable_innertube', default=[None])[0] is not None:
-            self._warn_and_raise(
-                "'youtubepot-bgutilhttp:disable_innertube' extractor arg is deprecated")
+            self.logger.warning(
+                "'youtubepot-bgutilhttp:disable_innertube' extractor arg is deprecated and will be ignored",
+                once=True)
 
         challenge = self._get_attestation(request.video_webpage)
         # The challenge is falsy when the webpage and the challenge are unavailable
