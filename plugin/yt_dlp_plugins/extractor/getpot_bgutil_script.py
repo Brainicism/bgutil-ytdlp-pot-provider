@@ -307,7 +307,7 @@ class BgUtilScriptDenoPTP(BgUtilScriptPTPBase):
             return ','.join(s.replace(',', ',,') for s in strs)
         node_mods_path = os.path.join(self._server_home, 'node_modules')
         return (
-            'run', '--allow-env', '--allow-net',
+            'run', '--allow-sys=osRelease', '--allow-env', '--allow-net',
             f'--allow-ffi={escpath(node_mods_path)}',
             f'--allow-write={escpath(self._script_cache_dir)}',
             f'--allow-read={escpath(self._script_cache_dir, node_mods_path)}',
