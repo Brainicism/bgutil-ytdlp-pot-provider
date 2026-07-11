@@ -4,17 +4,6 @@ import * as fs from "node:fs";
 
 const serverHome = path.resolve(import.meta.dirname, "..");
 
-// Returns true if the lockfile was updated, false otherwise
-function downgradeLock(lockfile): boolean {
-    const { version } = lockfile;
-    if (version === "4") return true;
-    if (version !== "5")
-        throw new Error(`Invalid deno.lock version: ${version}`);
-    console.log("blindly downgrading deno.lock from v5 to v4");
-    lockfile.version = "4";
-    return false;
-}
-
 function getDenoPkgs(lockfile) {
     const pkgs: Record<string, string> = {};
     const { version, npm } = lockfile;
@@ -57,10 +46,6 @@ let exitCode = 0;
 try {
     const denoPath = path.resolve(serverHome, "deno.lock");
     const denoLock = JSON.parse(fs.readFileSync(denoPath).toString());
-    if (!downgradeLock(denoLock)) {
-        fs.writeFileSync(denoPath, JSON.stringify(denoLock, null, 2) + "\n");
-        exitCode = 1;
-    }
 
     const denoPkgs = getDenoPkgs(denoLock);
     const nodePkgs = getNodePkgs(JSON.parse(fs.readFileSync(path.resolve(

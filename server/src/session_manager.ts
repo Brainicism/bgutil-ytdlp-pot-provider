@@ -176,7 +176,7 @@ export class SessionManager {
                 {
                     url: "https://www.youtube.com/",
                     referrer: "https://www.youtube.com/",
-                    userAgent: USER_AGENT,
+                    resources: {userAgent: USER_AGENT},
                 },
             );
 
@@ -250,7 +250,7 @@ export class SessionManager {
                             context: innertubeContext || {
                                 client: {
                                     clientName: "WEB",
-                                    clientVersion: "2.20260227.01.00",
+                                    clientVersion: "2.20260708.00.00",
                                 },
                             },
                             engagementType: "ENGAGEMENT_TYPE_UNBOUND",

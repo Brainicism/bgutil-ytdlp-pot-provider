@@ -1,4 +1,4 @@
-FROM node:25-bookworm-slim AS install
+FROM node:26-bookworm-slim AS install
 USER node
 WORKDIR /app
 
@@ -24,7 +24,7 @@ COPY --from=build_node /app/build /app/build
 EXPOSE 4416
 ENTRYPOINT ["/usr/local/bin/node", "build/main.js"]
 
-FROM denoland/deno:debian-2.6.9 AS server_deno
+FROM denoland/deno:debian-2.9.2 AS server_deno
 USER deno
 WORKDIR /app
 ENV DENO_DIR=/app/.cache/deno
