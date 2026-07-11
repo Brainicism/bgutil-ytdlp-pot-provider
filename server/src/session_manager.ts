@@ -176,7 +176,7 @@ export class SessionManager {
                 {
                     url: "https://www.youtube.com/",
                     referrer: "https://www.youtube.com/",
-                    resources: {userAgent: USER_AGENT},
+                    resources: { userAgent: USER_AGENT },
                 },
             );
 
