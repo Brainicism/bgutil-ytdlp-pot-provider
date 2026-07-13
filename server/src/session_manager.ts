@@ -303,7 +303,9 @@ export class SessionManager {
             descrambledChallenge.interpreterJavascript
                 .privateDoNotAccessOrElseSafeScriptWrappedValue;
 
+        this.logger.debug(descrambledChallenge.interpreterHash);
         if (interpreterJavascript) {
+            this.logger.debug(interpreterJavascript);
             new Function(interpreterJavascript)();
         } else throw new Error("Could not load VM");
 

@@ -26,7 +26,7 @@ from yt_dlp_plugins.extractor.getpot_bgutil import BgUtilPTPBase
 _FALLBACK_PATHEXT = ('.COM', '.EXE', '.BAT', '.CMD')
 
 
-# Copied from https://github.com/yt-dlp/yt-dlp/blob/59d9ae606a24a80523da35de9fb75b71eb35b501/yt_dlp/utils/_jsruntime.py#L16-L64
+# Copied from https://github.com/yt-dlp/yt-dlp/blob/d9813a3da6959662841dfb34cad0ee6c07a65d1e/yt_dlp/utils/_jsruntime.py#L16-L64
 # NOTE: keep in sync with upstream
 def _find_exe(basename: str) -> str:
     # Check in Python "scripts" path, e.g. for pipx-installed binaries
