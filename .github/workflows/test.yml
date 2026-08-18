@@ -87,7 +87,7 @@ jobs:
         uses: denoland/setup-deno@v2
         if: matrix.jsrt == 'deno'
         with:
-          deno-version: "2.7.0" # minimum supported version
+          deno-version: "2.5.3" # minimum supported version
       - name: Install Node
         uses: actions/setup-node@v6
         if: matrix.jsrt == 'node'
