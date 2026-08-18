@@ -250,7 +250,7 @@ export class SessionManager {
                             context: innertubeContext || {
                                 client: {
                                     clientName: "WEB",
-                                    clientVersion: "2.20260708.00.00",
+                                    clientVersion: "2.20260817.01.00",
                                 },
                             },
                             engagementType: "ENGAGEMENT_TYPE_UNBOUND",
@@ -303,9 +303,7 @@ export class SessionManager {
             descrambledChallenge.interpreterJavascript
                 .privateDoNotAccessOrElseSafeScriptWrappedValue;
 
-        this.logger.debug(descrambledChallenge.interpreterHash);
         if (interpreterJavascript) {
-            this.logger.debug(interpreterJavascript);
             new Function(interpreterJavascript)();
         } else throw new Error("Could not load VM");
 
