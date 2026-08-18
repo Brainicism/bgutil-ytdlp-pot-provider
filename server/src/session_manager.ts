@@ -408,6 +408,43 @@ export class SessionManager {
         }
     }
 
+    private async rawHttpsRequest(url: any, options: any, agent: any): Promise<any> {
+        const { request: httpsRequest } = await import("node:https");
+        const method = (options?.method || "GET").toUpperCase();
+        const headers: any = { ...(options?.headers || {}) };
+        let body: string | undefined = undefined;
+        if (options?.body !== undefined && options?.body !== null) {
+            const bodyStr: string = typeof options.body === "string" ? options.body : JSON.stringify(options.body);
+            headers["Content-Length"] = Buffer.byteLength(bodyStr);
+            body = bodyStr;
+        }
+        const result: any = await new Promise((resolve, reject) => {
+            const req = httpsRequest(url, { method, headers, agent }, (res: any) => {
+                const chunks: Buffer[] = [];
+                res.on("data", (c: Buffer) => chunks.push(c));
+                res.on("end", () => {
+                    const text = Buffer.concat(chunks).toString("utf8");
+                    let parsed: any;
+                    try { parsed = JSON.parse(text); } catch { parsed = text; }
+                    const status = res.statusCode || 0;
+                    if (status < 200 || status >= 300) {
+                        const err: any = new Error(`HTTP ${status} for ${url}`);
+                        err.status = status;
+                        reject(err);
+                        return;
+                    }
+                    resolve({ status, json: parsed, body: text });
+                });
+            });
+            req.on("error", reject);
+            req.setTimeout(30000, () => req.destroy(new Error("request timeout")));
+            const bodyToSend: string | undefined = body;
+            if (bodyToSend) req.write(bodyToSend);
+            req.end();
+        });
+        return result;
+    }
+
     private getFetch(
         proxySpec: ProxySpec,
         maxRetries: number,
@@ -418,23 +455,18 @@ export class SessionManager {
             const method = (options?.method || "GET").toUpperCase();
             for (let attempts = 1; attempts <= maxRetries; attempts++) {
                 try {
-                    const axiosOpt: AxiosRequestConfig = {
-                        headers: options?.headers,
-                        params: options?.params,
-                        httpsAgent: proxySpec.asDispatcher(logger),
-                    };
-                    const response = await (method === "GET"
-                        ? axios.get(url, axiosOpt)
-                        : axios.post(url, options?.body, axiosOpt));
+                    // 不能用 axios：jsdom 把 location 挂到 globalThis 后，axios 的协议解析
+                    // 会被污染（https 请求变成明文 HTTP）。改用 node 原生 https.request。
+                    const response = await this.rawHttpsRequest(url, options, proxySpec.asDispatcher(logger));
 
                     return {
                         ok: response.status >= 200 && response.status < 300,
                         status: response.status,
-                        json: async () => response.data,
+                        json: async () => response.json,
                         text: async () =>
-                            typeof response.data === "string"
-                                ? response.data
-                                : JSON.stringify(response.data),
+                            typeof response.body === "string"
+                                ? response.body
+                                : JSON.stringify(response.body),
                     };
                 } catch (e) {
                     if (attempts >= maxRetries)
@@ -479,7 +511,7 @@ export class SessionManager {
             innertubeContext?.client.remoteHost || null,
         );
 
-        const bgFetch = this.getFetch(pxySpec, 3, 5000);
+        const bgFetch = this.getFetch(pxySpec, 5, 8000);
         let innertube: Innertube | undefined = undefined;
         if (!contentBinding && innertubeContext) {
             this.logger.warn(
