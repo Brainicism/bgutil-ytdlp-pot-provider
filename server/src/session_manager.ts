@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from "axios";
 import { buildURL, getHeaders, USER_AGENT } from "bgutils-js/utils";
-import {
+import type {
     IBotguardClientSideBgChallenge,
     WebPoSignalOutput,
 } from "bgutils-js/shared-types";
