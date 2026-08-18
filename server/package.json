@@ -28,7 +28,7 @@
         "canvas": "^3.2.3",
         "commander": "^15.0.0",
         "express": "^5.2.1",
-        "jsdom": "^30.0.1",
+        "jsdom": "^29.1.1",
         "proxy-agent": "^8.0.2",
         "youtubei.js": "^18.0.0"
     },
@@ -36,7 +36,7 @@
         "@commander-js/extra-typings": "^15.0.0",
         "@eslint/js": "^10.0.1",
         "@types/express": "^5.0.6",
-        "@types/jsdom": "^30.0.0",
+        "@types/jsdom": "^28.0.3",
         "@types/node": "^26.2.0",
         "@typescript-eslint/parser": "^8.67.0",
         "eslint": "^10.8.1",

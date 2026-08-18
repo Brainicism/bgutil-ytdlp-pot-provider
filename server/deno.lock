@@ -4,7 +4,7 @@
     "npm:@commander-js/extra-typings@15": "15.0.0_commander@15.0.0",
     "npm:@eslint/js@^10.0.1": "10.0.1_eslint@10.8.1",
     "npm:@types/express@^5.0.6": "5.0.6",
-    "npm:@types/jsdom@30": "30.0.0",
+    "npm:@types/jsdom@^28.0.3": "28.0.3",
     "npm:@types/node@^26.2.0": "26.2.0",
     "npm:@typescript-eslint/parser@^8.67.0": "8.67.0_eslint@10.8.1_typescript@6.0.3",
     "npm:axios@^1.19.0": "1.19.0",
@@ -16,7 +16,7 @@
     "npm:eslint-plugin-prettier@^5.5.6": "5.5.6_eslint@10.8.1_eslint-config-prettier@10.1.8__eslint@10.8.1_prettier@3.9.6",
     "npm:eslint@^10.8.1": "10.8.1",
     "npm:express@^5.2.1": "5.2.1",
-    "npm:jsdom@^30.0.1": "30.0.1_canvas@3.2.3",
+    "npm:jsdom@^29.1.1": "29.1.1_canvas@3.2.3",
     "npm:prettier@^3.9.6": "3.9.6",
     "npm:proxy-agent@^8.0.2": "8.0.2",
     "npm:swc-node@1": "1.0.0",
@@ -25,24 +25,31 @@
     "npm:youtubei.js@18": "18.0.0"
   },
   "npm": {
-    "@asamuzakjp/css-color@6.0.7": {
-      "integrity": "sha512-vC/bk1Lz7Tn/EfU9/apOTBk80/8dyGyWMowPoV1tJ52muDGsDqt2HPT2klrFUiY60MQmQv9q8yIht15JnBgDGw==",
+    "@asamuzakjp/css-color@5.1.11": {
+      "integrity": "sha512-KVw6qIiCTUQhByfTd78h2yD1/00waTmm9uy/R7Ck/ctUyAPj+AEDLkQIdJW0T8+qGgj3j5bpNKK7Q3G+LedJWg==",
       "dependencies": [
+        "@asamuzakjp/generational-cache",
         "@csstools/css-calc",
         "@csstools/css-color-parser",
         "@csstools/css-parser-algorithms",
-        "@csstools/css-tokenizer",
-        "lru-cache@11.5.2"
+        "@csstools/css-tokenizer"
       ]
     },
-    "@asamuzakjp/dom-selector@8.3.2": {
-      "integrity": "sha512-93Z1N+BQNXysodoicpOIyNh2drHfz/CTf9nnT0FEx72GJcIiwgydD7tGAr78j41LsYn3hlRn+LdGPuBLn1Bl8Q==",
+    "@asamuzakjp/dom-selector@7.1.1": {
+      "integrity": "sha512-67RZDnYRc8H/8MLDgQCDE//zoqVFwajkepHZgmXrbwybzXOEwOWGPYGmALYl9J2DOLfFPPs6kKCqmbzV895hTQ==",
       "dependencies": [
+        "@asamuzakjp/generational-cache",
+        "@asamuzakjp/nwsapi",
         "bidi-js",
         "css-tree",
-        "is-potential-custom-element-name",
-        "lru-cache@11.5.2"
+        "is-potential-custom-element-name"
       ]
+    },
+    "@asamuzakjp/generational-cache@1.0.1": {
+      "integrity": "sha512-wajfB8KqzMCN2KGNFdLkReeHncd0AslUSrvHVvvYWuU8ghncRJoA50kT3zP9MVL0+9g4/67H+cdvBskj9THPzg=="
+    },
+    "@asamuzakjp/nwsapi@2.3.9": {
+      "integrity": "sha512-n8GuYSrI9bF7FFZ/SjhwevlHc8xaVlb/7HmHelnc/PZXBD2ZR49NnN9sMMuDdEGPeeRQ5d0hqlSlEpgCX3Wl0Q=="
     },
     "@bramus/specificity@2.4.2": {
       "integrity": "sha512-ctxtJ/eA+t+6q2++vj5j7FYX3nRu311q1wfYH3xjlLOsczhlhxAg2FWNUXhpGvAw3BWo1xBcvOV6/YLc2r5FJw==",
@@ -550,13 +557,13 @@
     "@types/http-errors@2.0.5": {
       "integrity": "sha512-r8Tayk8HJnX0FztbZN7oVqGccWgw98T/0neJphO91KkmOzug1KkofZURD4UaD5uH8AqcFLfdPErnBod0u71/qg=="
     },
-    "@types/jsdom@30.0.0": {
-      "integrity": "sha512-uAHGxujGE0cDaKGdK28zgDotFtNA7MKq5DXl8LrfdxdCI8VHcg15oJz+amHTChPNI5JpgEPQWc2xFdrw3em/nQ==",
+    "@types/jsdom@28.0.3": {
+      "integrity": "sha512-/HQ2uFoetFTXuye8vzIcHw2z6Fwi7Hi/qcgC+RoS9NCyewiqxhVGqlG+ViGB6lkax481R6dmhf1I7lIGlzJStQ==",
       "dependencies": [
         "@types/node",
         "@types/tough-cookie",
         "parse5",
-        "undici-types@8.10.0"
+        "undici-types@7.29.0"
       ]
     },
     "@types/json-schema@7.0.15": {
@@ -874,7 +881,7 @@
       "integrity": "sha512-23XHcCF+coGYevirZceTVD7NdJOqVn+49IHyxgszm+JIiHLoB2TkmPtsYkNWT1pvRSGkc35L6NHs0yHkN2SumA==",
       "dependencies": [
         "whatwg-mimetype",
-        "whatwg-url@16.0.1"
+        "whatwg-url"
       ]
     },
     "debug@4.4.3": {
@@ -1348,8 +1355,8 @@
     "isexe@2.0.0": {
       "integrity": "sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw=="
     },
-    "jsdom@30.0.1_canvas@3.2.3": {
-      "integrity": "sha512-52v7mUVUfNQVYYqE1lcdaymWL0njO7lTLUog6ZvW2U5KsbiLk/GnZlVJ+qx0xfNJZ6Gn+KSpPNE52vurbxZwrA==",
+    "jsdom@29.1.1_canvas@3.2.3": {
+      "integrity": "sha512-ECi4Fi2f7BdJtUKTflYRTiaMxIB0O6zfR1fX0GXpUrf6flp8QIYn1UT20YQqdSOfk2dfkCwS8LAFoJDEppNK5Q==",
       "dependencies": [
         "@asamuzakjp/css-color",
         "@asamuzakjp/dom-selector",
@@ -1371,7 +1378,7 @@
         "w3c-xmlserializer",
         "webidl-conversions",
         "whatwg-mimetype",
-        "whatwg-url@17.1.0",
+        "whatwg-url",
         "xml-name-validator"
       ],
       "optionalPeers": [
@@ -1966,14 +1973,14 @@
       "integrity": "sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==",
       "bin": true
     },
-    "undici-types@8.10.0": {
-      "integrity": "sha512-ibvdovq3nCFs8Msrd95BW+zUOq+aOVbT+wpHUoPWhztbHEoPc6oof51iFDB6Es8lTKvNvVW9jNSAB8dwrKTMGg=="
+    "undici-types@7.29.0": {
+      "integrity": "sha512-vamA8dGlzMwhpyYpQp9d8vka3o4D/yn5I7ez7Or+msDA4bZ8Uh+Zy91WvWf3I73gDAkFha9JcYRqm2li0Npfgg=="
     },
     "undici-types@8.3.0": {
       "integrity": "sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ=="
     },
-    "undici@8.10.0": {
-      "integrity": "sha512-HvltHd7avK13QIw/oLe4qoOLyoVSoafqJ2jYOrtMRBkbYT31eiBQ8O0ehRKZiEZCMEyLFQNIADpgCWC5fALvYQ=="
+    "undici@7.29.0": {
+      "integrity": "sha512-IDxfleLmmbSskfWSUATiN1nfn2rDuvnMOqb5CWR92iIfojA0Ud+ulOAAEQ57LPr9rWmsreUyf5lwyao+7GNNVw=="
     },
     "unpipe@1.0.0": {
       "integrity": "sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ=="
@@ -2004,14 +2011,6 @@
     },
     "whatwg-url@16.0.1": {
       "integrity": "sha512-1to4zXBxmXHV3IiSSEInrreIlu02vUOvrhxJJH5vcxYTBDAx51cqZiKdyTxlecdKNSjj8EcxGBxNf6Vg+945gw==",
-      "dependencies": [
-        "@exodus/bytes",
-        "tr46",
-        "webidl-conversions"
-      ]
-    },
-    "whatwg-url@17.1.0": {
-      "integrity": "sha512-3GeworPmc2ZfEEHP7lEbUfBX/L75wdEsi0rLNhXcXxnoN5jyq0SL5gCy06SGW2cyTIZdTvWIDQNQoza++vKeaw==",
       "dependencies": [
         "@exodus/bytes",
         "tr46",
@@ -2055,7 +2054,7 @@
         "npm:@commander-js/extra-typings@15",
         "npm:@eslint/js@^10.0.1",
         "npm:@types/express@^5.0.6",
-        "npm:@types/jsdom@30",
+        "npm:@types/jsdom@^28.0.3",
         "npm:@types/node@^26.2.0",
         "npm:@typescript-eslint/parser@^8.67.0",
         "npm:axios@^1.19.0",
@@ -2067,7 +2066,7 @@
         "npm:eslint-plugin-prettier@^5.5.6",
         "npm:eslint@^10.8.1",
         "npm:express@^5.2.1",
-        "npm:jsdom@^30.0.1",
+        "npm:jsdom@^29.1.1",
         "npm:prettier@^3.9.6",
         "npm:proxy-agent@^8.0.2",
         "npm:swc-node@1",

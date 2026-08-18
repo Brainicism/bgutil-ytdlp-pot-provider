@@ -295,7 +295,7 @@ class BgUtilScriptDenoPTP(BgUtilScriptPTPBase):
     _JSRT_NAME = 'Deno'
     _JSRT_EXEC = 'deno'
     _JSRT_VSN_REGEX = r'^deno (\S+)'
-    _JSRT_MIN_VER = (2, 8, 0)
+    _JSRT_MIN_VER = (2, 4, 3)
     _JSRT_PREF = 20
 
     def _script_path_impl(self) -> str:
