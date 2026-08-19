@@ -1,11 +1,11 @@
-import { BGError } from "bgutils-js";
+import { BgError } from "bgutils-js/utils";
 
 export const VERSION = "1.3.1";
 
 export function strerror(e: any, update?: boolean): string {
     const msg =
-        e instanceof BGError
-            ? `BGError(${e.code}): ${e.message} (info: ${JSON.stringify(e.info)})`
+        e instanceof BgError
+            ? `BgError: ${e.message} (info: ${JSON.stringify(e.info)})`
             : e instanceof Error
               ? `${e.name}: ${e.message}` +
                 (e.cause && e.cause !== e

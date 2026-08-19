@@ -1,18 +1,20 @@
 import axios, { AxiosRequestConfig } from "axios";
-import {
-    BG,
-    BgConfig,
-    DescrambledChallenge,
+import { buildURL, getHeaders, USER_AGENT } from "bgutils-js/utils";
+import type {
+    IBotguardClientSideBgChallenge,
     WebPoSignalOutput,
-    FetchFunction,
-    buildURL,
-    getHeaders,
-    USER_AGENT,
-} from "bgutils-js";
+} from "bgutils-js/shared-types";
+import { BotGuardClient } from "bgutils-js/botguard";
+import { WebPoMinter } from "bgutils-js/webpo";
 import { Agent } from "node:https";
 import { ProxyAgent } from "proxy-agent";
 import { JSDOM } from "jsdom";
 import { Innertube, Context as InnertubeContext } from "youtubei.js";
+
+interface PotContext {
+    fetch: typeof fetch;
+    globalObj: typeof globalThis;
+}
 
 interface YoutubeSessionData {
     poToken: string;
@@ -138,7 +140,7 @@ class CacheSpec {
 type TokenMinter = {
     expiry: Date;
     integrityToken: string;
-    minter: BG.WebPoMinter;
+    minter: WebPoMinter;
 };
 
 type MinterCache = Map<string, TokenMinter>;
@@ -176,7 +178,7 @@ export class SessionManager {
                 {
                     url: "https://www.youtube.com/",
                     referrer: "https://www.youtube.com/",
-                    userAgent: USER_AGENT,
+                    resources: { userAgent: USER_AGENT },
                 },
             );
 
@@ -231,14 +233,14 @@ export class SessionManager {
     }
 
     private async getDescrambledChallenge(
-        bgConfig: BgConfig,
+        potCtx: PotContext,
         challenge?: ChallengeData,
         innertubeContext?: InnertubeContext,
-    ): Promise<DescrambledChallenge> {
+    ): Promise<IBotguardClientSideBgChallenge> {
         try {
             if (!challenge) {
                 this.logger.debug("Using challenge from /att/get");
-                const attGetResponse = await bgConfig.fetch(
+                const attGetResponse = await potCtx.fetch(
                     "https://www.youtube.com/youtubei/v1/att/get?prettyPrint=false",
                     {
                         method: "POST",
@@ -250,7 +252,7 @@ export class SessionManager {
                             context: innertubeContext || {
                                 client: {
                                     clientName: "WEB",
-                                    clientVersion: "2.20260227.01.00",
+                                    clientVersion: "2.20260817.01.00",
                                 },
                             },
                             engagementType: "ENGAGEMENT_TYPE_UNBOUND",
@@ -267,7 +269,7 @@ export class SessionManager {
             const { program, globalName, interpreterHash } = challenge;
             const { privateDoNotAccessOrElseTrustedResourceUrlWrappedValue } =
                 challenge.interpreterUrl;
-            const interpreterJSResponse = await bgConfig.fetch(
+            const interpreterJSResponse = await potCtx.fetch(
                 `https:${privateDoNotAccessOrElseTrustedResourceUrlWrappedValue}`,
             );
             const interpreterJS = await interpreterJSResponse.text();
@@ -278,6 +280,8 @@ export class SessionManager {
                 interpreterJavascript: {
                     privateDoNotAccessOrElseSafeScriptWrappedValue:
                         interpreterJS,
+                },
+                interpreterUrl: {
                     privateDoNotAccessOrElseTrustedResourceUrlWrappedValue,
                 },
             };
@@ -288,12 +292,12 @@ export class SessionManager {
 
     private async generateTokenMinter(
         cacheSpec: CacheSpec,
-        bgConfig: BgConfig,
+        potCtx: PotContext,
         challenge?: ChallengeData,
         innertubeContext?: InnertubeContext,
     ): Promise<TokenMinter> {
         const descrambledChallenge = await this.getDescrambledChallenge(
-            bgConfig,
+            potCtx,
             challenge,
             innertubeContext,
         );
@@ -301,18 +305,18 @@ export class SessionManager {
         const { program, globalName } = descrambledChallenge;
         const interpreterJavascript =
             descrambledChallenge.interpreterJavascript
-                .privateDoNotAccessOrElseSafeScriptWrappedValue;
+                ?.privateDoNotAccessOrElseSafeScriptWrappedValue;
 
         if (interpreterJavascript) {
             new Function(interpreterJavascript)();
         } else throw new Error("Could not load VM");
 
-        let bgClient: BG.BotGuardClient;
+        let bgClient: BotGuardClient;
         try {
-            bgClient = await BG.BotGuardClient.create({
+            bgClient = await BotGuardClient.create({
                 program,
                 globalName,
-                globalObj: bgConfig.globalObj,
+                globalObject: potCtx.globalObj,
             });
         } catch (e) {
             throw new Error(`Failed to create BG client.`, { cause: e });
@@ -322,7 +326,7 @@ export class SessionManager {
             const botguardResponse = await bgClient.snapshot({
                 webPoSignalOutput,
             });
-            const integrityTokenResp = await bgConfig.fetch(
+            const integrityTokenResp = await potCtx.fetch(
                 buildURL("GenerateIT"),
                 {
                     method: "POST",
@@ -364,7 +368,7 @@ export class SessionManager {
             const tokenMinter: TokenMinter = {
                 expiry: new Date(Date.now() + estimatedTtlSecs * 1000),
                 integrityToken,
-                minter: await BG.WebPoMinter.create(
+                minter: await WebPoMinter.create(
                     integrityTokenData,
                     webPoSignalOutput,
                 ),
@@ -412,7 +416,7 @@ export class SessionManager {
         proxySpec: ProxySpec,
         maxRetries: number,
         intervalMs: number,
-    ): FetchFunction {
+    ): PotContext["fetch"] {
         const { logger } = this;
         return async (url: any, options: any): Promise<any> => {
             const method = (options?.method || "GET").toUpperCase();
@@ -503,11 +507,9 @@ export class SessionManager {
 
         if (!innertubeContext) innertubeContext = innertube?.session.context;
 
-        const bgConfig: BgConfig = {
+        const potCtx: PotContext = {
             fetch: bgFetch,
             globalObj: globalThis,
-            identifier: contentBinding,
-            requestKey: SessionManager.REQUEST_KEY,
         };
 
         if (!bypassCache) {
@@ -528,7 +530,7 @@ export class SessionManager {
                     this.logger.log("POT minter expired, getting a new one");
                     tokenMinter = await this.generateTokenMinter(
                         cacheSpec,
-                        bgConfig,
+                        potCtx,
                         challenge,
                         innertubeContext,
                     );
@@ -539,7 +541,7 @@ export class SessionManager {
 
         const tokenMinter = await this.generateTokenMinter(
             cacheSpec,
-            bgConfig,
+            potCtx,
             challenge,
             innertubeContext,
         );

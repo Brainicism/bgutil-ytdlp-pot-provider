@@ -3,10 +3,9 @@
         "incremental": true,
         "outDir": "./build",
         "allowJs": true,
-        "target": "es2022",
-        "module": "esnext",
-        "moduleResolution": "node",
-        "baseUrl": ".",
+        "target": "es2023",
+        "module": "node20",
+        "moduleResolution": "node16",
         "rootDir": "src",
         "strictBindCallApply": true,
         "strictFunctionTypes": true,
@@ -20,6 +19,7 @@
         "skipLibCheck": true,
         "noUncheckedIndexedAccess": true,
         "rewriteRelativeImportExtensions": true,
+        "useUnknownInCatchVariables": false,
         "paths": {
             "commander": ["./types/commander.d.ts"]
         }

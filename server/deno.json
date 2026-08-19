@@ -1,0 +1,3 @@
+{
+  "allowScripts": ["npm:@swc/core@1.16.0", "npm:canvas@3.2.3"]
+}

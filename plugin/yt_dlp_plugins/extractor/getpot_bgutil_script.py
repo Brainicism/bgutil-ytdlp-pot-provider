@@ -26,7 +26,7 @@ from yt_dlp_plugins.extractor.getpot_bgutil import BgUtilPTPBase
 _FALLBACK_PATHEXT = ('.COM', '.EXE', '.BAT', '.CMD')
 
 
-# Copied from https://github.com/yt-dlp/yt-dlp/blob/891613b098b2b315d983c2ae16901f5de344ca56/yt_dlp/utils/_jsruntime.py#L16-L64
+# Copied from https://github.com/yt-dlp/yt-dlp/blob/d9813a3da6959662841dfb34cad0ee6c07a65d1e/yt_dlp/utils/_jsruntime.py#L16-L64
 # NOTE: keep in sync with upstream
 def _find_exe(basename: str) -> str:
     # Check in Python "scripts" path, e.g. for pipx-installed binaries
@@ -56,12 +56,12 @@ def _find_exe(basename: str) -> str:
     else:
         exts = tuple(ext for ext in pathext.split(os.pathsep) if ext)
 
-    visited = []
+    visited = set()
     for path in map(os.path.realpath, paths):
         normed = os.path.normcase(path)
         if normed in visited:
             continue
-        visited.append(normed)
+        visited.add(normed)
 
         for ext in exts:
             binary = os.path.join(path, f'{basename}{ext}')
@@ -280,7 +280,7 @@ class BgUtilScriptNodePTP(BgUtilScriptPTPBase):
     _JSRT_NAME = 'Node.js'
     _JSRT_EXEC = 'node'
     _JSRT_VSN_REGEX = r'^v(\S+)'
-    _JSRT_MIN_VER = (20, 0, 0)
+    _JSRT_MIN_VER = (22, 0, 0)
     _JSRT_PREF = 10
 
     def _script_path_impl(self) -> str:
@@ -295,7 +295,7 @@ class BgUtilScriptDenoPTP(BgUtilScriptPTPBase):
     _JSRT_NAME = 'Deno'
     _JSRT_EXEC = 'deno'
     _JSRT_VSN_REGEX = r'^deno (\S+)'
-    _JSRT_MIN_VER = (2, 0, 0)
+    _JSRT_MIN_VER = (2, 4, 3)
     _JSRT_PREF = 20
 
     def _script_path_impl(self) -> str:
