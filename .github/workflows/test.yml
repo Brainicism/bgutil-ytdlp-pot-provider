@@ -162,8 +162,10 @@ jobs:
             [ "$exit_code" -eq 0 ] && exit_code=1
           fi
 
-          pot_response=$(echo "$script_response" | \
-            grep -A1 -m1 '\[youtube\] \[pot:bgutil:script-${{ matrix.jsrt }}\] TRACE: JSON response:' | \
+          # here-string instead of `echo |` so that grep -m1 exiting early
+          # can't SIGPIPE the producer and fail the step under pipefail
+          pot_response=$(grep -A1 -m1 '\[youtube\] \[pot:bgutil:script-${{ matrix.jsrt }}\] TRACE: JSON response:' \
+            <<< "$script_response" | \
             tail -n1 | \
             jq -r '.poToken')
           echo "POT: $pot_response"
