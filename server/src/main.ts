@@ -2,6 +2,8 @@ import { SessionManager } from "./session_manager.ts";
 import { strerror, VERSION } from "./utils.ts";
 import { Command } from "commander";
 import express from "express";
+import http from "node:http";
+import net from "node:net";
 
 const program = new Command().option("-p, --port <PORT>").parse();
 
@@ -13,45 +15,58 @@ const httpServer = express();
 httpServer.use(express.json());
 httpServer.use(express.urlencoded({ extended: true }));
 
-httpServer
-    .listen(
-        {
-            host: "::",
-            port: PORT_NUMBER,
-        },
-        (err) => {
-            if (err) {
-                console.error(
-                    `Could not listen on [::]:${PORT_NUMBER}, falling back to 0.0.0.0 (Caused by ${strerror(err)})`,
-                );
-            } else {
-                console.log(
-                    `Started POT server (v${VERSION}) on on address [::]:${PORT_NUMBER}`,
-                );
-            }
-        },
-    )
-    .on("error", () => {
-        // ipv4 only systems might not be able to bind to "::", so we try 0.0.0.0 instead
-        // this is temporary as we plan to bind to localhost in the next major version
-        httpServer.listen(
-            {
-                host: "0.0.0.0",
-                port: PORT_NUMBER,
-            },
-            (err) => {
-                if (err) {
-                    console.error(
-                        `Could not listen on [::]:${PORT_NUMBER} (Caused by ${strerror(err)})`,
-                    );
-                } else {
-                    console.log(
-                        `Started POT server (v${VERSION}) on address 0.0.0.0:${PORT_NUMBER}`,
-                    );
-                }
-            },
-        );
+// Like nginx (`listen [::]:80 ipv6only=on; listen 80;`) and Redis (`bind * -::*`),
+// bind the IPv6 and IPv4 wildcards as two separate sockets, with the IPv6 one
+// restricted to IPv6 so the two never overlap. Every address is optional: a
+// failure is logged, and startup only aborts if nothing could be bound.
+// NOTE: this is temporary as we plan to bind to localhost in the next major version
+const LISTEN_ADDRESSES: (net.ListenOptions & { host: string })[] = [
+    { host: "::", ipv6Only: true },
+    { host: "0.0.0.0" },
+];
+
+function formatAddress(host: string) {
+    return `${host.includes(":") ? `[${host}]` : host}:${PORT_NUMBER}`;
+}
+
+function listen(options: net.ListenOptions): Promise<http.Server> {
+    return new Promise((resolve, reject) => {
+        const server = http.createServer(httpServer);
+        server.once("error", reject);
+        server.listen({ ...options, port: PORT_NUMBER }, () => {
+            server.removeListener("error", reject);
+            resolve(server);
+        });
     });
+}
+
+async function startServer() {
+    const bound: string[] = [];
+    for (const options of LISTEN_ADDRESSES) {
+        const address = formatAddress(options.host);
+        try {
+            await listen(options);
+            bound.push(address);
+        } catch (err) {
+            // Deno ignores `ipv6Only` (and on Windows leaves the OS default of
+            // IPv6-only, #244), so with a dual-stack "::" socket the 0.0.0.0
+            // bind collides with it. That only means IPv4 is already served.
+            if (err?.code === "EADDRINUSE" && bound.length > 0) continue;
+            console.error(
+                `Could not listen on ${address} (Caused by ${strerror(err)})`,
+            );
+        }
+    }
+    if (bound.length === 0) {
+        console.error(`Could not listen on port ${PORT_NUMBER}`);
+        process.exit(1);
+    }
+    console.log(
+        `Started POT server (v${VERSION}) on address ${bound.join(", ")}`,
+    );
+}
+
+startServer();
 
 const sessionManager = new SessionManager();
 httpServer.get("/", async (request, response) => {
