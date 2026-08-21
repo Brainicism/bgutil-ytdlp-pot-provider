@@ -1,5 +1,10 @@
 import axios, { AxiosRequestConfig } from "axios";
-import { buildURL, getHeaders, USER_AGENT } from "bgutils-js/utils";
+import {
+    buildURL,
+    getHeaders,
+    parseLooseJSON,
+    USER_AGENT,
+} from "bgutils-js/utils";
 import type {
     IBotguardClientSideBgChallenge,
     WebPoSignalOutput,
@@ -232,14 +237,78 @@ export class SessionManager {
         return this._minterCache;
     }
 
+    // PATCH(unstem 2026-08): fetch the YT homepage (through the caller's
+    // proxy) and extract a self-consistent (ytcfg, ytAtN challenge) pair.
+    // Injects yt.config_ into the BotGuard global object so the snapshot
+    // sees EVENT_ID. Returns undefined on any failure (caller falls back).
+    private async getChallengeFromHomepage(
+        potCtx: PotContext,
+    ): Promise<ChallengeData | undefined> {
+        try {
+            const pageResponse = await potCtx.fetch("https://www.youtube.com", {
+                method: "GET",
+                headers: {
+                    accept: "*/*",
+                    "accept-language": "en-US,en;q=0.7",
+                    "user-agent": USER_AGENT,
+                },
+            });
+            const pageHtml: string = await pageResponse.text();
+
+            const ytcfgMatch = pageHtml.match(/ytcfg\.set\(({.+?})\);/s);
+            if (ytcfgMatch) {
+                const ytObj = { config_: JSON.parse(ytcfgMatch[1] as string) };
+                const g: any = globalThis as any;
+                g.yt = ytObj; // BotGuard reads yt.config_.EVENT_ID
+                if (g.window) g.window.yt = ytObj;
+            } else {
+                this.logger.warn(
+                    "homepage-challenge: no ytcfg found (EVENT_ID missing)",
+                );
+            }
+
+            const attMatch = pageHtml.match(
+                /window\.ytAtN\(\s*({[\s\S]*?})\s*\)/,
+            );
+            if (!attMatch) {
+                this.logger.warn(
+                    "homepage-challenge: no ytAtN challenge in page",
+                );
+                return undefined;
+            }
+            const attData: any = parseLooseJSON(attMatch[1] as string);
+            const bgChallenge = attData?.R?.bgChallenge;
+            if (!bgChallenge?.program || !bgChallenge?.interpreterUrl) {
+                this.logger.warn(
+                    "homepage-challenge: ytAtN payload missing bgChallenge",
+                );
+                return undefined;
+            }
+            this.logger.debug("Using challenge from the homepage (patched)");
+            return bgChallenge as ChallengeData;
+        } catch (e) {
+            this.logger.warn(
+                `homepage-challenge: failed (${e?.message}), falling back`,
+            );
+            return undefined;
+        }
+    }
+
     private async getDescrambledChallenge(
         potCtx: PotContext,
         challenge?: ChallengeData,
         innertubeContext?: InnertubeContext,
     ): Promise<IBotguardClientSideBgChallenge> {
         try {
+            // PATCH(unstem 2026-08): always mint from the homepage's
+            // (ytcfg, ytAtN) pair — plugin-passed challenges lack their
+            // page's ytcfg/EVENT_ID and /att/get tokens are rejected.
+            challenge =
+                (await this.getChallengeFromHomepage(potCtx)) ?? challenge;
             if (!challenge) {
-                this.logger.debug("Using challenge from /att/get");
+                this.logger.debug(
+                    "Using challenge from /att/get (legacy fallback)",
+                );
                 const attGetResponse = await potCtx.fetch(
                     "https://www.youtube.com/youtubei/v1/att/get?prettyPrint=false",
                     {
