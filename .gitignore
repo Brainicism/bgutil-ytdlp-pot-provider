@@ -25,3 +25,6 @@ yt-dlp/
 
 /tmp/
 cache.json
+
+# README copied into plugin/ during release builds
+plugin/README.md

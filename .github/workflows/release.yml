@@ -110,6 +110,7 @@ jobs:
             "Official repository: <${{ github.server_url }}/${{ github.repository }}>" > ./README.md.new
           cat ./README.md >> ./README.md.new
           mv -f ./README.md.new ./README.md
+          cp README.md plugin/
           cd plugin/
           rm -rf dist/**
           python -m build --no-isolation .
