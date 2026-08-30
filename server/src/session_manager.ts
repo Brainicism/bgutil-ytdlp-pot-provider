@@ -495,6 +495,7 @@ export class SessionManager {
                         headers: options?.headers,
                         params: options?.params,
                         httpsAgent: proxySpec.asDispatcher(logger),
+                        proxy: false,
                     };
                     const response = await (method === "GET"
                         ? axios.get(url, axiosOpt)
