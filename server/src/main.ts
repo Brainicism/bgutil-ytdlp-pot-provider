@@ -13,7 +13,6 @@ const PORT_NUMBER = options.port || 4416;
 
 const httpServer = express();
 httpServer.use(express.json());
-httpServer.use(express.urlencoded({ extended: true }));
 
 // Like nginx (`listen [::]:80 ipv6only=on; listen 80;`) and Redis (`bind * -::*`),
 // bind the IPv6 and IPv4 wildcards as two separate sockets, with the IPv6 one
