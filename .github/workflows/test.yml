@@ -293,8 +293,18 @@ jobs:
           fi
           echo "::endgroup::"
 
-          # check that the server is returning a POT
-          pot_response=$(curl -s -X POST "http://127.0.0.1:${{ env.PORT }}/get_pot")
+          # check that non-JSON requests are rejected
+          non_json_status=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+            "http://127.0.0.1:${{ env.PORT }}/get_pot")
+          if [ "$non_json_status" != "415" ]; then
+            echo "::error title=Non-JSON request was not rejected,file=server/src/main.ts::\
+          Expected HTTP 415, received HTTP $non_json_status."
+            exit 1
+          fi
+
+          # check that the server is returning a POT for a JSON request
+          pot_response=$(curl -s -X POST -H 'Content-Type: application/json' \
+            --data '{}' "http://127.0.0.1:${{ env.PORT }}/get_pot")
           echo "::group::Get pot response from the HTTP server"
           if echo "$pot_response" | jq -e . >/dev/null 2>&1; then
             echo "$pot_response" | jq -C
