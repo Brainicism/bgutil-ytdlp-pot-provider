@@ -12,6 +12,17 @@ const options = program.opts();
 const PORT_NUMBER = options.port || 4416;
 
 const httpServer = express();
+httpServer.use((request, response, next) => {
+    if (
+        request.get("Origin") ||
+        request.get("Sec-Fetch-Site")?.toLowerCase() === "cross-site"
+    ) {
+        return response.status(403).send({
+            error: "Browser-originated requests are not allowed",
+        });
+    }
+    next();
+});
 httpServer.use(express.json());
 
 // Like nginx (`listen [::]:80 ipv6only=on; listen 80;`) and Redis (`bind * -::*`),
