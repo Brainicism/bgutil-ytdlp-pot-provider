@@ -112,6 +112,12 @@ httpServer.get("/", async (request, response) => {
 });
 
 httpServer.post("/get_pot", async (request, response) => {
+    if (!request.is("application/json")) {
+        return response.status(415).send({
+            error: "Content-Type must be application/json",
+        });
+    }
+
     const body = request.body || {};
     if (body.data_sync_id)
         return response.status(400).send({
