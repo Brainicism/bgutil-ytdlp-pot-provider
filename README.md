@@ -48,14 +48,15 @@ deno install --allow-scripts=npm:canvas --frozen
 
 #### (a) HTTP Server Option
 
-This is a JavaScript HTTP server, on port 4416 by default. You have two options for running it: as a prebuilt Docker image, or manually as a JavaScript application.
+This is a JavaScript HTTP server, on port 4416 by default, bound to localhost only (`127.0.0.1` / `::1`). You have two options for running it: as a prebuilt Docker image, or manually as a JavaScript application.
 
 **Docker:**
 
-Port 4416 is exposed to the host system by default. Pass `-p 1234:4416` in the docker run options (before the image name) to publish the server to port 1234 on the host system. Replace `[OPTIONS]` with the server command line options (usually this is not needed because you can use docker to publish the server to another port).
+Publish the port and opt into a non-localhost bind:
 
 ```shell
-docker run --name bgutil-provider -d --init brainicism/bgutil-ytdlp-pot-provider [OPTIONS]
+docker run --name bgutil-provider -d --init -p 4416:4416 \
+  brainicism/bgutil-ytdlp-pot-provider --host 0.0.0.0
 ```
 
 Our Docker image comes in two flavors: Node.js or Deno. The `:latest` tag defaults to Node.js, but you can specify an alternate version/flavor like so: `brainicism/bgutil-ytdlp-pot-provider:1.3.2-deno`. The `:node` tag also points to the latest Node.js image, and `:deno` points to the latest Deno image.
@@ -83,6 +84,7 @@ deno run --allow-env --allow-net --allow-ffi=. --allow-read=. ../src/main.ts [OP
 **Server Command Line Options**
 
 - `-p, --port <PORT>`: The port on which the server listens.
+- `-H, --host <HOST>`: Host/IP to listen on. Repeat it or separate values with commas to bind multiple addresses. Defaults to localhost only (`127.0.0.1` and `::1`).
 
 #### (b) Generation Script Option
 
@@ -110,7 +112,7 @@ python3 -m pip install -U bgutil-ytdlp-pot-provider
 
 If using option (a) HTTP Server for the provider, and the default IP/port number (http://127.0.0.1:4416), you can use yt-dlp like normal 🙂.
 
-If changing the port or IP used for the provider server, pass it to yt-dlp via `base_url`
+If the provider server is reachable at a different URL, pass it to yt-dlp via `base_url`:
 
 ```shell
 --extractor-args "youtubepot-bgutilhttp:base_url=http://127.0.0.1:8080"

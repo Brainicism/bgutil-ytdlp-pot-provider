@@ -5,11 +5,29 @@ import express from "express";
 import http from "node:http";
 import net from "node:net";
 
-const program = new Command().option("-p, --port <PORT>").parse();
+function collectHosts(host: string, previous: string[]) {
+    previous.push(
+        ...host
+            .split(",")
+            .map((entry) => entry.trim())
+            .filter(Boolean),
+    );
+    return previous;
+}
 
-const options = program.opts();
+const program = new Command()
+    .option("-p, --port <PORT>")
+    .option(
+        "-H, --host <HOST>",
+        "Host/IP to listen on; repeat or separate with commas to bind multiple addresses",
+        collectHosts,
+        [],
+    )
+    .parse();
 
-const PORT_NUMBER = options.port || 4416;
+const cliOptions = program.opts();
+
+const PORT_NUMBER = cliOptions.port || 4416;
 
 const httpServer = express();
 httpServer.use((request, response, next) => {
@@ -25,15 +43,21 @@ httpServer.use((request, response, next) => {
 });
 httpServer.use(express.json());
 
-// Like nginx (`listen [::]:80 ipv6only=on; listen 80;`) and Redis (`bind * -::*`),
-// bind the IPv6 and IPv4 wildcards as two separate sockets, with the IPv6 one
-// restricted to IPv6 so the two never overlap. Every address is optional: a
-// failure is logged, and startup only aborts if nothing could be bound.
-// NOTE: this is temporary as we plan to bind to localhost in the next major version
+// Bind the IPv6 and IPv4 localhost addresses as separate sockets, with the
+// IPv6 one restricted to IPv6 so the two never overlap. Every address is
+// optional: a failure is logged, and startup only aborts if nothing could be
+// bound.
 const LISTEN_ADDRESSES: (net.ListenOptions & { host: string })[] = [
-    { host: "::", ipv6Only: true },
-    { host: "0.0.0.0" },
+    { host: "::1", ipv6Only: true },
+    { host: "127.0.0.1" },
 ];
+
+function getListenAddresses(hosts: string[]) {
+    if (hosts.length === 0) return LISTEN_ADDRESSES;
+    return hosts.map((host) =>
+        host.includes(":") ? { host, ipv6Only: true } : { host },
+    );
+}
 
 function formatAddress(host: string) {
     return `${host.includes(":") ? `[${host}]` : host}:${PORT_NUMBER}`;
@@ -52,14 +76,14 @@ function listen(options: net.ListenOptions): Promise<http.Server> {
 
 async function startServer() {
     const bound: string[] = [];
-    for (const options of LISTEN_ADDRESSES) {
-        const address = formatAddress(options.host);
+    for (const listenOptions of getListenAddresses(cliOptions.host)) {
+        const address = formatAddress(listenOptions.host);
         try {
-            await listen(options);
+            await listen(listenOptions);
             bound.push(address);
         } catch (err) {
             // Deno ignores `ipv6Only` (and on Windows leaves the OS default of
-            // IPv6-only, #244), so with a dual-stack "::" socket the 0.0.0.0
+            // IPv6-only, #244), so with a dual-stack "::1" socket the 127.0.0.1
             // bind collides with it. That only means IPv4 is already served.
             if (err?.code === "EADDRINUSE" && bound.length > 0) continue;
             console.error(

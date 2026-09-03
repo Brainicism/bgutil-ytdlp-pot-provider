@@ -7,6 +7,11 @@ If you are interested in using the script/server standalone for generating your 
 
 # Server
 
+**Options**
+
+- `-p, --port <PORT>`: The port on which the server listens.
+- `-H, --host <HOST>`: Host/IP to listen on. Repeat it or separate values with commas to bind multiple addresses. Defaults to localhost only (`127.0.0.1` and `::1`).
+
 **Endpoints**
 
 - **POST /get_pot**: Generate a new POT.
