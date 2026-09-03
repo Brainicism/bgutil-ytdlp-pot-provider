@@ -27,6 +27,23 @@ interface YoutubeSessionData {
     expiresAt: Date;
 }
 
+const SUPPORTED_PROXY_PROTOCOLS = new Set([
+    "http:",
+    "https:",
+    "socks:",
+    "socks4:",
+    "socks4a:",
+    "socks5:",
+    "socks5h:",
+]);
+
+export class InvalidProxyError extends Error {
+    constructor(message: string, options?: ErrorOptions) {
+        super(message, options);
+        this.name = "InvalidProxyError";
+    }
+}
+
 export interface YoutubeSessionDataCaches {
     [contentBinding: string]: YoutubeSessionData;
 }
@@ -79,18 +96,26 @@ class ProxySpec {
     public set proxy(newProxy: string | undefined) {
         if (newProxy) {
             // Normalize and sanitize the proxy URL
+            let proxyUrl: URL;
             try {
-                this.proxyUrl = new URL(newProxy);
+                proxyUrl = new URL(newProxy);
             } catch {
                 newProxy = `http://${newProxy}`;
                 try {
-                    this.proxyUrl = new URL(newProxy);
+                    proxyUrl = new URL(newProxy);
                 } catch (e) {
-                    throw new Error(`Invalid proxy URL: ${newProxy}`, {
-                        cause: e,
-                    });
+                    throw new InvalidProxyError(
+                        `Invalid proxy URL: ${newProxy}`,
+                        { cause: e },
+                    );
                 }
             }
+            if (!SUPPORTED_PROXY_PROTOCOLS.has(proxyUrl.protocol)) {
+                throw new InvalidProxyError(
+                    `Unsupported proxy protocol: ${proxyUrl.protocol}`,
+                );
+            }
+            this.proxyUrl = proxyUrl;
         }
     }
 

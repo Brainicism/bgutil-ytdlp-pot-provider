@@ -1,4 +1,4 @@
-import { SessionManager } from "./session_manager.ts";
+import { InvalidProxyError, SessionManager } from "./session_manager.ts";
 import { strerror, VERSION } from "./utils.ts";
 import { Command } from "commander";
 import express from "express";
@@ -112,8 +112,10 @@ httpServer.post("/get_pot", async (request, response) => {
         response.send(sessionData);
     } catch (e) {
         const msg = strerror(e, /*update=*/ true);
-        console.error(e.stack);
-        response.status(500).send({ error: msg });
+        if (!(e instanceof InvalidProxyError)) console.error(e.stack);
+        response.status(e instanceof InvalidProxyError ? 400 : 500).send({
+            error: msg,
+        });
     }
 });
 
