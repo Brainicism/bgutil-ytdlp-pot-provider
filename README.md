@@ -48,16 +48,19 @@ deno install --allow-scripts=npm:canvas --frozen
 
 #### (a) HTTP Server Option
 
-This is a JavaScript HTTP server, on port 4416 by default, bound to localhost only (`127.0.0.1` / `::1`). You have two options for running it: as a prebuilt Docker image, or manually as a JavaScript application.
+This is a JavaScript HTTP server on port 4416 by default. When run natively, it binds to localhost only (`127.0.0.1` / `::1`). You have two options for running it: as a prebuilt Docker image, or manually as a JavaScript application.
 
 **Docker:**
 
-Publish the port and opt into a non-localhost bind:
+The Docker image binds the server to all interfaces inside the container so that port forwarding works. Publish it only to the host's IPv4 loopback interface:
 
 ```shell
-docker run --name bgutil-provider -d --init -p 4416:4416 \
-  brainicism/bgutil-ytdlp-pot-provider --host 0.0.0.0
+docker run --name bgutil-provider -d --init \
+  -p 127.0.0.1:4416:4416 brainicism/bgutil-ytdlp-pot-provider
 ```
+
+> [!WARNING]
+> Omitting `127.0.0.1` from the port mapping publishes the server on all host interfaces by default. This may allow untrusted local or external clients to access the unauthenticated server, generate tokens, consume system and network resources and potentially perform RCE.
 
 Our Docker image comes in two flavors: Node.js or Deno. The `:latest` tag defaults to Node.js, but you can specify an alternate version/flavor like so: `brainicism/bgutil-ytdlp-pot-provider:1.3.2-deno`. The `:node` tag also points to the latest Node.js image, and `:deno` points to the latest Deno image.
 

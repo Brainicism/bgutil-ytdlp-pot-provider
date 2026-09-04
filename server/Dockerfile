@@ -23,6 +23,7 @@ COPY --from=build_node /app/build /app/build
 
 EXPOSE 4416
 ENTRYPOINT ["/usr/local/bin/node", "build/main.js"]
+CMD ["--host", "0.0.0.0"]
 
 FROM denoland/deno:debian-2.9.5 AS server_deno
 USER deno
@@ -42,3 +43,4 @@ ENTRYPOINT [ \
     "/usr/bin/deno", "run", "--allow-env", "--allow-net", \
     "--allow-ffi=/app/node_modules", "--allow-read=/app/node_modules", \
     "/app/src/main.ts"]
+CMD ["--host", "0.0.0.0"]
