@@ -36,8 +36,8 @@ There are two options for the provider, an always running POT generation HTTP se
 You need to first install the repository unless you are using the Docker image for the HTTP server:
 
 ```shell
-# Replace 1.3.2 with the latest version or the one that matches the plugin
-git clone --single-branch --branch 1.3.2 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
+# Replace 2.0.0 with the latest version or the one that matches the plugin
+git clone --single-branch --branch 2.0.0 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
 cd bgutil-ytdlp-pot-provider/server/
 # If you are using Node:
 npm ci
@@ -62,7 +62,7 @@ docker run --name bgutil-provider -d --init \
 > [!WARNING]
 > Omitting `127.0.0.1` from the port mapping publishes the server on all host interfaces by default. This may allow untrusted local or external clients to access the unauthenticated server, generate tokens, consume system and network resources and potentially perform RCE.
 
-Our Docker image comes in two flavors: Node.js or Deno. The `:latest` tag defaults to Node.js, but you can specify an alternate version/flavor like so: `brainicism/bgutil-ytdlp-pot-provider:1.3.2-deno`. The `:node` tag also points to the latest Node.js image, and `:deno` points to the latest Deno image.
+Our Docker image comes in two flavors: Node.js or Deno. The `:latest` tag defaults to Node.js, but you can specify an alternate version/flavor like so: `brainicism/bgutil-ytdlp-pot-provider:2.0.0-deno`. The `:node` tag also points to the latest Node.js image, and `:deno` points to the latest Deno image.
 
 > [!IMPORTANT]
 > Note that the docker container's network is isolated from your local network by default. If you are using a local proxy server, it will not be accessible from within the container unless you pass `--net=host` as well.
@@ -147,7 +147,7 @@ If both methods are available for use, the option (a) HTTP server method will be
 To check if the plugin was installed correctly, you should see the `bgutil` providers in yt-dlp's verbose output: `yt-dlp -v YOUTUBE_URL`.
 
 ```
-[debug] [youtube] [pot] PO Token Providers: bgutil:http-1.3.2 (external), bgutil:script-node-1.3.2 (external), bgutil:script-deno-1.3.2 (external, unavailable)
+[debug] [youtube] [pot] PO Token Providers: bgutil:http-2.0.0 (external), bgutil:script-node-2.0.0 (external), bgutil:script-deno-2.0.0 (external, unavailable)
 ```
 
 ### FAQ
