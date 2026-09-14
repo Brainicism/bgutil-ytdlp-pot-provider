@@ -150,6 +150,23 @@ To check if the plugin was installed correctly, you should see the `bgutil` prov
 [debug] [youtube] [pot] PO Token Providers: bgutil:http-2.0.0 (external), bgutil:script-node-2.0.0 (external), bgutil:script-deno-2.0.0 (external, unavailable)
 ```
 
+This only confirms that yt-dlp loaded the plugin. To confirm that a PO Token was actually requested and generated, also look for a line like one of these in the same output:
+
+```
+[youtube] [pot:bgutil:http] Generating a gvs PO Token for web client via bgutil HTTP server
+[youtube] [pot:bgutil:script-node] Generating a gvs PO Token for web client via bgutil script
+```
+
+(the context and client may differ, e.g. `player` instead of `gvs`, or `tv` instead of `web`).
+
+If the providers are listed but no `Generating a ... PO Token` line ever appears, the PO Token flow was never triggered. This usually means the selected player clients failed earlier (e.g. with `LOGIN_REQUIRED`) before reaching a step that needs a PO Token, so the provider itself is not the problem. Try a different set of player clients, for example:
+
+```shell
+--extractor-args "youtube:player-client=mweb,tv,web_safari"
+```
+
+Also note that a PO Token does not bypass IP-based login restrictions. If you still get "Sign in to confirm you're not a bot" after a token was generated (common on datacenter IPs), you additionally need to pass cookies; see #37.
+
 ### FAQ
 
 #### I'm getting errors during `npm ci` on Termux
