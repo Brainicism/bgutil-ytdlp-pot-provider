@@ -27,7 +27,7 @@ The provider comes in two parts:
 1. yt-dlp `2025.05.22` or above.
 
 2. If using Docker image for option (a) for the provider, the Docker runtime is required.  
-   Otherwise, Node.js (>= 20) or Deno (>= 2.0.0) is required. You will also need git to clone the repository.
+   Otherwise, Node.js (>= 22) or Deno (>= 2.0.0) is required. You will also need git to clone the repository.
 
 ### 1. Set up the provider
 
