@@ -16,7 +16,7 @@
         "node": ">=22",
         "npm": ">=9"
     },
-    "version": "2.0.1",
+    "version": "2.0.2",
     "scripts": {
         "lint": "npx eslint --max-warnings=0 src/",
         "lint-fix": "npx eslint --fix --max-warnings=0 src/",
