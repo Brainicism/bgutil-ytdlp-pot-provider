@@ -1,6 +1,6 @@
 import { BgError } from "bgutils-js/utils";
 
-export const VERSION = "2.0.1";
+export const VERSION = "2.0.2";
 
 export function strerror(e: any, update?: boolean): string {
     const msg =
