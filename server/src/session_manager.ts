@@ -189,7 +189,12 @@ export class SessionManager {
     // hardcoded API key that has been used by youtube for years
     private static readonly REQUEST_KEY = "O43z0dpjhgX20SCx4KAo";
     private static hasDom = false;
+    // a request may still be minting with a replaced minter, so its VM is shut down later
+    private static readonly VM_SHUTDOWN_DELAY_MS = 60_000;
     private _minterCache: MinterCache = new Map();
+    // kept out of TokenMinter: /minter_cache logs the whole map
+    private bgClients = new WeakMap<TokenMinter, BotGuardClient>();
+    private pendingMinters = new Map<string, Promise<TokenMinter>>();
     private TOKEN_TTL_HOURS: number;
     private logger: Logger;
 
@@ -230,7 +235,24 @@ export class SessionManager {
 
     public invalidateCaches() {
         this.setYoutubeSessionDataCaches();
+        this._minterCache.forEach((minter) => this.retireMinter(minter));
         this._minterCache.clear();
+    }
+
+    private shutdownClient(client: BotGuardClient) {
+        client.shutdown().catch((e) => {
+            this.logger.debug(`BotGuard client shutdown failed: ${e}`);
+        });
+    }
+
+    private retireMinter(tokenMinter: TokenMinter) {
+        const client = this.bgClients.get(tokenMinter);
+        if (!client) return;
+        this.bgClients.delete(tokenMinter);
+        setTimeout(
+            () => this.shutdownClient(client),
+            SessionManager.VM_SHUTDOWN_DELAY_MS,
+        ).unref();
     }
 
     public invalidateIT() {
@@ -467,9 +489,13 @@ export class SessionManager {
                     webPoSignalOutput,
                 ),
             };
+            this.bgClients.set(tokenMinter, bgClient);
+            const previous = this._minterCache.get(cacheSpec.key);
             this._minterCache.set(cacheSpec.key, tokenMinter);
+            if (previous) this.retireMinter(previous);
             return tokenMinter;
         } catch (e) {
+            this.shutdownClient(bgClient);
             throw new Error(`Failed to generate an integrity token.`, {
                 cause: e,
             });
@@ -623,15 +649,23 @@ export class SessionManager {
                 // Replace minter if expired
                 if (new Date() >= tokenMinter.expiry) {
                     this.logger.log("POT minter expired, getting a new one");
-                    tokenMinter = await this.generateTokenMinter(
+                    tokenMinter = undefined;
+                }
+            }
+            if (!tokenMinter) {
+                let pending = this.pendingMinters.get(cacheSpec.key);
+                if (!pending) {
+                    pending = this.generateTokenMinter(
                         cacheSpec,
                         potCtx,
                         challenge,
                         innertubeContext,
-                    );
+                    ).finally(() => this.pendingMinters.delete(cacheSpec.key));
+                    this.pendingMinters.set(cacheSpec.key, pending);
                 }
-                return await this.tryMintPOT(contentBinding, tokenMinter);
+                tokenMinter = await pending;
             }
+            return await this.tryMintPOT(contentBinding, tokenMinter);
         }
 
         const tokenMinter = await this.generateTokenMinter(
