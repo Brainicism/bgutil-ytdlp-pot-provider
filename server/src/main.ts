@@ -166,8 +166,30 @@ httpServer.post("/invalidate_caches", async (request, response) => {
 });
 
 httpServer.post("/invalidate_it", async (request, response) => {
-    sessionManager.invalidateIT();
-    response.status(204).send();
+    const body = request.body || {};
+    const proxy: string | undefined = body.proxy;
+    const remoteHost: string | undefined = body.remote_host;
+
+    // No filter: expire every minter (unchanged behaviour).
+    if (!proxy && !remoteHost) {
+        sessionManager.invalidateIT();
+        return response.status(204).send();
+    }
+
+    try {
+        const invalidated = sessionManager.invalidateIT({
+            proxy,
+            sourceAddress: body.source_address,
+            remoteHost,
+        });
+        response.send({ invalidated });
+    } catch (e) {
+        const msg = strerror(e, /*update=*/ true);
+        if (!(e instanceof InvalidProxyError)) console.error(e.stack);
+        response.status(e instanceof InvalidProxyError ? 400 : 500).send({
+            error: msg,
+        });
+    }
 });
 
 httpServer.get("/ping", async (request, response) => {
