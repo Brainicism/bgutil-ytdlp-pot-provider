@@ -175,6 +175,12 @@ type TokenMinter = {
 
 type MinterCache = Map<string, TokenMinter>;
 
+export type InvalidateITFilter = {
+    proxy?: string;
+    sourceAddress?: string;
+    remoteHost?: string;
+};
+
 export type ChallengeData = {
     interpreterUrl: {
         privateDoNotAccessOrElseTrustedResourceUrlWrappedValue: string;
@@ -233,10 +239,45 @@ export class SessionManager {
         this._minterCache.clear();
     }
 
-    public invalidateIT() {
-        this._minterCache.forEach((minterCache) => {
-            minterCache.expiry = new Date(0);
-        });
+    /**
+     * Expire cached integrity tokens so the next request mints a new one.
+     *
+     * Without a filter every minter is expired. With `remoteHost` and/or
+     * `proxy` (+ `sourceAddress`), only the minters cached under the matching
+     * key are expired, so a client that sees GVS reject the tokens of one
+     * proxy can re-roll that minter without re-rolling the working ones.
+     *
+     * @returns the number of minters that were expired
+     */
+    public invalidateIT(filter?: InvalidateITFilter): number {
+        if (!filter?.proxy && !filter?.remoteHost) {
+            this._minterCache.forEach((tokenMinter) => {
+                tokenMinter.expiry = new Date(0);
+            });
+            return this._minterCache.size;
+        }
+
+        // Build the keys exactly like generatePoToken does, so the
+        // normalization of the proxy URL is the same on both sides.
+        const keys = new Set<string>();
+        if (filter.remoteHost)
+            keys.add(new CacheSpec(new ProxySpec({}), filter.remoteHost).key);
+        if (filter.proxy) {
+            const pxySpec = new ProxySpec({
+                sourceAddress: filter.sourceAddress,
+            });
+            pxySpec.proxy = filter.proxy;
+            keys.add(new CacheSpec(pxySpec, null).key);
+        }
+
+        let invalidated = 0;
+        for (const key of keys) {
+            const tokenMinter = this._minterCache.get(key);
+            if (!tokenMinter) continue;
+            tokenMinter.expiry = new Date(0);
+            invalidated++;
+        }
+        return invalidated;
     }
 
     public cleanupCaches() {
