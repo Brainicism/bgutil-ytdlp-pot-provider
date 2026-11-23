@@ -219,11 +219,9 @@ export class SessionManager {
                 origin: dom.window.origin,
             });
 
-            if (!Reflect.has(globalThis, "navigator")) {
-                Object.defineProperty(globalThis, "navigator", {
-                    value: dom.window.navigator,
-                });
-            }
+            Object.defineProperty(globalThis, "navigator", {
+                value: dom.window.navigator,
+            });
             SessionManager.hasDom = true;
         }
     }
